@@ -129,7 +129,7 @@ export default function TransactionsView() {
     return matchesType && matchesSearch;
   });
   const totals = visibleItems.reduce((result, item) => {
-    if (item.status !== "completed") return result;
+    if (item.status !== "completed" || item.type === "transfer") return result;
     const key = item.currency_code;
     if (!result[key]) result[key] = { income: 0, expense: 0, adjustment: 0 };
     result[key][item.type] += Number(item.amount);
