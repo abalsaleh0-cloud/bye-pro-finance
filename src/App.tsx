@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import AccountsView from "./components/AccountsView";
 
 const modules = [
   { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "◈" },
@@ -155,6 +156,7 @@ export default function App() {
     </aside>
     <section className="workspace-main">
       <header className="workspace-topbar"><div><p className="eyebrow">مساحتك المالية</p><h1>{active.title}</h1></div><div className="user-chip"><span className="avatar">{email.slice(0, 1).toUpperCase() || "U"}</span><span dir="ltr">{email}</span></div></header>
+      {activeModule === "الحسابات" ? <AccountsView /> : <>
       <div className="welcome-panel"><div><p className="eyebrow">BYE PRO FINANCE · {active.number}</p><h2>{active.title === "لوحة التحكم" ? "مرحبًا بعودتك" : active.title}</h2><p>{active.description}. يجري تجهيز ربط هذا القسم ببياناتك المحفوظة.</p></div><span className="welcome-mark">{active.icon}</span></div>
       <div className="notice warning wide-notice"><strong>مرحلة التطوير:</strong> تم تجهيز تسجيل الدخول والتنقل الأساسي. لا تُعرض أرقام مالية وهمية؛ ستظهر بياناتك هنا بعد ربط عمليات القراءة والكتابة واختبارها.</div>
       <section className="section-heading"><div><p className="eyebrow">التنقل</p><h2>الأقسام الرئيسية</h2></div><span className="module-count">07 أقسام</span></section>
@@ -162,6 +164,7 @@ export default function App() {
         {modules.filter((item) => item.title !== "لوحة التحكم").map((item) => <button type="button" className={activeModule === item.title ? "module-card selected" : "module-card"} key={item.number} onClick={() => setActiveModule(item.title)}><span className="module-number">{item.number} / {item.icon}</span><div><h3>{item.title}</h3><p>{item.description}</p></div><span className="card-arrow" aria-hidden="true">↙</span></button>)}
       </section>
       <footer className="footer"><span>BYE PRO FINANCE</span><span>بياناتك المالية خاصة بك</span></footer>
+      </>}
     </section>
   </main>;
 }
