@@ -169,3 +169,29 @@ button.module-card { width: 100%; }
   .account-balance { grid-column: 2; display: flex; justify-content: space-between; align-items: center; width: 100%; }
   .account-balance strong { font-size: 12px; }
 }
+
+.transaction-toolbar { display: flex; gap: 10px; margin: 18px 0; }
+.transaction-toolbar input, .transaction-toolbar select { min-height: 42px; padding: 10px 12px; border: 1px solid #363740; border-radius: 9px; background: #101115; color: #f7f4ec; }
+.transaction-toolbar input { flex: 1; min-width: 0; }
+.transaction-toolbar select { min-width: 145px; }
+.transaction-list { display: grid; gap: 10px; }
+.transaction-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(140deg, #1c1d22, #15161a); }
+.transaction-type-icon { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #655638; border-radius: 12px; color: var(--gold); font-size: 20px; }
+.transaction-type-icon.positive { border-color: #315b48; color: var(--green); background: #17261f; }
+.transaction-type-icon.negative { border-color: #703c43; color: var(--red); background: #2b191d; }
+.transaction-details { min-width: 0; }
+.transaction-details h3 { margin: 0 0 6px; font-size: 14px; }
+.transaction-details p { margin: 0 0 7px; color: var(--muted); font-size: 11px; }
+.account-balance { display: grid; justify-items: end; gap: 7px; }
+.account-balance strong { font-size: 14px; white-space: nowrap; }
+.amount-positive { color: var(--green); }
+.amount-negative { color: var(--red); }
+@media (max-width: 620px) {
+  .transaction-toolbar { flex-direction: column; }
+  .transaction-toolbar select { width: 100%; }
+  .transaction-row { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .transaction-type-icon { width: 34px; height: 34px; }
+  .transaction-row .account-balance { grid-column: 2; display: flex; justify-content: space-between; align-items: center; justify-items: initial; }
+  .transaction-row .account-balance strong { font-size: 12px; }
+  .account-form { grid-template-columns: 1fr; }
+}
