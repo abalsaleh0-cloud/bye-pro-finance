@@ -1,31 +1,55 @@
 # BYE PRO FINANCE
 
-A secure, Arabic-first personal finance platform built around Supabase.
+تطبيق مالي شخصي بواجهة عربية، مبني باستخدام React وTypeScript وVite وSupabase.
 
-## Current foundation
-- Supabase project: `ngfaukvfsesoslfiwaue` (EU West 3 / Paris)
-- PostgreSQL schema with RLS-enabled finance tables
-- Generated TypeScript database definitions
-- React + TypeScript + Vite frontend foundation
-- Private repository; never commit secrets or real financial data
+## الحالة الحالية
 
-## Requirements
-- Node.js 20+
-- npm 10+
+- [x] إعداد مشروع الواجهة والبناء وفحوص GitHub Actions.
+- [x] عميل Supabase مضبوط على متغيرات بيئة عامة آمنة.
+- [x] تسجيل الدخول، إنشاء الحساب، واستعادة كلمة المرور عبر Supabase Auth.
+- [x] عرض الحسابات من قاعدة البيانات وإضافة الحساب وتفعيل/إيقاف الحساب.
+- [x] عرض المعاملات، البحث والتصفية، إضافة دخل/مصروف/تسوية، وتغيير الحالة.
+- [x] اختبارات حسابية لملخص دفتر المعاملات والتحقق من المبالغ ونسبة التقدم.
+- [ ] ربط بقية الأقسام: الميزانيات، الديون، الادخار، الفواتير، الأصول والتقارير.
+- [ ] اختبار تكاملي مع مشروع Supabase الفعلي ومراجعة سياسات RLS والتحديثات المحاسبية.
+- [ ] تأكيد إعدادات Vercel ومتغيرات البيئة من لوحة المشروع قبل اعتبار النشر جاهزًا للإنتاج.
 
-## Setup
-1. Copy `.env.example` to `.env.local`.
-2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Run `npm install`.
-4. Run `npm run dev`.
+**مهم:** المشروع قيد التطوير وليس بعدُ نظامًا ماليًا مكتملًا للإنتاج. لا تُدخل بيانات مالية حساسة قبل إتمام اختبارات التكامل والأمان.
 
-Do not put a Supabase service-role or secret key in any `VITE_*` variable.
+## إعداد البيئة
 
-## Planned monorepo evolution
-- `apps/web`: responsive finance dashboard
-- `apps/api`: trusted server-side operations where required
-- `packages/finance-engine`: tested calculations and reporting rules
-- `supabase/migrations`: database schema history
-- `tests`: unit, integration, and browser tests
+المتطلبات: Node.js 20+ وnpm.
 
-This repository is an initial scaffold, not yet a production-complete finance application.
+1. انسخ `.env.example` إلى `.env.local`.
+2. اضبط `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY`.
+3. نفّذ `npm install`.
+4. نفّذ `npm run dev`.
+
+في Vercel أضف المتغيرين نفسيهما لبيئات Preview وProduction ثم أعد البناء. عنوان المشروع الحالي:
+`https://ngfaukvfsesoslfiwaue.supabase.co`
+
+استخدم مفتاح Supabase publishable/anon المخصص للواجهة فقط. **لا تضع مفتاح service-role أو أي مفتاح سري داخل متغيرات `VITE_*` أو في GitHub.**
+
+## الفحوص
+
+- `npm run typecheck` — فحص TypeScript.
+- `npm test` — الاختبارات الوحدوية.
+- `npm run build` — بناء الإنتاج.
+
+يجب التحقق من نتائج GitHub Actions وVercel بعد كل مجموعة تغييرات. حالة Vercel المعلّقة لا تُعد نجاحًا حتى يظهر اكتمال البناء.
+
+## قاعدة البيانات
+
+- مشروع Supabase: `ngfaukvfsesoslfiwaue` (EU West 3 / Paris).
+- مخطط PostgreSQL وتعريفات TypeScript موجودة في المستودع.
+- فعّل RLS على كل جدول مكشوف واحتفظ بتخزين المستندات خاصًا.
+- قبل إضافة migrations جديدة، طابق سجل الترحيلات مع المخطط الحي حتى لا تعيد إنشاء جداول موجودة.
+
+## الهيكل الحالي
+
+- `src/App.tsx` — المصادقة والتنقل الرئيسي.
+- `src/components/AccountsView.tsx` — الحسابات.
+- `src/components/TransactionsView.tsx` — المعاملات.
+- `src/lib/finance.ts` — قواعد الحساب المالي القابلة للاختبار.
+- `src/types/database.types.ts` — تعريفات قاعدة البيانات.
+- `supabase/` — ملاحظات قاعدة البيانات.
