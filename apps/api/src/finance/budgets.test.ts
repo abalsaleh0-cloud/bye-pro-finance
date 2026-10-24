@@ -14,6 +14,13 @@ describe("validateBudgetInput", () => {
     expect(validateBudgetInput({ ...valid, period: "daily" }).ok).toBe(false);
     expect(validateBudgetInput({ ...valid, category_id: "not-a-uuid" }).ok).toBe(false);
   });
+  it.each(["2026-02-29", "2026-04-31", "2026-13-01"])("rejects invalid calendar date %s", (date) => {
+    expect(validateBudgetInput({ ...valid, start_date: date })).toMatchObject({ ok: false, error: "INVALID_START_DATE" });
+    expect(validateBudgetInput({ ...valid, end_date: date })).toMatchObject({ ok: false, error: "INVALID_END_DATE" });
+  });
+  it("accepts leap day in a leap year", () => {
+    expect(validateBudgetInput({ ...valid, start_date: "2024-02-29" }).ok).toBe(true);
+  });
   it("rejects reversed dates and invalid currencies", () => {
     expect(validateBudgetInput({ ...valid, start_date: "2026-11-01", end_date: "2026-10-01" }).ok).toBe(false);
     expect(validateBudgetInput({ ...valid, currency_code: "lyd" }).ok).toBe(false);
