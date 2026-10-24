@@ -3,12 +3,13 @@ import { supabase } from "../lib/supabase";
 
 function Panel({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
-  const tr = (ar: string, english: string) => en ? english : ar;
   const labels: Record<string,string> = {"التحويلات":"Transfers","نقل الأموال بين حساباتك مع حفظ سجل مستقل للتحويلات.":"Move money between your accounts while keeping a separate transfer record.","مصروفات المنزل":"Household expenses","مساحة مستقلة لتنظيم مصروفات الأسرة والالتزامات المشتركة.":"A dedicated space for household expenses and shared obligations.","المساعد المالي":"Financial assistant","الإعدادات":"Settings","الملف الشخصي والعملة الافتراضية وتفضيلات الحساب.":"Profile, default currency, and account preferences.","لوحة الإدارة":"Administration","مراقبة تشغيلية للحساب الحالي دون تجاوز سياسات RLS.":"Operational monitoring for the current account within RLS policies."};
   return <section className="panel"><div className="section-heading"><div><p className="eyebrow">BYE PRO FINANCE</p><h2>{en ? (labels[title] ?? title) : title}</h2><p>{en ? (labels[description] ?? description) : description}</p></div></div>{children}</section>;
 }
 
 export function TransfersView() {
+  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
+  const tr = (ar: string, english: string) => en ? english : ar;
   const [rows, setRows] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [busy, setBusy] = useState(true);
