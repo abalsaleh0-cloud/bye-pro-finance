@@ -105,7 +105,12 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       .order("transaction_date", { ascending: false })
       .limit(limit);
     const type = url.searchParams.get("type");
-    if (type && ["income", "expense", "transfer", "adjustment"].includes(type)) query = query.eq("type", type);
+    const allowedTypes = ["income", "expense", "transfer", "adjustment"] as const;
+    if (type !== null && !allowedTypes.includes(type as (typeof allowedTypes)[number])) {
+      json(response, 400, { error: "INVALID_TRANSACTION_TYPE" });
+      return;
+    }
+    if (type !== null) query = query.eq("type", type);
     const { data, error } = await query;
     if (error) { json(response, 502, { error: "TRANSACTIONS_UNAVAILABLE" }); return; }
     json(response, 200, { data: data ?? [] });
