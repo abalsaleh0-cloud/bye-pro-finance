@@ -1,0 +1,22 @@
+{
+  "name": "BYE PRO FINANCE",
+  "short_name": "BYE FINANCE",
+  "description": "BYE PRO FINANCE — إدارة مالية شخصية بواجهة عربية.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#101114",
+  "theme_color": "#101114",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
