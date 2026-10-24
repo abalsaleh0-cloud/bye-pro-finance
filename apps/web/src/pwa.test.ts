@@ -25,9 +25,9 @@ describe("PWA contract", () => {
 
     expect(existsSync(resolve(root, "apps/web/public/offline.html"))).toBe(true);
     expect(existsSync(resolve(root, "apps/web/public/icons/icon.svg"))).toBe(true);
-    expect(worker).toContain("self.addEventListener(\"install\"");
-    expect(worker).toContain("self.addEventListener(\"activate\"");
-    expect(worker).toContain("self.addEventListener(\"fetch\"");
+    expect(worker).toContain('self.addEventListener("install"');
+    expect(worker).toContain('self.addEventListener("activate"');
+    expect(worker).toContain('self.addEventListener("fetch"');
     expect(worker).toContain("/offline.html");
     expect(worker).toContain("self.skipWaiting()");
     expect(worker).toContain("self.clients.claim()");
