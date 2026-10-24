@@ -123,7 +123,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       return;
     }
     const validated = validateTransactionInput(body);
-    if (!validated.ok) { json(response, 400, { error: validated.error }); return; }
+    if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
     const { data, error } = await auth.client.from("transactions")
       .insert({ ...validated.value, user_id: auth.identity.id })
       .select("id,account_id,category_id,type,status,amount,currency_code,description,transaction_date,reference,metadata,created_at,updated_at")
