@@ -142,6 +142,8 @@ const server = createServer((request, response) => {
     else response.destroy();
   });
 });
-server.listen(port, "0.0.0.0", () => {
-  console.log(`BYE PRO FINANCE API listening on ${port}`);
-});
+if (process.env.VERCEL !== "1") {
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`BYE PRO FINANCE API listening on ${port}`);
+  });
+}
