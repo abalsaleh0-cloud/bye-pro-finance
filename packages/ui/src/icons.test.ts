@@ -4,6 +4,10 @@ import { describe, expect, it } from "vitest";
 const registry = readFileSync("packages/ui/src/icons.tsx", "utf8");
 const exports = readFileSync("packages/ui/src/index.tsx", "utf8");
 const app = readFileSync("apps/web/src/App.tsx", "utf8");
+const accountView = readFileSync("apps/web/src/components/AccountsView.tsx", "utf8");
+const transactionsView = readFileSync("apps/web/src/components/TransactionsView.tsx", "utf8");
+const financeViews = readFileSync("apps/web/src/components/FinanceViews.tsx", "utf8");
+const advancedFinanceViews = readFileSync("apps/web/src/components/AdvancedFinanceViews.tsx", "utf8");
 
 describe("shared icon library contract", () => {
   it("exports the shared icon component and registry from the UI package", () => {
@@ -41,6 +45,14 @@ describe("shared icon library contract", () => {
     expect(app).toContain("icon: IconName");
     expect(app).toContain('<Icon name={item.icon} size={18} />');
     expect(app).not.toMatch(/icon: "[◈▤⇄↔▥↗□◇◆⌂▧⌕✦◉⇵⚙▣]"/u);
+  });
+
+  it("uses shared semantic icons in core empty states rather than text glyphs", () => {
+    expect(accountView).toContain('<Icon name="wallet" size={28} />');
+    expect(transactionsView).toContain('<Icon name="arrow-left-right" size={28} />');
+    expect(financeViews).toContain('<Icon name="folder" size={28} />');
+    expect(advancedFinanceViews).toContain('<Icon name="folder" size={28} />');
+    expect(advancedFinanceViews).toContain('<Icon name="bell" size={28} />');
   });
 
   it("derives valid icon names from the registry instead of accepting arbitrary strings", () => {
