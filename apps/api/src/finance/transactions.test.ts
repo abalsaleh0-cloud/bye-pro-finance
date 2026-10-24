@@ -27,8 +27,10 @@ describe("validateTransactionInput", () => {
     expect(validateTransactionInput({ ...valid, currency_code: "lyd" }).ok).toBe(false);
     expect(validateTransactionInput({ ...valid, description: "x".repeat(2001) }).ok).toBe(false);
   });
-  it("rejects impossible calendar dates while accepting valid dates", () => {
+  it("rejects impossible calendar dates in date-only and ISO timestamp values", () => {
     expect(validateTransactionInput({ ...valid, transaction_date: "2026-02-31" })).toMatchObject({ ok: false, error: "INVALID_TRANSACTION_DATE" });
+    expect(validateTransactionInput({ ...valid, transaction_date: "2026-02-31T12:00:00.000Z" })).toMatchObject({ ok: false, error: "INVALID_TRANSACTION_DATE" });
+    expect(validateTransactionInput({ ...valid, transaction_date: "2026-04-31T12:00:00.000Z" })).toMatchObject({ ok: false, error: "INVALID_TRANSACTION_DATE" });
     expect(validateTransactionInput({ ...valid, transaction_date: "2024-02-29" }).ok).toBe(true);
     expect(validateTransactionInput({ ...valid, transaction_date: "2026-10-24T12:00:00.000Z" }).ok).toBe(true);
   });
