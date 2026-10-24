@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const testUser = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -25,16 +25,16 @@ const session = {
   user: testUser,
 };
 
-async function mockAuth(page: Parameters<typeof test>[0] extends never ? never : any) {
-  await page.route("**/auth/v1/session**", async (route: any) => {
+async function mockAuth(page: Page) {
+  await page.route("**/auth/v1/session**", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) });
   });
 
-  await page.route("**/auth/v1/token?grant_type=password", async (route: any) => {
+  await page.route("**/auth/v1/token?grant_type=password", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(session) });
   });
 
-  await page.route("**/auth/v1/signup", async (route: any) => {
+  await page.route("**/auth/v1/signup", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -42,7 +42,7 @@ async function mockAuth(page: Parameters<typeof test>[0] extends never ? never :
     });
   });
 
-  await page.route("**/auth/v1/recover", async (route: any) => {
+  await page.route("**/auth/v1/recover", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) });
   });
 }
@@ -78,5 +78,22 @@ test.describe("authentication", () => {
     await page.getByLabel("البريد الإلكتروني").fill("unknown@example.com");
     await page.getByRole("button", { name: "استعادة كلمة المرور" }).click();
     await expect(page.getByText("إذا كان البريد مسجلًا، ستصلك تعليمات الاستعادة.")).toBeVisible();
+  });
+
+  test("password visibility can be toggled without submitting the form", async ({ page }) => {
+    await mockAuth(page);
+    await page.goto("/");
+
+    const password = page.getByLabel("كلمة المرور");
+    await password.fill("StrongPassword123!");
+    await expect(password).toHaveAttribute("type", "password");
+
+    await page.getByRole("button", { name: "إظهار كلمة المرور" }).click();
+    await expect(password).toHaveAttribute("type", "text");
+    await expect(page.getByRole("button", { name: "إخفاء كلمة المرور" })).toHaveAttribute("aria-pressed", "true");
+
+    await page.getByRole("button", { name: "إخفاء كلمة المرور" }).click();
+    await expect(password).toHaveAttribute("type", "password");
+    await expect(page.getByRole("heading", { name: "تسجيل الدخول" })).toBeVisible();
   });
 });
