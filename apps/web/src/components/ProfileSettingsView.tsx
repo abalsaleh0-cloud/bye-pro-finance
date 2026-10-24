@@ -33,6 +33,9 @@ export default function ProfileSettingsView() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropX, setCropX] = useState(50);
+  const [cropY, setCropY] = useState(50);
 
   const fullNameAllowed = useMemo(() => !profile?.full_name_changed_at || Date.now() - new Date(profile.full_name_changed_at).getTime() >= 30 * 86400000, [profile]);
   const usernameAllowed = useMemo(() => !profile?.username_changed_at || Date.now() - new Date(profile.username_changed_at).getTime() >= 60 * 86400000, [profile]);
@@ -58,15 +61,32 @@ export default function ProfileSettingsView() {
     if (!["image/jpeg", "image/png", "image/webp"].includes(avatarFile.type)) { setError(tr("اختر صورة JPG أو PNG أو WEBP.", "Choose a JPG, PNG, or WEBP image.")); return; }
     if (avatarFile.size > 5 * 1024 * 1024) { setError(tr("حجم الصورة يجب ألا يتجاوز 5 ميغابايت.", "Image must be 5 MB or smaller.")); return; }
     setUploading(true); setError(""); setMessage("");
-    const extension = avatarFile.type === "image/jpeg" ? "jpg" : avatarFile.type === "image/png" ? "png" : "webp";
-    const path = profile.id + "/avatar." + extension;
-    const { error: uploadError } = await supabase.storage.from("profile-avatars").upload(path, avatarFile, { upsert: true, contentType: avatarFile.type, cacheControl: "3600" });
-    if (uploadError) { setError(uploadError.message); setUploading(false); return; }
-    const { data } = supabase.storage.from("profile-avatars").getPublicUrl(path);
-    const { error: updateError } = await supabase.from("profiles").update({ avatar_url: data.publicUrl, updated_at: new Date().toISOString() }).eq("id", profile.id);
-    if (updateError) setError(updateError.message);
-    else { setAvatarUrl(data.publicUrl); setMessage(tr("تم تحديث الصورة الشخصية.", "Profile photo updated.")); window.dispatchEvent(new CustomEvent("bye-profile-updated")); }
-    setAvatarFile(null); setUploading(false);
+    try {
+      const image = await createImageBitmap(avatarFile);
+      const side = Math.min(image.width, image.height) / cropZoom;
+      const maxX = Math.max(0, image.width - side);
+      const maxY = Math.max(0, image.height - side);
+      const sx = maxX * cropX / 100;
+      const sy = maxY * cropY / 100;
+      const canvas = document.createElement("canvas");
+      canvas.width = 512; canvas.height = 512;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error(tr("تعذر تجهيز الصورة.", "Could not prepare the image."));
+      context.imageSmoothingEnabled = true; context.imageSmoothingQuality = "high";
+      context.drawImage(image, sx, sy, side, side, 0, 0, 512, 512);
+      image.close();
+      const cropped = await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error(tr("تعذر قص الصورة.", "Could not crop the image."))), "image/jpeg", 0.92));
+      const path = profile.id + "/avatar.jpg";
+      const { error: uploadError } = await supabase.storage.from("profile-avatars").upload(path, cropped, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("profile-avatars").getPublicUrl(path);
+      const publicUrl = data.publicUrl + "?v=" + Date.now();
+      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq("id", profile.id);
+      if (updateError) throw updateError;
+      setAvatarUrl(publicUrl); setMessage(tr("تم قص الصورة وحفظها بنجاح.", "Photo cropped and saved successfully.")); window.dispatchEvent(new CustomEvent("bye-profile-updated"));
+      setAvatarFile(null);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : tr("تعذر رفع الصورة.", "Could not upload the photo.")); }
+    finally { setUploading(false); }
   }
 
   async function save() {
@@ -84,7 +104,7 @@ export default function ProfileSettingsView() {
     setSaving(false);
   }
 
-  async function onAvatarChange(event: ChangeEvent<HTMLInputElement>) { setAvatarFile(event.target.files?.[0] ?? null); setMessage(""); setError(""); }
+  async function onAvatarChange(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0] ?? null; setAvatarFile(file); setCropZoom(1); setCropX(50); setCropY(50); setMessage(""); setError(""); event.target.value = ""; }
   if (busy) return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…", "Loading your profile…")}</p></section>;
 
   return <section className="panel profile-settings">
@@ -94,8 +114,17 @@ export default function ProfileSettingsView() {
     <div className="profile-identity-card">
       <div className="profile-avatar-large">{avatarUrl ? <img src={avatarUrl} alt={tr("الصورة الشخصية", "Profile photo")} /> : <span>{(fullName.trim()[0] || username[0] || "B").toUpperCase()}</span>}</div>
       <div className="profile-identity-copy"><strong>{fullName || tr("أضف اسمك الكامل", "Add your full name")}</strong><span>@{username || tr("اسم المستخدم", "username")}</span><small>{email}</small></div>
-      <div className="profile-avatar-actions"><label className="secondary-button file-picker">{tr("اختيار صورة", "Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onAvatarChange} /></label><button className="primary-button" type="button" disabled={!avatarFile || uploading} onClick={() => void uploadAvatar()}>{uploading ? tr("جارٍ الرفع…", "Uploading…") : tr("رفع الصورة", "Upload photo")}</button></div>
+      <div className="profile-avatar-actions"><label className="secondary-button file-picker">{tr("اختيار صورة", "Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onAvatarChange} /></label></div>
     </div>
+    {avatarFile && <div className="avatar-editor">
+      <div className="avatar-editor-heading"><div><strong>{tr("تعديل الصورة الشخصية", "Adjust profile photo")}</strong><p>{tr("حرّك الصورة وكبّرها حتى تحصل على القصّة التي تريدها.", "Move and zoom the image until the crop looks right.")}</p></div><div className="avatar-crop-preview"><img src={URL.createObjectURL(avatarFile)} alt={tr("معاينة القص", "Crop preview")} style={{ objectPosition: cropX + "% " + cropY + "%", transform: "scale(" + cropZoom + ")" }} /></div></div>
+      <div className="avatar-adjustments">
+        <label>{tr("التكبير", "Zoom")}<input type="range" min="1" max="3" step="0.05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/><small>{cropZoom.toFixed(2)}×</small></label>
+        <label>{tr("الموضع الأفقي", "Horizontal position")}<input type="range" min="0" max="100" value={cropX} onChange={e=>setCropX(Number(e.target.value))}/></label>
+        <label>{tr("الموضع العمودي", "Vertical position")}<input type="range" min="0" max="100" value={cropY} onChange={e=>setCropY(Number(e.target.value))}/></label>
+      </div>
+      <div className="avatar-editor-actions"><button className="secondary-button" type="button" onClick={()=>{setCropZoom(1);setCropX(50);setCropY(50);}}>{tr("إعادة ضبط القص", "Reset crop")}</button><button className="primary-button" type="button" disabled={uploading} onClick={() => void uploadAvatar()}>{uploading ? tr("جارٍ تجهيز الصورة…", "Preparing photo…") : tr("اعتماد الصورة وحفظها", "Apply crop and save")}</button></div>
+    </div>}
     <div className="profile-settings-grid">
       <label className="profile-field"><span>{tr("الاسم الكامل", "Full name")} <small>{tr("التغيير كل 30 يومًا", "Change every 30 days")}</small></span><input value={fullName} minLength={2} maxLength={100} onChange={e=>setFullName(e.target.value)} disabled={!fullNameAllowed} autoComplete="name" />{!fullNameAllowed && <small>{tr("متاح بعد", "Available in")} {remainingDays(profile?.full_name_changed_at,30)} {tr("يومًا", "days")}</small>}</label>
       <label className="profile-field"><span>{tr("اسم المستخدم", "Username")} <small>{tr("التغيير كل 60 يومًا", "Change every 60 days")}</small></span><div className="username-field"><span>@</span><input value={username} minLength={3} maxLength={24} pattern="[A-Za-z0-9_]{3,24}" onChange={e=>setUsername(e.target.value.replace(/^@/,""))} disabled={!usernameAllowed} autoComplete="username" dir="ltr" /></div>{!usernameAllowed && <small>{tr("متاح بعد", "Available in")} {remainingDays(profile?.username_changed_at,60)} {tr("يومًا", "days")}</small>}</label>
