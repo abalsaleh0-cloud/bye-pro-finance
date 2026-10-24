@@ -14,6 +14,15 @@ export type TransactionInput = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TYPES = new Set(["income", "expense", "transfer", "adjustment"]);
 const STATUSES = new Set(["pending", "completed", "cancelled"]);
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidDate(value: string): boolean {
+  if (!Number.isFinite(Date.parse(value))) return false;
+  if (!DATE_ONLY.test(value)) return true;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
 
 export function validateTransactionInput(value: unknown):
   | { ok: true; value: TransactionInput }
@@ -28,7 +37,7 @@ export function validateTransactionInput(value: unknown):
   if (body.currency_code != null && (typeof body.currency_code !== "string" || !/^[A-Z]{3,5}$/.test(body.currency_code))) return { ok: false, error: "INVALID_CURRENCY" };
   if (body.description != null && (typeof body.description !== "string" || body.description.length > 2000)) return { ok: false, error: "INVALID_DESCRIPTION" };
   if (body.reference != null && (typeof body.reference !== "string" || body.reference.length > 200)) return { ok: false, error: "INVALID_REFERENCE" };
-  if (body.transaction_date != null && (typeof body.transaction_date !== "string" || !Number.isFinite(Date.parse(body.transaction_date)))) return { ok: false, error: "INVALID_TRANSACTION_DATE" };
+  if (body.transaction_date != null && (typeof body.transaction_date !== "string" || !isValidDate(body.transaction_date))) return { ok: false, error: "INVALID_TRANSACTION_DATE" };
   if (body.metadata != null && (typeof body.metadata !== "object" || Array.isArray(body.metadata))) return { ok: false, error: "INVALID_METADATA" };
   return {
     ok: true,
