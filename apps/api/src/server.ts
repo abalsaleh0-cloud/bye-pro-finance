@@ -3,9 +3,33 @@ import { json } from "./security/response.js";
 import { readBearerToken } from "./security/auth.js";
 import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
 import { createUserScopedClient } from "./database/user-client.js";
+import { readJsonBody, validateTransactionInput } from "./finance/transactions.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
+
+async function authenticate(request: IncomingMessage, response: ServerResponse) {
+  const token = readBearerToken(request.headers);
+  if (!token) {
+    json(response, 401, { error: "AUTH_REQUIRED" });
+    return null;
+  }
+  if (!lookupUser) {
+    json(response, 503, { error: "AUTH_PROVIDER_NOT_CONFIGURED" });
+    return null;
+  }
+  const identity = await verifyAccessToken(token, lookupUser);
+  if (!identity) {
+    json(response, 401, { error: "INVALID_SESSION" });
+    return null;
+  }
+  const client = createUserScopedClient(token);
+  if (!client) {
+    json(response, 503, { error: "DATABASE_NOT_CONFIGURED" });
+    return null;
+  }
+  return { identity, client };
+}
 
 export async function handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
@@ -17,52 +41,60 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
 
   if (request.method === "GET" && url.pathname === "/api/v1/session") {
     const token = readBearerToken(request.headers);
-    if (!token) {
-      json(response, 401, { error: "AUTH_REQUIRED" });
-      return;
-    }
-    if (!lookupUser) {
-      json(response, 503, { error: "AUTH_PROVIDER_NOT_CONFIGURED" });
-      return;
-    }
+    if (!token) { json(response, 401, { error: "AUTH_REQUIRED" }); return; }
+    if (!lookupUser) { json(response, 503, { error: "AUTH_PROVIDER_NOT_CONFIGURED" }); return; }
     const identity = await verifyAccessToken(token, lookupUser);
-    if (!identity) {
-      json(response, 401, { error: "INVALID_SESSION" });
-      return;
-    }
+    if (!identity) { json(response, 401, { error: "INVALID_SESSION" }); return; }
     json(response, 200, { authenticated: true, user: identity });
     return;
   }
 
   if (request.method === "GET" && url.pathname === "/api/v1/accounts") {
-    const token = readBearerToken(request.headers);
-    if (!token) {
-      json(response, 401, { error: "AUTH_REQUIRED" });
-      return;
-    }
-    if (!lookupUser) {
-      json(response, 503, { error: "AUTH_PROVIDER_NOT_CONFIGURED" });
-      return;
-    }
-    const identity = await verifyAccessToken(token, lookupUser);
-    if (!identity) {
-      json(response, 401, { error: "INVALID_SESSION" });
-      return;
-    }
-    const client = createUserScopedClient(token);
-    if (!client) {
-      json(response, 503, { error: "DATABASE_NOT_CONFIGURED" });
-      return;
-    }
-    const { data, error } = await client
-      .from("accounts")
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    const { data, error } = await auth.client.from("accounts")
       .select("id,name,type,currency_code,opening_balance,current_balance,institution_name,last_four,is_active,created_at,updated_at")
       .order("created_at", { ascending: false });
-    if (error) {
-      json(response, 502, { error: "ACCOUNTS_UNAVAILABLE" });
+    if (error) { json(response, 502, { error: "ACCOUNTS_UNAVAILABLE" }); return; }
+    json(response, 200, { data: data ?? [] });
+    return;
+  }
+
+  if (url.pathname === "/api/v1/transactions" && request.method === "GET") {
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    const parsedLimit = Number(url.searchParams.get("limit") ?? 50);
+    const limit = Number.isInteger(parsedLimit) ? Math.max(1, Math.min(parsedLimit, 100)) : 50;
+    let query = auth.client.from("transactions")
+      .select("id,account_id,category_id,type,status,amount,currency_code,description,transaction_date,reference,metadata,created_at,updated_at")
+      .order("transaction_date", { ascending: false })
+      .limit(limit);
+    const type = url.searchParams.get("type");
+    if (type && ["income", "expense", "transfer", "adjustment"].includes(type)) query = query.eq("type", type);
+    const { data, error } = await query;
+    if (error) { json(response, 502, { error: "TRANSACTIONS_UNAVAILABLE" }); return; }
+    json(response, 200, { data: data ?? [] });
+    return;
+  }
+
+  if (url.pathname === "/api/v1/transactions" && request.method === "POST") {
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    let body: unknown;
+    try { body = await readJsonBody(request); }
+    catch (error) {
+      const code = error instanceof Error ? error.message : "INVALID_JSON";
+      json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
       return;
     }
-    json(response, 200, { data: data ?? [] });
+    const validated = validateTransactionInput(body);
+    if (!validated.ok) { json(response, 400, { error: validated.error }); return; }
+    const { data, error } = await auth.client.from("transactions")
+      .insert({ ...validated.value, user_id: auth.identity.id })
+      .select("id,account_id,category_id,type,status,amount,currency_code,description,transaction_date,reference,metadata,created_at,updated_at")
+      .single();
+    if (error) { json(response, 400, { error: "TRANSACTION_CREATE_FAILED" }); return; }
+    json(response, 201, { data });
     return;
   }
 
