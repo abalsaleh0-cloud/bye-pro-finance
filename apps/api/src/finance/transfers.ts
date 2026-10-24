@@ -46,7 +46,7 @@ export function validateTransferInput(value: unknown):
     value: {
       from_account_id: body.from_account_id,
       to_account_id: body.to_account_id,
-      amount: body.amount,
+      amount: body.amount as number,
       fee: (body.fee as number | undefined) ?? 0,
       currency_code: body.currency_code,
       description: (body.description as string | null | undefined) ?? null,
