@@ -1,3 +1,5 @@
-# Architecture module
+# Threat Model
 
-This directory is part of the BYE PRO FINANCE target architecture and must contain production implementation for its responsibility. No feature is considered complete while this module is only a placeholder.
+Production threat-model boundary for authentication, authorization, financial data, storage, AI inputs, integrations and background jobs.
+
+Required controls: least privilege, RLS, server-side secrets, input validation, auditability, secure file handling and abuse-resistant AI boundaries.
