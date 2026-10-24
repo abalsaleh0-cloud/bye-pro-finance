@@ -88,14 +88,14 @@ export default function ReportsView() {
     return [...map.entries()].slice(0, 8);
   }, [transactions]);
 
-  if (loading) return <div className="empty-state">جارٍ تجهيز التقرير المالي…</div>;
+  if (loading) return <div className="empty-state">{tr("جارٍ تجهيز التقرير المالي…","Preparing financial report…")}</div>;
 
   return <section className="data-view">
     <div className="data-view-heading"><div><p className="eyebrow">{tr("التحليل المالي","Financial analysis")}</p><h2>{tr("التقارير","Reports")}</h2><p className="muted-copy">{tr("الأرقام مفصولة حسب العملة حتى لا يتم جمع عملات مختلفة في رقم واحد.","Amounts are separated by currency to avoid combining unlike currencies.")}</p></div><button type="button" className="primary-button compact-button" onClick={() => void load()}>{tr("تحديث", "Refresh")}</button></div>
     {error && <p className="notice error" role="alert">{error}</p>}
     <div className="stats-grid">
-      <article className="stat-card"><span>الأرصدة الحالية</span><CurrencyList values={summary.balances}/><small>{accounts.length} حساب</small></article>
-      <article className="stat-card"><span>الدخل</span><CurrencyList values={summary.income}/><small>المعاملات المكتملة فقط</small></article>
+      <article className="stat-card"><span>{tr("الأرصدة الحالية","Current balances")}</span><CurrencyList values={summary.balances}/><small>{accounts.length} {tr("حساب","accounts")}</small></article>
+      <article className="stat-card"><span>{tr("الدخل","Income")}</span><CurrencyList values={summary.income}/><small>{tr("المعاملات المكتملة فقط","Completed transactions only")}</small></article>
       <article className="stat-card"><span>{tr("المصروفات","Expenses")}</span><CurrencyList values={summary.expense}/><small>المعاملات المكتملة فقط</small></article>
       <article className="stat-card"><span>لك / عليك</span><div className="report-dual"><span>لك: <CurrencyList values={summary.receivable}/></span><span>عليك: <CurrencyList values={summary.payable}/></span></div></article>
     </div>
