@@ -389,31 +389,40 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           currency_code: string
-          full_name: string | null
+          full_name: string
+          full_name_changed_at: string | null
           id: string
           locale: string
           timezone: string
           updated_at: string
+          username: string | null
+          username_changed_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           currency_code?: string
-          full_name?: string | null
+          full_name?: string
+          full_name_changed_at?: string | null
           id: string
           locale?: string
           timezone?: string
           updated_at?: string
+          username?: string | null
+          username_changed_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           currency_code?: string
-          full_name?: string | null
+          full_name?: string
+          full_name_changed_at?: string | null
           id?: string
           locale?: string
           timezone?: string
           updated_at?: string
+          username?: string | null
+          username_changed_at?: string | null
         }
         Relationships: []
       }
