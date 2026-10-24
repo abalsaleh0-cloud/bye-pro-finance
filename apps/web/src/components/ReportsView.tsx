@@ -40,7 +40,7 @@ export default function ReportsView() {
   const [assets, setAssets] = useState<Row[]>([]);
 
   const load = useCallback(async () => {
-    if (!supabase) { setError("إعداد اتصال Supabase غير مكتمل."); setLoading(false); return; }
+    if (!supabase) { setError(tr("إعداد اتصال Supabase غير مكتمل.","Supabase connection is not configured.")); setLoading(false); return; }
     setLoading(true); setError("");
     const db = supabase as any;
     const results = await Promise.all([
