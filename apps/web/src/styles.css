@@ -348,3 +348,30 @@ html[data-locale="en"] .dashboard-panel { text-align: left; }
   .dashboard-line > b { max-width: 45%; text-align: end; overflow-wrap: anywhere; }
   .quick-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* Debt payment action: keep Arabic label horizontal and readable on narrow screens. */
+.account-row .debt-payment-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: max-content;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  writing-mode: horizontal-tb;
+  line-height: 1.5;
+  padding-inline: 12px;
+}
+@media (max-width: 600px) {
+  .account-row .debt-payment-action {
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    margin-top: 6px;
+  }
+}
