@@ -29,7 +29,7 @@ describe("responsive layout regression checks", () => {
   });
 
   it("keeps mobile navigation horizontally scrollable without a fixed two-column grid", () => {
-    const mobileNavigation = styles.match(/@media \(max-width: 768px\) \{([\\s\\S]*?)\n\}/)?.[1] ?? "";
+    const mobileNavigation = styles.match(/@media \(max-width: 768px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
     expect(mobileNavigation).toContain(".main-nav");
     expect(mobileNavigation).toContain("grid-template-columns: none");
     expect(mobileNavigation).toContain("grid-auto-flow: column");
