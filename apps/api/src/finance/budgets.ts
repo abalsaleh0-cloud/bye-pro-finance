@@ -1,4 +1,4 @@
-import { isValidMoneyAmount } from "./money";
+import { isValidMoneyAmount } from "./money.js";
 
 export type BudgetInput = {
   name: string;
