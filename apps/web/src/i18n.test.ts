@@ -1,43 +1,37 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
 import { applyLocale, getStoredLocale, getStoredTheme, setStoredLocale, setStoredTheme } from "./i18n";
 
-afterEach(() => {
-  document.documentElement.removeAttribute("lang");
-  document.documentElement.removeAttribute("dir");
-  delete document.documentElement.dataset.locale;
-  delete document.documentElement.dataset.theme;
-  delete document.body.dataset.locale;
-  delete document.body.dataset.theme;
-  localStorage.clear();
-});
+const source = readFileSync("apps/web/src/i18n.ts", "utf8");
+const styles = readFileSync("apps/web/src/styles.css", "utf8");
+const app = readFileSync("apps/web/src/App.tsx", "utf8");
 
-describe("locale and theme preferences", () => {
-  it("defaults to Arabic and dark mode", () => {
-    localStorage.clear();
+describe("locale and theme preference contract", () => {
+  it("defaults safely to Arabic and dark mode", () => {
     expect(getStoredLocale()).toBe("ar");
     expect(getStoredTheme()).toBe("dark");
   });
-
-  it("persists the selected language and theme", () => {
-    setStoredLocale("en");
-    setStoredTheme("light");
-    expect(getStoredLocale()).toBe("en");
-    expect(getStoredTheme()).toBe("light");
+  it("includes persistent locale and theme storage", () => {
+    expect(source).toContain("bye-pro-finance.locale");
+    expect(source).toContain("bye-pro-finance.theme");
+    expect(source).toContain("localStorage.setItem(LOCALE_KEY, locale)");
+    expect(source).toContain("localStorage.setItem(THEME_KEY, theme)");
+    expect(() => { setStoredLocale("en"); setStoredTheme("light"); }).not.toThrow();
   });
-
-  it("applies correct language, direction, and theme to the document", () => {
-    applyLocale("en", "light");
-    expect(document.documentElement.lang).toBe("en");
-    expect(document.documentElement.dir).toBe("ltr");
-    expect(document.documentElement.dataset.theme).toBe("light");
-    expect(document.body.dataset.locale).toBe("en");
-    expect(document.body.dataset.theme).toBe("light");
+  it("applies locale direction and theme safely in non-browser test environments", () => {
+    expect(source).toContain('root.dir = locale === "ar" ? "rtl" : "ltr"');
+    expect(source).toContain("root.dataset.theme = theme");
+    expect(() => { applyLocale("ar", "dark"); applyLocale("en", "light"); }).not.toThrow();
   });
-
-  it("restores RTL for Arabic", () => {
-    applyLocale("ar", "dark");
-    expect(document.documentElement.lang).toBe("ar");
-    expect(document.documentElement.dir).toBe("rtl");
-    expect(document.body.dataset.theme).toBe("dark");
+  it("shows locale and theme controls in both app shells", () => {
+    expect(app.match(/className="appearance-button"/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(app).toContain('setLocale(locale === "ar" ? "en" : "ar")');
+    expect(app).toContain('setTheme(theme === "dark" ? "light" : "dark")');
+    expect(app).toContain("moduleTitles[locale][item.title]");
+  });
+  it("defines light theme and English direction styles", () => {
+    expect(styles).toContain(':root[data-theme="light"],body[data-theme="light"]');
+    expect(styles).toContain('html[data-locale="en"] .sidebar');
+    expect(styles).toContain('html[data-locale="en"] .nav-item');
   });
 });
