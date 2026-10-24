@@ -7,10 +7,17 @@ describe("bearer authentication", () => {
     expect(readBearerToken({ authorization: "Bearer  token-123  " })).toBe("token-123");
   });
 
+  it.each(["bearer token-123", "BEARER token-123", "bEaReR token-123"])(
+    "accepts case-insensitive authentication scheme: %s", (authorization) => {
+      expect(readBearerToken({ authorization })).toBe("token-123");
+    },
+  );
+
   it("rejects missing, empty and non-bearer authorization headers", () => {
     expect(readBearerToken({})).toBeNull();
     expect(readBearerToken({ authorization: "Basic abc" })).toBeNull();
     expect(readBearerToken({ authorization: "Bearer   " })).toBeNull();
+    expect(readBearerToken({ authorization: "BearerX token-123" })).toBeNull();
   });
 
   it("throws a stable error when authentication is required", () => {
