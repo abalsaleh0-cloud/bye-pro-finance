@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { csvCell, csvRows } from "./csv.js";
 
 describe("CSV export safety", () => {
-  it.each(["=1+1", "+SUM(A1:A2)", "-2+3", "@SUM(A1)", "  =HYPERLINK(""https://example.com"")", "\t=1+1"])(
+  it.each(["=1+1", "+SUM(A1:A2)", "-2+3", "@SUM(A1)", \`  =HYPERLINK("https://example.com")\`, "\t=1+1"])(
     "neutralizes spreadsheet formula prefixes in %j",
     (value) => {
       expect(csvCell(value)).toBe('"' + "'" + value.replaceAll('"', '""') + '"');
