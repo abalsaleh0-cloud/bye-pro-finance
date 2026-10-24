@@ -55,6 +55,7 @@ button, .primary-button, .secondary-button { min-height: 44px; }
   .nav-caption { margin: 12px 4px 8px; }
   .main-nav {
     display: grid;
+    grid-template-columns: none;
     grid-auto-flow: column;
     grid-template-rows: repeat(2, minmax(42px, auto));
     grid-auto-columns: minmax(132px, 1fr);
