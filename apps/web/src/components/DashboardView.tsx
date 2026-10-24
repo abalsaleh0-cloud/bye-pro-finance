@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 type Row = Record<string, any>;
-const money = (value: number, currency = "LYD") => { try { return new Intl.NumberFormat("ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value); } catch { return `${value.toLocaleString("ar")} ${currency}`; } };
-const dateLabel = (value: string) => new Intl.DateTimeFormat("ar", { dateStyle: "medium" }).format(new Date(value));
+const money = (value: number, currency = "LYD") => { try { return new Intl.NumberFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value); } catch { return `${value.toLocaleString(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar")} ${currency}`; } };
+const dateLabel = (value: string) => new Intl.DateTimeFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { dateStyle: "medium" }).format(new Date(value));
 
 export default function DashboardView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
