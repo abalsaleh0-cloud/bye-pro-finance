@@ -12,10 +12,6 @@ end $$;
 create unique index if not exists profiles_username_unique on public.profiles (lower(username)) where username is not null;
 alter table public.profiles enable row level security;
 grant select, update on public.profiles to authenticated;
-drop policy if exists "Users can read own profile" on public.profiles;
-create policy "Users can read own profile" on public.profiles for select to authenticated using ((select auth.uid()) = id);
-drop policy if exists "Users can update own profile" on public.profiles;
-create policy "Users can update own profile" on public.profiles for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
 create or replace function public.handle_new_user_profile() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   insert into public.profiles (id, full_name, username)
