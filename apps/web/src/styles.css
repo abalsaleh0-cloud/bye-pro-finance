@@ -195,3 +195,39 @@ body[data-theme="light"] .notice{border-color:var(--line)}
 html[data-locale="en"] .workspace-topbar,html[data-locale="en"] .data-view-heading,html[data-locale="en"] .panel-head{ text-align:left }
 html[data-locale="en"] .sidebar{border-inline-start:0;border-inline-end:1px solid var(--line)}
 html[data-locale="en"] .workspace-topbar .eyebrow{letter-spacing:.04em}
+
+/* Keep the navigation rail in Arabic RTL position regardless of the content language. */
+.workspace { direction: rtl; }
+.workspace-main { direction: rtl; }
+html[data-locale="en"] .workspace-main { direction: ltr; }
+html[data-locale="en"] .sidebar {
+  direction: rtl;
+  border-left: 1px solid var(--line);
+  border-right: 0;
+}
+html[data-locale="en"] .nav-item {
+  direction: rtl;
+  text-align: right;
+}
+html[data-locale="en"] .sidebar-bottom {
+  direction: rtl;
+  text-align: right;
+}
+.sidebar-bottom .logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #5e5034;
+  border-radius: 9px;
+  color: var(--gold);
+  text-align: right;
+}
+.sidebar-bottom .logout-button:hover {
+  background: #28231a;
+  color: #f2dfb4;
+}
+
