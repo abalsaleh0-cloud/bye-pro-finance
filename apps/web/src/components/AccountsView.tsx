@@ -36,7 +36,7 @@ export default function AccountsView() {
 
   const loadAccounts = useCallback(async () => {
     if (!supabase) {
-      setError("إعداد اتصال Supabase غير مكتمل.");
+      setError(tr("إعداد اتصال Supabase غير مكتمل.", "Supabase connection is not configured."));
       setLoading(false);
       return;
     }
@@ -58,7 +58,7 @@ export default function AccountsView() {
     if (!supabase) return;
     const amount = Number(openingBalance);
     if (!Number.isFinite(amount)) {
-      setError("أدخل رصيدًا افتتاحيًا صحيحًا.");
+      setError(tr("أدخل رصيدًا افتتاحيًا صحيحًا.", "Enter a valid opening balance."));
       return;
     }
     setSaving(true);
@@ -66,7 +66,7 @@ export default function AccountsView() {
     setNotice("");
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
-      setError("انتهت جلسة الدخول. سجّل الدخول مجددًا.");
+      setError(tr("انتهت جلسة الدخول. سجّل الدخول مجددًا.", "Your session expired. Please sign in again."));
       setSaving(false);
       return;
     }
@@ -89,7 +89,7 @@ export default function AccountsView() {
       setInstitution("");
       setLastFour("");
       setShowForm(false);
-      setNotice("تمت إضافة الحساب.");
+      setNotice(tr("تمت إضافة الحساب.", "Account added."));
       await loadAccounts();
     }
     setSaving(false);
@@ -124,7 +124,7 @@ export default function AccountsView() {
     {notice && <p className="notice success" role="status">{notice}</p>}
     {showForm && <form className="account-form" onSubmit={createAccount}>
       <div className="form-field"><label htmlFor="account-name">Account name *</label><input id="account-name" required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Daily wallet" /></div>
-      <div className="form-field"><label htmlFor="account-type">{tr("نوع الحساب","Account type")}</label><select id="account-type" value={type} onChange={(event) => setType(event.target.value as AccountType)}>{accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+      <div className="form-field"><label htmlFor="account-type">{tr("نوع الحساب","Account type")}</label><select id="account-type" value={type} onChange={(event) => setType(event.target.value as AccountType)}>{accountTypes.map((item) => <option key={item.value} value={item.value}>{tr(item.label, ({ "نقدي":"Cash", "حساب بنكي":"Bank account", "محفظة إلكترونية":"E-wallet", "بطاقة ائتمان":"Credit card", "استثمار":"Investment", "أخرى":"Other" } as Record<string,string>)[item.label] || item.label)}</option>)}</select></div>
       <div className="form-field"><label htmlFor="account-currency">{tr("العملة","Currency")}</label><select id="account-currency" value={currency} onChange={(event) => setCurrency(event.target.value)}><option value="LYD">Libyan dinar (LYD)</option><option value="USD">US dollar (USD)</option><option value="EUR">Euro (EUR)</option><option value="GBP">British pound (GBP)</option><option value="SYP">Syrian pound (SYP)</option><option value="JOD">Jordanian dinar (JOD)</option></select></div>
       <div className="form-field"><label htmlFor="account-balance">{tr("الرصيد الافتتاحي","Opening balance")}</label><input id="account-balance" type="number" step="0.01" required value={openingBalance} onChange={(event) => setOpeningBalance(event.target.value)} dir="ltr" /></div>
       <div className="form-field"><label htmlFor="account-institution">{tr("البنك أو الجهة (اختياري)","Bank or institution (optional)")}</label><input id="account-institution" maxLength={100} value={institution} onChange={(event) => setInstitution(event.target.value)} /></div>
