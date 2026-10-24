@@ -69,9 +69,9 @@ describe("budget validation", () => {
     expect(validateBudgetInput({ ...base, end_date: "2026-09-30" })).toEqual({ ok: false, error: "END_DATE_BEFORE_START" });
   });
 
-  it("rejects invalid identifiers, money, and names", () => {
+  it("rejects invalid identifiers, negative money, and names", () => {
     expect(validateBudgetInput({ ...base, category_id: "bad" })).toEqual({ ok: false, error: "INVALID_CATEGORY_ID" });
-    expect(validateBudgetInput({ ...base, amount: 0 })).toEqual({ ok: false, error: "INVALID_AMOUNT" });
+    expect(validateBudgetInput({ ...base, amount: -1 })).toEqual({ ok: false, error: "INVALID_AMOUNT" });
     expect(validateBudgetInput({ ...base, name: "   " })).toEqual({ ok: false, error: "INVALID_NAME" });
   });
 });
