@@ -2,7 +2,8 @@ import type { IncomingHttpHeaders } from "node:http";
 
 export function readBearerToken(headers: IncomingHttpHeaders): string | null {
   const value = headers.authorization;
-  if (!value?.startsWith("Bearer ")) return null;
+  // HTTP authentication scheme names are case-insensitive (RFC 9110).
+  if (!value || value.slice(0, 7).toLowerCase() !== "bearer ") return null;
   const token = value.slice(7).trim();
   return token || null;
 }
