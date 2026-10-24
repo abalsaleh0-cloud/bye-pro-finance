@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { readBearerToken, requireBearerToken } from "./auth.js";
-import { verifyAccessToken } from "./session.js";
+import { verifyAccessToken } from "../auth/session.js";
 
 describe("bearer authentication", () => {
   it("reads a bearer token and trims whitespace", () => {
