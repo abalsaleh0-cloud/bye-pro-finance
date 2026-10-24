@@ -1,21 +1,31 @@
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
+import { json } from "./security/response.js";
+import { readBearerToken } from "./security/auth.js";
 
 const port = Number(process.env.PORT ?? 3001);
 
-const server = createServer((request, response) => {
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
+function handle(request: IncomingMessage, response: import("node:http").ServerResponse): void {
+  const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
 
-  if (request.method === "GET" && request.url === "/health") {
-    response.writeHead(200);
-    response.end(JSON.stringify({ ok: true, service: "bye-pro-finance-api" }));
+  if (request.method === "GET" && url.pathname === "/health") {
+    json(response, 200, { ok: true, service: "bye-pro-finance-api", timestamp: new Date().toISOString() });
     return;
   }
 
-  response.writeHead(404);
-  response.end(JSON.stringify({ error: "Not Found" }));
-});
+  if (request.method === "GET" && url.pathname === "/api/v1/session") {
+    const token = readBearerToken(request.headers);
+    if (!token) {
+      json(response, 401, { error: "AUTH_REQUIRED" });
+      return;
+    }
+    json(response, 200, { authenticated: true });
+    return;
+  }
 
+  json(response, 404, { error: "NOT_FOUND" });
+}
+
+const server = createServer(handle);
 server.listen(port, "0.0.0.0", () => {
   console.log(`BYE PRO FINANCE API listening on ${port}`);
 });
