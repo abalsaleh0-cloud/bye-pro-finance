@@ -10,7 +10,7 @@ type TransactionType = Exclude<Enums<"transaction_type">, "transfer">;
 
 const typeLabels: Record<TransactionType | "transfer", string> = { income: "دخل", expense: "مصروف", adjustment: "تسوية", transfer: "تحويل" };
 const statusLabels: Record<Enums<"transaction_status">, string> = { pending: "معلّقة", completed: "مكتملة", cancelled: "ملغاة" };
-const money = (value: number, currency = "LYD") => new Intl.NumberFormat("ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+const money = (value: number, currency = "LYD") => new Intl.NumberFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
 
 export default function TransactionsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
