@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">BYE PRO FINANCE</title>
+  <desc id="desc">BYE PRO FINANCE application icon</desc>
+  <rect width="512" height="512" rx="112" fill="#101114"/>
+  <rect x="28" y="28" width="456" height="456" rx="96" fill="none" stroke="#d4a62a" stroke-width="10"/>
+  <path d="M154 166h204M154 256h204M154 346h132" fill="none" stroke="#f2eee5" stroke-width="34" stroke-linecap="round"/>
+  <circle cx="365" cy="346" r="34" fill="#d4a62a"/>
+</svg>
