@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@10.15.0",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter @bye-pro-finance/web dev",
     "build": "pnpm --filter @bye-pro-finance/web build && pnpm --filter @bye-pro-finance/api build && pnpm --filter @bye-pro-finance/worker build",
@@ -24,6 +27,7 @@
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "5.0.2",
     "typescript": "5.9.2",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "vite": "7.1.7"
   }
 }
