@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Install Playwright test runner
-        run: pnpm add -D @playwright/test@1.55.1
+        run: pnpm add -Dw @playwright/test@1.55.1
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Build web with isolated auth test configuration
