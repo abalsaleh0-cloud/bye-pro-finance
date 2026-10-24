@@ -5,6 +5,7 @@ import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
 import { createUserScopedClient } from "./database/user-client.js";
 import { readJsonBody, validateTransactionInput } from "./finance/transactions.js";
 import { validateBudgetInput } from "./finance/budgets.js";
+import { validateTransferInput } from "./finance/transfers.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -61,7 +62,6 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     return;
   }
 
-
   if (url.pathname === "/api/v1/budgets" && request.method === "GET") {
     const auth = await authenticate(request, response);
     if (!auth) return;
@@ -95,7 +95,61 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     return;
   }
 
-  if (url.pathname === "/api/v1/transactions" && request.method === "GET") {
+  if (request.method === "GET" && url.pathname === "/api/v1/transfers") {
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    const parsedLimit = Number(url.searchParams.get("limit") ?? 50);
+    const limit = Number.isInteger(parsedLimit) ? Math.max(1, Math.min(parsedLimit, 100)) : 50;
+    const { data, error } = await auth.client.from("transfers")
+      .select("id,from_account_id,to_account_id,amount,fee,currency_code,description,transfer_date,status,created_at")
+      .order("transfer_date", { ascending: false })
+      .limit(limit);
+    if (error) { json(response, 502, { error: "TRANSFERS_UNAVAILABLE" }); return; }
+    json(response, 200, { data: data ?? [] });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/v1/transfers") {
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    let body: unknown;
+    try { body = await readJsonBody(request); }
+    catch (error) {
+      const code = error instanceof Error ? error.message : "INVALID_JSON";
+      json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
+      return;
+    }
+    const validated = validateTransferInput(body);
+    if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
+
+    const accountIds = [validated.value.from_account_id, validated.value.to_account_id];
+    const { data: accounts, error: accountsError } = await auth.client.from("accounts")
+      .select("id,currency_code,is_active")
+      .in("id", accountIds);
+    if (accountsError) { json(response, 502, { error: "ACCOUNTS_UNAVAILABLE" }); return; }
+    if (!accounts || accounts.length !== 2) { json(response, 400, { error: "ACCOUNT_NOT_FOUND" }); return; }
+    if (accounts.some((account) => !account.is_active)) { json(response, 400, { error: "ACCOUNT_INACTIVE" }); return; }
+    const fromAccount = accounts.find((account) => account.id === validated.value.from_account_id);
+    const toAccount = accounts.find((account) => account.id === validated.value.to_account_id);
+    if (!fromAccount || !toAccount || fromAccount.currency_code !== toAccount.currency_code) {
+      json(response, 400, { error: "ACCOUNT_CURRENCY_MISMATCH" });
+      return;
+    }
+    if (fromAccount.currency_code !== validated.value.currency_code) {
+      json(response, 400, { error: "INVALID_CURRENCY" });
+      return;
+    }
+
+    const { data, error } = await auth.client.from("transfers")
+      .insert({ ...validated.value, user_id: auth.identity.id })
+      .select("id,from_account_id,to_account_id,amount,fee,currency_code,description,transfer_date,status,created_at")
+      .single();
+    if (error) { json(response, 400, { error: "TRANSFER_CREATE_FAILED" }); return; }
+    json(response, 201, { data });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/v1/transactions") {
     const auth = await authenticate(request, response);
     if (!auth) return;
     const parsedLimit = Number(url.searchParams.get("limit") ?? 50);
@@ -117,7 +171,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     return;
   }
 
-  if (url.pathname === "/api/v1/transactions" && request.method === "POST") {
+  if (request.method === "POST" && url.pathname === "/api/v1/transactions") {
     const auth = await authenticate(request, response);
     if (!auth) return;
     let body: unknown;
