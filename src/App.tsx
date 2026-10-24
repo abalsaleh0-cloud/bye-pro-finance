@@ -1,3 +1,4 @@
+import "./advanced-finance.css";
 import { useEffect, useState, type FormEvent } from "react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AccountsView from "./components/AccountsView";
