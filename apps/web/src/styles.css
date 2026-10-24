@@ -375,3 +375,30 @@ html[data-locale="en"] .dashboard-panel { text-align: left; }
     margin-top: 6px;
   }
 }
+
+
+/* Fix: the debt payment button is a fourth grid item; give it a full-width row so Arabic never stacks vertically. */
+.account-row > .debt-payment-action {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  .account-row > .debt-payment-action {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    width: 100%;
+    white-space: nowrap;
+  }
+}
