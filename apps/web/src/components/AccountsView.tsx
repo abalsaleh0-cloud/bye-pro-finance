@@ -16,7 +16,7 @@ const accountTypes: { value: AccountType; label: string }[] = [
 ];
 
 const money = (value: number, currency: string) =>
-  new Intl.NumberFormat("ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+  new Intl.NumberFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
 
 export default function AccountsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
