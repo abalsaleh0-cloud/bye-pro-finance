@@ -69,7 +69,7 @@ test.describe("authentication", () => {
     await page.getByLabel("الاسم الكامل").fill("New E2E User");
     await page.getByLabel("اسم المستخدم").fill("new_e2e_user");
     await page.getByLabel("البريد الإلكتروني").fill("new@example.com");
-    await page.getByLabel("كلمة المرور").fill("StrongPassword123!");
+    await page.getByLabel("كلمة المرور", { exact: true }).fill("StrongPassword123!");
     await page.getByRole("button", { name: "إنشاء حساب" }).click();
     await expect(page.getByText("تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.")).toBeVisible();
   });
@@ -87,7 +87,7 @@ test.describe("authentication", () => {
     await mockAuth(page);
     await page.goto("/");
 
-    const password = page.getByLabel("كلمة المرور");
+    const password = page.getByLabel("كلمة المرور", { exact: true });
     await password.fill("StrongPassword123!");
     await expect(password).toHaveAttribute("type", "password");
 
