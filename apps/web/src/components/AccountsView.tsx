@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Icon } from "../../../../packages/ui/src";
 import { supabase } from "../lib/supabase";
 import type { Tables } from "../types/database.types";
 
@@ -131,7 +132,7 @@ export default function AccountsView() {
     <div className="balance-summary">
       {Object.entries(totalByCurrency).length === 0 ? <div><span>إجمالي الأرصدة</span><strong>—</strong><small>أضف حسابًا لعرض الرصيد حسب العملة.</small></div> : Object.entries(totalByCurrency).map(([code, total]) => <div key={code}><span>إجمالي الأرصدة النشطة · {code}</span><strong dir="ltr">{money(total, code)}</strong><small>{accounts.filter((item) => item.is_active && item.currency_code === code).length} حساب نشط</small></div>)}
     </div>
-    {loading ? <div className="empty-state">جارٍ تحميل الحسابات…</div> : accounts.length === 0 ? <div className="empty-state"><span className="empty-icon">▤</span><h3>لا توجد حسابات بعد</h3><p>أضف حسابك الأول لبدء تنظيم أموالك.</p><button type="button" className="secondary-button" onClick={() => setShowForm(true)}>إضافة أول حساب</button></div> : <div className="account-list">
+    {loading ? <div className="empty-state">جارٍ تحميل الحسابات…</div> : accounts.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="wallet" size={28} /></span><h3>لا توجد حسابات بعد</h3><p>أضف حسابك الأول لبدء تنظيم أموالك.</p><button type="button" className="secondary-button" onClick={() => setShowForm(true)}>إضافة أول حساب</button></div> : <div className="account-list">
       {accounts.map((account) => <article className={account.is_active ? "account-row" : "account-row inactive"} key={account.id}>
         <span className="account-type-icon">{accountTypes.find((item) => item.value === account.type)?.label.slice(0, 1) ?? "ح"}</span>
         <div className="account-details"><h3>{account.name}</h3><p>{account.institution_name || accountTypes.find((item) => item.value === account.type)?.label}{account.last_four ? ` · •••• ${account.last_four}` : ""}</p><span className={account.is_active ? "account-status" : "account-status off"}>{account.is_active ? "نشط" : "متوقف"}</span></div>
