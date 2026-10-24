@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateTransferInput } from "./transfers";
+import { validateTransferInput } from "./transfers.js";
 
 const from = "11111111-1111-4111-8111-111111111111";
 const to = "22222222-2222-4222-8222-222222222222";
