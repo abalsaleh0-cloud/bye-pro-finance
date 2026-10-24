@@ -80,7 +80,7 @@ export default function ProfileSettingsView() {
     setSaving(true); setError(""); setMessage("");
     const { error: saveError } = await supabase.from("profiles").update({ full_name: cleanName, username: cleanUsername, currency_code: currency, locale, timezone, updated_at: new Date().toISOString() }).eq("id", profile.id);
     if (saveError) setError(saveError.message);
-    else { setMessage(tr("تم حفظ بيانات الملف الشخصي والإعدادات.", "Profile and account settings saved.")); await load(); window.dispatchEvent(new CustomEvent("bye-profile-updated")); }
+    else { setMessage(tr("تم حفظ بيانات الملف الشخصي والإعدادات.", "Profile and account settings saved.")); await load(); window.dispatchEvent(new CustomEvent("bye-profile-updated")); window.dispatchEvent(new CustomEvent("bye-locale-updated", { detail: { locale } })); }
     setSaving(false);
   }
 
