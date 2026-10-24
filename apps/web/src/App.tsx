@@ -17,28 +17,10 @@ const moduleTitles: Record<Locale, Record<ActiveModule, string>> = {
   en: { "لوحة التحكم":"Dashboard", "الحسابات":"Accounts", "المعاملات":"Transactions", "التحويلات":"Transfers", "الميزانيات":"Budgets", "الديون":"Debts", "الفواتير":"Bills", "الادخار":"Savings", "الأصول":"Assets", "التقارير":"Reports", "المنزل":"Household", "المستندات":"Documents", "المسح الذكي":"Smart Scan", "المساعد المالي":"Financial Assistant", "الإشعارات":"Notifications", "استيراد وتصدير":"Import / Export", "الإعدادات":"Settings", "الإدارة":"Administration" }
 };
 const modules: { title: ActiveModule; description: string; number: string; icon: IconName }[] = [
-  { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "layout-dashboard" },
-  { title: "الحسابات", description: "الحسابات والأرصدة", number: "01", icon: "wallet" },
-  { title: "المعاملات", description: "الدخل والمصروفات", number: "02", icon: "arrow-left-right" },
-  { title: "التحويلات", description: "نقل الأموال بين الحسابات", number: "03", icon: "repeat-2" },
-  { title: "الميزانيات", description: "خطط الإنفاق", number: "04", icon: "pie-chart" },
-  { title: "الديون", description: "المستحقات والالتزامات", number: "05", icon: "hand-coins" },
-  { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "calendar-days" },
-  { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "trending-up" },
-  { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "credit-card" },
-  { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "activity" },
-  { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "home" },
-  { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "folder" },
-  { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "search" },
-  { title: "المساعد المالي", description: "التحليل والمساعدة الذكية", number: "13", icon: "sparkles" },
-  { title: "الإشعارات", description: "التنبيهات المالية", number: "14", icon: "bell" },
-  { title: "استيراد وتصدير", description: "نقل بياناتك", number: "15", icon: "refresh-cw" },
-  { title: "الإعدادات", description: "تفضيلات الحساب", number: "16", icon: "settings" },
-  { title: "الإدارة", description: "مراقبة وإدارة النظام", number: "17", icon: "shield-check" },
+  { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "layout-dashboard" }, { title: "الحسابات", description: "الحسابات والأرصدة", number: "01", icon: "wallet" }, { title: "المعاملات", description: "الدخل والمصروفات", number: "02", icon: "arrow-left-right" }, { title: "التحويلات", description: "نقل الأموال بين الحسابات", number: "03", icon: "repeat-2" }, { title: "الميزانيات", description: "خطط الإنفاق", number: "04", icon: "pie-chart" }, { title: "الديون", description: "المستحقات والالتزامات", number: "05", icon: "hand-coins" }, { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "calendar-days" }, { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "trending-up" }, { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "credit-card" }, { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "activity" }, { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "home" }, { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "folder" }, { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "search" }, { title: "المساعد المالي", description: "التحليل والمساعدة الذكية", number: "13", icon: "sparkles" }, { title: "الإشعارات", description: "التنبيهات المالية", number: "14", icon: "bell" }, { title: "استيراد وتصدير", description: "نقل بياناتك", number: "15", icon: "refresh-cw" }, { title: "الإعدادات", description: "تفضيلات الحساب", number: "16", icon: "settings" }, { title: "الإدارة", description: "مراقبة وإدارة النظام", number: "17", icon: "shield-check" },
 ];
 
 type AuthMode = "signin" | "signup" | "reset";
-
 function PasswordInput({ id, value, onChange, autoComplete, localeText }: { id: string; value: string; onChange: (value: string) => void; autoComplete: "current-password" | "new-password"; localeText: (ar: string, en: string) => string }) {
   const [visible, setVisible] = useState(false);
   const label = visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password");
@@ -60,37 +42,19 @@ function AuthPanel({ locale, recovery = false, onRecoveryComplete }: { locale: L
 }
 
 function SectionContent({activeModule}:{activeModule:ActiveModule}) {
-  if(activeModule==="لوحة التحكم")return <DashboardView/>;
-  if(activeModule==="الحسابات")return <AccountsView/>;
-  if(activeModule==="المعاملات")return <TransactionsView/>;
-  if(activeModule==="التحويلات")return <TransfersView/>;
-  if(activeModule==="التقارير")return <ReportsView/>;
-  if(activeModule==="المنزل")return <HouseholdView/>;
-  if(activeModule==="المستندات")return <DocumentsView/>;
-  if(activeModule==="المسح الذكي")return <SmartScanView/>;
-  if(activeModule==="المساعد المالي")return <AssistantView/>;
-  if(activeModule==="الإشعارات")return <NotificationsView/>;
-  if(activeModule==="استيراد وتصدير")return <ImportExportView/>;
-  if(activeModule==="الإعدادات")return <SettingsView/>;
-  if(activeModule==="الإدارة")return <AdminView/>;
-  const map:Record<string,"budgets"|"debts"|"bills"|"savings_goals"|"assets">={"الميزانيات":"budgets","الديون":"debts","الفواتير":"bills","الادخار":"savings_goals","الأصول":"assets"};
-  return <CollectionView module={map[activeModule]}/>;
+  if(activeModule==="لوحة التحكم")return <DashboardView/>; if(activeModule==="الحسابات")return <AccountsView/>; if(activeModule==="المعاملات")return <TransactionsView/>; if(activeModule==="التحويلات")return <TransfersView/>; if(activeModule==="التقارير")return <ReportsView/>; if(activeModule==="المنزل")return <HouseholdView/>; if(activeModule==="المستندات")return <DocumentsView/>; if(activeModule==="المسح الذكي")return <SmartScanView/>; if(activeModule==="المساعد المالي")return <AssistantView/>; if(activeModule==="الإشعارات")return <NotificationsView/>; if(activeModule==="استيراد وتصدير")return <ImportExportView/>; if(activeModule==="الإعدادات")return <SettingsView/>; if(activeModule==="الإدارة")return <AdminView/>;
+  const map:Record<string,"budgets"|"debts"|"bills"|"savings_goals"|"assets">={"الميزانيات":"budgets","الديون":"debts","الفواتير":"bills","الادخار":"savings_goals","الأصول":"assets"}; return <CollectionView module={map[activeModule]}/>;
 }
 
 export default function App(){
-  const [locale, setLocale] = useState<Locale>(() => getStoredLocale());
-  const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
-  const [sessionReady,setSessionReady]=useState(!isSupabaseConfigured),[signedIn,setSignedIn]=useState(false),[email,setEmail]=useState(""),[activeModule,setActiveModule]=useState<ActiveModule>("لوحة التحكم"),[recovery,setRecovery]=useState(false);
-  const changeLocale = () => { const next: Locale = locale === "ar" ? "en" : "ar"; setStoredLocale(next); applyLocale(next, theme); setLocale(next); };
-  const changeTheme = () => { const next: Theme = theme === "dark" ? "light" : "dark"; setStoredTheme(next); applyLocale(locale, next); setTheme(next); };
-  useEffect(() => { applyLocale(locale, theme); setStoredLocale(locale); }, [locale, theme]);
-  useEffect(() => { applyLocale(locale, theme); setStoredTheme(theme); }, [theme, locale]);
+  const [locale, setLocale] = useState<Locale>(() => getStoredLocale()); const [theme, setTheme] = useState<Theme>(() => getStoredTheme()); const [sessionReady,setSessionReady]=useState(!isSupabaseConfigured),[signedIn,setSignedIn]=useState(false),[email,setEmail]=useState(""),[activeModule,setActiveModule]=useState<ActiveModule>("لوحة التحكم"),[recovery,setRecovery]=useState(false);
+  const changeLocale = () => { const next: Locale = locale === "ar" ? "en" : "ar"; setStoredLocale(next); applyLocale(next, theme); setLocale(next); }; const changeTheme = () => { const next: Theme = theme === "dark" ? "light" : "dark"; setStoredTheme(next); applyLocale(locale, next); setTheme(next); };
+  useEffect(() => { applyLocale(locale, theme); setStoredLocale(locale); }, [locale, theme]); useEffect(() => { applyLocale(locale, theme); setStoredTheme(theme); }, [theme, locale]);
   useEffect(()=>{if(!supabase)return;let alive=true;supabase.auth.getSession().then(({data})=>{if(!alive)return;setSignedIn(Boolean(data.session));setEmail(data.session?.user.email??"");setSessionReady(true)}).catch(()=>{if(alive)setSessionReady(true)});const {data:listener}=supabase.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){setRecovery(true);setSignedIn(false)}else{setSignedIn(Boolean(session));setEmail(session?.user.email??"")}setSessionReady(true)});return()=>{alive=false;listener.subscription.unsubscribe()}},[]);
-  async function signOut(){if(!supabase)return;await supabase.auth.signOut();setRecovery(false);setActiveModule("لوحة التحكم")}
-  function finishRecovery(){setRecovery(false);window.history.replaceState({},document.title,window.location.pathname);}
+  async function signOut(){if(!supabase)return;await supabase.auth.signOut();setRecovery(false);setActiveModule("لوحة التحكم")} function finishRecovery(){setRecovery(false);window.history.replaceState({},document.title,window.location.pathname);}
   if(!sessionReady)return <main className="loading-screen"><span className="brand-mark">B</span><p>{locale === "en" ? "Preparing your secure workspace…" : "جارٍ تجهيز مساحتك الآمنة…"}</p></main>;
   if(recovery)return <main className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><div className="appearance-controls"><button type="button" className="appearance-button" onClick={changeLocale} aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}>{locale === "ar" ? "EN" : "عربي"}</button><button type="button" className="appearance-button" onClick={changeTheme} aria-label={theme === "dark" ? (locale === "ar" ? "الوضع الفاتح" : "Light mode") : (locale === "ar" ? "الوضع الداكن" : "Dark mode")}>{theme === "dark" ? "☼" : "☾"}</button></div></header><AuthPanel locale={locale} recovery onRecoveryComplete={finishRecovery}/><footer className="footer"><span>BYE PRO FINANCE</span><span>{locale === "en" ? "Privacy first" : "الخصوصية أولاً"}</span></footer></main>;
-  if(!signedIn)return <main className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><div className="appearance-controls"><button type="button" className="appearance-button" onClick={changeLocale} aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}>{locale === "ar" ? "EN" : "عربي"}</button><button type="button" className="appearance-button" onClick={changeTheme} aria-label={theme === "dark" ? (locale === "ar" ? "الوضع الفاتح" : "Light mode") : (locale === "ar" ? "الوضع الداكن" : "Dark mode")}>{theme === "dark" ? "☼" : "☾"}<span className="private-label"><span className="status-dot"/> {locale === "ar" ? "مساحة مالية خاصة" : "Private finance space"}</span></div></header><AuthPanel locale={locale}/><footer className="footer"><span>BYE PRO FINANCE</span><span>{locale === "en" ? "Privacy first" : "الخصوصية أولاً"}</span></footer></main>;
+  if(!signedIn)return <main className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><div className="appearance-controls"><button type="button" className="appearance-button" onClick={changeLocale} aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}>{locale === "ar" ? "EN" : "عربي"}</button><button type="button" className="appearance-button" onClick={changeTheme} aria-label={theme === "dark" ? (locale === "ar" ? "الوضع الفاتح" : "Light mode") : (locale === "ar" ? "الوضع الداكن" : "Dark mode")}>{theme === "dark" ? "☼" : "☾"}</button><span className="private-label"><span className="status-dot"/> {locale === "ar" ? "مساحة مالية خاصة" : "Private finance space"}</span></div></header><AuthPanel locale={locale}/><footer className="footer"><span>BYE PRO FINANCE</span><span>{locale === "en" ? "Privacy first" : "الخصوصية أولاً"}</span></footer></main>;
   const active=modules.find(i=>i.title===activeModule)??modules[0];
   return <main className="workspace" data-locale={locale} data-theme={theme}><aside className="sidebar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><p className="nav-caption">{locale === "ar" ? "مساحة العمل" : "Workspace"}</p><nav className="main-nav" aria-label="الأقسام الرئيسية">{modules.map(item=><button type="button" key={item.number} className={activeModule===item.title?"nav-item active":"nav-item"} onClick={()=>setActiveModule(item.title)}><span className="nav-icon"><Icon name={item.icon} size={18} /></span><span>{moduleTitles[locale][item.title]}</span><small>{item.number}</small></button>)}</nav><div className="sidebar-bottom"><span className="status-dot"/><span>{locale === "ar" ? "جلسة دخول نشطة" : "Active session"}</span><button type="button" className="text-button" onClick={signOut}>{locale === "ar" ? "تسجيل الخروج" : "Sign out"}</button></div></aside><section className="workspace-main"><header className="workspace-topbar"><div><p className="eyebrow">{locale === "ar" ? "مساحتك المالية" : "Your finance space"} · {active.number}</p><h1>{moduleTitles[locale][active.title]}</h1></div><div className="workspace-appearance"><button type="button" className="appearance-button" onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>{locale === "ar" ? "EN" : "عربي"}</button><button type="button" className="appearance-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☼" : "☾"}</button><div className="user-chip"><span className="avatar">{email.slice(0,1).toUpperCase()||"U"}</span><span dir="ltr">{email}</span></div></div></header><SectionContent activeModule={activeModule}/><footer className="footer"><span>BYE PRO FINANCE</span><span>{locale === "ar" ? `بياناتك المالية خاصة بك · ${modules.length} وحدات` : `Your financial data is private · ${modules.length} modules`}</span></footer></section></main>;
 }
