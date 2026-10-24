@@ -105,7 +105,7 @@ export default function AccountsView() {
       .eq("id", account.id);
     if (updateError) setError(updateError.message);
     else {
-      setNotice(account.is_active ? "تم إيقاف الحساب." : "تم تفعيل الحساب.");
+      setNotice(account.is_active ? tr("تم إيقاف الحساب.", "Account deactivated.") : tr("تم تفعيل الحساب.", "Account activated."));
       await loadAccounts();
     }
   }
@@ -132,7 +132,7 @@ export default function AccountsView() {
       <button type="submit" className="primary-button form-submit" disabled={saving}>{saving ? tr("جارٍ الحفظ…", "Saving…") : tr("حفظ الحساب", "Save account")}</button>
     </form>}
     <div className="balance-summary">
-      {Object.entries(totalByCurrency).length === 0 ? <div><span>{tr("إجمالي الأرصدة","Total balances")}</span><strong>—</strong><small>{tr("أضف حسابًا لعرض الرصيد حسب العملة.","Add an account to view balances by currency.")}</small></div> : Object.entries(totalByCurrency).map(([code, total]) => <div key={code}><span>{tr("إجمالي الأرصدة النشطة","Active balances total")} · {code}</span><strong dir="ltr">{money(total, code)}</strong><small>{accounts.filter((item) => item.is_active && item.currency_code === code).length} حساب نشط</small></div>)}
+      {Object.entries(totalByCurrency).length === 0 ? <div><span>{tr("إجمالي الأرصدة","Total balances")}</span><strong>—</strong><small>{tr("أضف حسابًا لعرض الرصيد حسب العملة.","Add an account to view balances by currency.")}</small></div> : Object.entries(totalByCurrency).map(([code, total]) => <div key={code}><span>{tr("إجمالي الأرصدة النشطة","Active balances total")} · {code}</span><strong dir="ltr">{money(total, code)}</strong><small>{accounts.filter((item) => item.is_active && item.currency_code === code).length} {tr("حساب نشط","active accounts")}</small></div>)}
     </div>
     {loading ? <div className="empty-state">{tr("جارٍ تحميل الحسابات…","Loading accounts…")}</div> : accounts.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="wallet" size={28} /></span><h3>{tr("لا توجد حسابات بعد","No accounts yet")}</h3><p>{tr("أضف حسابك الأول لبدء تنظيم أموالك.","Add your first account to start organizing your money.")}</p><button type="button" className="secondary-button" onClick={() => setShowForm(true)}>{tr("إضافة أول حساب", "Add your first account")}</button></div> : <div className="account-list">
       {accounts.map((account) => <article className={account.is_active ? "account-row" : "account-row inactive"} key={account.id}>
