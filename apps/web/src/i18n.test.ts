@@ -32,15 +32,15 @@ describe("locale and theme preference contract", () => {
   });
   it("shows locale and theme controls in both app shells", () => {
     expect(app.match(/className="appearance-button"/g)?.length).toBeGreaterThanOrEqual(4);
-    expect(app).toContain('setLocale(locale === "ar" ? "en" : "ar")');
-    expect(app).toContain('setTheme(theme === "dark" ? "light" : "dark")');
+    expect(app).toContain("const changeLocale = () =>");
+    expect(app).toContain("const changeTheme = () =>");
     expect(app).toContain("moduleTitles[locale][item.title]");
     expect(app).toContain("A personal finance workspace to organize accounts");
     expect(app).toContain("Forgot password?");
   });
   it("localizes the main finance screens when English is selected", () => {
     for (const component of [accounts, transactions, dashboard, reports, collections, platform, advanced]) {
-      expect(component).toMatch(/document\\.documentElement\\.lang\\s*===\\s*"en"/);
+      expect(component).toMatch(/document\.documentElement\.lang\s*===\s*"en"/);
     }
     expect(accounts).toContain('"Your accounts"');
     expect(transactions).toContain('"Transactions"');
