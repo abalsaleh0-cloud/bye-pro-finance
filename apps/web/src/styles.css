@@ -132,3 +132,50 @@ button, .primary-button, .secondary-button { min-height: 44px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+
+/* Phase 5: accessible locale and theme controls */
+.appearance-controls,.workspace-appearance{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.workspace-appearance{justify-content:flex-end}
+.appearance-button{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--gold);font-size:12px;font-weight:700}
+.appearance-button:hover{border-color:var(--gold)}
+html[data-locale="en"] body,body[data-locale="en"]{font-family:Inter,"Noto Sans",Arial,system-ui,sans-serif}
+html[data-locale="en"] .nav-item,html[data-locale="en"] .module-card,html[data-locale="en"] .form-field select{ text-align:left; direction:ltr }
+html[data-locale="en"] .workspace{grid-template-columns:250px minmax(0,1fr)}
+html[data-locale="en"] .sidebar{border-left:0;border-right:1px solid var(--line)}
+html[data-locale="en"] .nav-item{grid-template-columns:28px 1fr auto}
+html[data-locale="en"] .nav-icon{text-align:center}
+html[data-locale="en"] .module-number{text-align:left}
+html[data-locale="en"] .card-arrow{align-self:flex-end}
+html[data-locale="en"] .form-field select{direction:ltr}
+html[data-locale="en"] .sidebar-bottom .text-button{justify-self:start}
+html[data-locale="en"] .data-row,html[data-locale="en"] .dashboard-line{text-align:left}
+
+:root[data-theme="light"],body[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f5f7;--panel:#ffffff;--panel-soft:#f0f1f4;--line:#d9dce3;--muted:#626875;
+  --gold:#8a671d;--green:#16794a;--red:#b42332;
+  --ui-bg:#f4f5f7;--ui-surface:#ffffff;--ui-surface-raised:#f0f1f4;--ui-border:#d9dce3;
+  --ui-text:#20232a;--ui-muted:#626875;--ui-accent:#8a671d;--ui-success:#16794a;--ui-danger:#b42332;
+}
+body[data-theme="light"]{background:radial-gradient(ellipse at 85% 0%,#ece4d1 0,transparent 36%),var(--bg);color:#20232a}
+body[data-theme="light"] .sidebar{background:#fff}
+body[data-theme="light"] .auth-card,body[data-theme="light"] .module-card,body[data-theme="light"] .dashboard-panel,body[data-theme="light"] .account-form,body[data-theme="light"] .form-grid,body[data-theme="light"] .panel{background:#fff;border-color:var(--line);color:#20232a}
+body[data-theme="light"] .welcome-panel{background:linear-gradient(120deg,#f4eddd,#fff 68%);border-color:#d9c99f}
+body[data-theme="light"] .nav-item{color:#414651}
+body[data-theme="light"] .nav-item:hover{background:#f2f3f5;color:#17191e}
+body[data-theme="light"] .nav-item.active{background:#f5efdf;border-color:#d9c99f;color:#382b10}
+body[data-theme="light"] .auth-form input,body[data-theme="light"] .form-field input,body[data-theme="light"] .form-field select,body[data-theme="light"] .form-grid input,body[data-theme="light"] .form-grid select{background:#fff;color:#20232a;border-color:#cbd0d9}
+body[data-theme="light"] .secondary-button{background:#f5f0e4;color:#715313;border-color:#d5c69e}
+body[data-theme="light"] .notice.warning{background:#fff8e6;color:#6c5011}
+body[data-theme="light"] .notice.error{background:#fff0f1;color:#92212d}
+body[data-theme="light"] .notice.success{background:#eaf8f0;color:#17643f}
+body[data-theme="light"] .user-chip{color:#414651}
+body[data-theme="light"] .avatar{background:#f3ead3;color:#765715}
+body[data-theme="light"] .appearance-button{background:#fff;color:#715313;border-color:#d2d6de}
+body[data-theme="light"] .dashboard-line,body[data-theme="light"] .data-row{border-color:var(--line)}
+body[data-theme="light"] .data-row strong,body[data-theme="light"] .dashboard-line strong,body[data-theme="light"] .section-heading h2,body[data-theme="light"] .data-view-heading h2,body[data-theme="light"] .dashboard-panel h3{color:#20232a}
+body[data-theme="light"] .empty-state,body[data-theme="light"] .empty-copy{color:#626875}
+body[data-theme="light"] .primary-button{background:#d9bb77;color:#201a0d;border-color:#b99a51}
+body[data-theme="light"] .topbar,body[data-theme="light"] .workspace-topbar,body[data-theme="light"] .footer{border-color:var(--line)}
+@media(max-width:768px){.appearance-controls .private-label{display:none}.workspace-appearance{gap:6px}.workspace-appearance .appearance-button{min-width:40px;padding:7px}}
