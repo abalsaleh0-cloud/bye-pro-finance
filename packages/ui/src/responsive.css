@@ -1,0 +1,37 @@
+@import "./tokens.css";
+
+.ui-container { width: min(100% - 2rem, var(--ui-content-max)); margin-inline: auto; }
+.ui-stack { display: flex; flex-direction: column; gap: var(--ui-space-4); min-width: 0; }
+.ui-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-3); min-width: 0; }
+.ui-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ui-space-4); min-width: 0; }
+.ui-grid > * { min-width: 0; }
+.ui-scroll-x { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+.ui-safe-area { padding-inline: max(1rem, env(safe-area-inset-left)); padding-block-end: env(safe-area-inset-bottom); }
+.ui-only-mobile { display: initial; }
+.ui-only-desktop { display: none !important; }
+.ui-text-wrap { min-width: 0; overflow-wrap: anywhere; }
+.ui-control { width: 100%; min-height: var(--ui-control-height); }
+.ui-focusable:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; box-shadow: var(--ui-focus-ring); }
+@media (min-width: 360px) { .ui-container { width: min(100% - 2rem, var(--ui-content-max)); } }
+@media (min-width: 480px) { .ui-grid[data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 640px) {
+  .ui-container { width: min(100% - 3rem, var(--ui-content-max)); }
+  .ui-grid[data-columns="3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .ui-only-mobile { display: none !important; }
+  .ui-only-desktop { display: initial !important; }
+  .ui-grid[data-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .ui-container { width: min(100% - 4rem, var(--ui-content-max)); }
+  .ui-grid[data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px) { .ui-grid[data-columns="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 1536px) { .ui-container { width: min(100% - 5rem, var(--ui-content-max)); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media (hover: none) {
+  button, a, input, select, textarea, [role="button"] { touch-action: manipulation; }
+}
