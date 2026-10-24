@@ -19,9 +19,10 @@ describe("validateTransactionInput", () => {
       expect(validateTransactionInput({ ...valid, amount }).ok).toBe(false);
     }
   });
-  it("rejects invalid account ids and transaction types", () => {
+  it("rejects invalid account ids and unsupported transaction types", () => {
     expect(validateTransactionInput({ ...valid, account_id: "not-a-uuid" }).ok).toBe(false);
     expect(validateTransactionInput({ ...valid, type: "wire" }).ok).toBe(false);
+    expect(validateTransactionInput({ ...valid, type: "transfer" })).toMatchObject({ ok: false, error: "INVALID_TRANSACTION_TYPE" });
   });
   it("rejects invalid currency and oversized descriptions", () => {
     expect(validateTransactionInput({ ...valid, currency_code: "lyd" }).ok).toBe(false);
