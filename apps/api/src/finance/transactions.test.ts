@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateTransactionInput } from "./transactions.js";
+import { readJsonBody, validateTransactionInput } from "./transactions.js";
 
 const valid = {
   account_id: "123e4567-e89b-42d3-a456-426614174000",
@@ -39,5 +39,23 @@ describe("validateTransactionInput", () => {
     const result = validateTransactionInput({ ...valid, user_id: "attacker-controlled" });
     expect(result.ok).toBe(true);
     if (result.ok) expect("user_id" in result.value).toBe(false);
+  });
+});
+
+describe("JSON request body limits", () => {
+  async function* chunks(...values: string[]) {
+    for (const value of values) yield new TextEncoder().encode(value);
+  }
+
+  it("parses valid JSON across multiple chunks", async () => {
+    await expect(readJsonBody(chunks('{"amount":', '12.5}'))).resolves.toEqual({ amount: 12.5 });
+  });
+
+  it("rejects malformed JSON with a stable error", async () => {
+    await expect(readJsonBody(chunks('{"amount":'))).rejects.toThrow("INVALID_JSON");
+  });
+
+  it("rejects request bodies above the configured byte limit", async () => {
+    await expect(readJsonBody(chunks('{"data":"123456789"}'), 8)).rejects.toThrow("BODY_TOO_LARGE");
   });
 });
