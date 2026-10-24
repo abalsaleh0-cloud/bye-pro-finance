@@ -5,7 +5,8 @@ import AccountsView from "./components/AccountsView";
 import TransactionsView from "./components/TransactionsView";
 import DashboardView from "./components/DashboardView";
 import { CollectionView } from "./components/FinanceViews";
-import { DocumentsView, NotificationsView, ReportsView } from "./components/AdvancedFinanceViews";
+import ReportsView from "./components/ReportsView";
+import { DocumentsView, NotificationsView } from "./components/AdvancedFinanceViews";
 
 type ActiveModule = "لوحة التحكم" | "الحسابات" | "المعاملات" | "الميزانيات" | "الديون" | "الفواتير" | "الادخار" | "الأصول" | "التقارير" | "المستندات" | "الإشعارات";
 const modules: { title: ActiveModule; description: string; number: string; icon: string }[] = [
