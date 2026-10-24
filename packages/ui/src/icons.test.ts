@@ -40,6 +40,14 @@ describe("shared icon library contract", () => {
     expect(registry).toContain("aria-label={label}");
   });
 
+  it("registers every semantic icon used by the primary navigation", () => {
+    const names = [...app.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      expect(registry).toMatch(new RegExp(`(?:^|\\\\s)(?:"${name}"|${name}):`, "m"));
+    }
+  });
+
   it("uses the shared icon component for every primary navigation item", () => {
     expect(app).toContain('import { Icon, type IconName } from "../../../packages/ui/src"');
     expect(app).toContain("icon: IconName");
