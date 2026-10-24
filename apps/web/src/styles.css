@@ -179,3 +179,19 @@ body[data-theme="light"] .empty-state,body[data-theme="light"] .empty-copy{color
 body[data-theme="light"] .primary-button{background:#d9bb77;color:#201a0d;border-color:#b99a51}
 body[data-theme="light"] .topbar,body[data-theme="light"] .workspace-topbar,body[data-theme="light"] .footer{border-color:var(--line)}
 @media(max-width:768px){.appearance-controls .private-label{display:none}.workspace-appearance{gap:6px}.workspace-appearance .appearance-button{min-width:40px;padding:7px}}
+
+
+/* Phase 5 completion pass: extend light palette to all finance surfaces */
+body[data-theme="light"] .stat-card,body[data-theme="light"] .panel-card,body[data-theme="light"] .insight-card,body[data-theme="light"] .metric-card,body[data-theme="light"] .report-category-list,body[data-theme="light"] .report-summary article{background:#fff;border-color:var(--line);color:#20232a}
+body[data-theme="light"] .stat-card span,body[data-theme="light"] .stat-card small,body[data-theme="light"] .muted-copy,body[data-theme="light"] .panel-card p,body[data-theme="light"] .report-category-row span,body[data-theme="light"] .report-row small{color:#626875}
+body[data-theme="light"] .panel-head h3,body[data-theme="light"] .report-category-list h3,body[data-theme="light"] .report-row strong,body[data-theme="light"] .report-category-row strong{color:#20232a}
+body[data-theme="light"] .report-row,body[data-theme="light"] .report-category-row,body[data-theme="light"] .report-lines>div{border-color:var(--line)}
+body[data-theme="light"] .auth-form label,body[data-theme="light"] .form-grid label,body[data-theme="light"] .report-filters label{color:#414651}
+body[data-theme="light"] input,body[data-theme="light"] select,body[data-theme="light"] textarea{color:#20232a;background:#fff;border-color:#cbd0d9}
+body[data-theme="light"] .table-head,body[data-theme="light"] .table-row{background:#fff;color:#20232a;border-color:var(--line)}
+body[data-theme="light"] .text-button{color:#765715}
+body[data-theme="light"] .text-button:hover{color:#4e390d}
+body[data-theme="light"] .notice{border-color:var(--line)}
+html[data-locale="en"] .workspace-topbar,html[data-locale="en"] .data-view-heading,html[data-locale="en"] .panel-head{ text-align:left }
+html[data-locale="en"] .sidebar{border-inline-start:0;border-inline-end:1px solid var(--line)}
+html[data-locale="en"] .workspace-topbar .eyebrow{letter-spacing:.04em}
