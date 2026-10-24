@@ -33,6 +33,7 @@ export default function ProfileSettingsView() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
   const [cropZoom, setCropZoom] = useState(1);
   const [cropX, setCropX] = useState(50);
   const [cropY, setCropY] = useState(50);
@@ -55,6 +56,7 @@ export default function ProfileSettingsView() {
     setProfile(next); setFullName(next.full_name ?? ""); setUsername(next.username ?? ""); setAvatarUrl(next.avatar_url ?? ""); setCurrency(next.currency_code ?? "LYD"); setLocale(next.locale ?? "ar"); setTimezone(next.timezone ?? "Africa/Tripoli"); setBusy(false);
   };
   useEffect(() => { void load(); }, []);
+  useEffect(() => { if (!avatarFile) { setAvatarPreviewUrl(""); return; } const url = URL.createObjectURL(avatarFile); setAvatarPreviewUrl(url); return () => URL.revokeObjectURL(url); }, [avatarFile]);
 
   async function uploadAvatar() {
     if (!supabase || !profile || !avatarFile) return;
@@ -117,7 +119,7 @@ export default function ProfileSettingsView() {
       <div className="profile-avatar-actions"><label className="secondary-button file-picker">{tr("اختيار صورة", "Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onAvatarChange} /></label></div>
     </div>
     {avatarFile && <div className="avatar-editor">
-      <div className="avatar-editor-heading"><div><strong>{tr("تعديل الصورة الشخصية", "Adjust profile photo")}</strong><p>{tr("حرّك الصورة وكبّرها حتى تحصل على القصّة التي تريدها.", "Move and zoom the image until the crop looks right.")}</p></div><div className="avatar-crop-preview"><img src={URL.createObjectURL(avatarFile)} alt={tr("معاينة القص", "Crop preview")} style={{ objectPosition: cropX + "% " + cropY + "%", transform: "scale(" + cropZoom + ")" }} /></div></div>
+      <div className="avatar-editor-heading"><div><strong>{tr("تعديل الصورة الشخصية", "Adjust profile photo")}</strong><p>{tr("حرّك الصورة وكبّرها حتى تحصل على القصّة التي تريدها.", "Move and zoom the image until the crop looks right.")}</p></div><div className="avatar-crop-preview"><img src={avatarPreviewUrl} alt={tr("معاينة القص", "Crop preview")} style={{ objectPosition: cropX + "% " + cropY + "%", transform: "scale(" + cropZoom + ")" }} /></div></div>
       <div className="avatar-adjustments">
         <label>{tr("التكبير", "Zoom")}<input type="range" min="1" max="3" step="0.05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/><small>{cropZoom.toFixed(2)}×</small></label>
         <label>{tr("الموضع الأفقي", "Horizontal position")}<input type="range" min="0" max="100" value={cropX} onChange={e=>setCropX(Number(e.target.value))}/></label>
