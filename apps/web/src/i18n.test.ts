@@ -28,6 +28,8 @@ describe("locale and theme preference contract", () => {
     expect(app).toContain('setLocale(locale === "ar" ? "en" : "ar")');
     expect(app).toContain('setTheme(theme === "dark" ? "light" : "dark")');
     expect(app).toContain("moduleTitles[locale][item.title]");
+    expect(app).toContain("A personal finance workspace to organize accounts");
+    expect(app).toContain("Forgot password?");
   });
   it("defines light theme and English direction styles", () => {
     expect(styles).toContain(':root[data-theme="light"],body[data-theme="light"]');
