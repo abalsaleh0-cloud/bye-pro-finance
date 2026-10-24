@@ -40,7 +40,7 @@ describe("locale and theme preference contract", () => {
   });
   it("localizes the main finance screens when English is selected", () => {
     for (const component of [accounts, transactions, dashboard, reports, collections, platform, advanced]) {
-      expect(component).toMatch(/document\.documentElement\.lang\s*===\s*"en"/);
+      expect(component).toContain('document.documentElement.lang === "en"');
     }
     expect(accounts).toContain('"Your accounts"');
     expect(transactions).toContain('"Transactions"');
