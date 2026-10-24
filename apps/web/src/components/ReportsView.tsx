@@ -29,6 +29,8 @@ function CurrencyList({ values }: { values: CurrencyTotals }) {
 }
 
 export default function ReportsView() {
+  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
+  const tr = (ar: string, english: string) => en ? english : ar;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [transactions, setTransactions] = useState<Row[]>([]);
@@ -89,19 +91,19 @@ export default function ReportsView() {
   if (loading) return <div className="empty-state">جارٍ تجهيز التقرير المالي…</div>;
 
   return <section className="data-view">
-    <div className="data-view-heading"><div><p className="eyebrow">التحليل المالي</p><h2>التقارير</h2><p className="muted-copy">الأرقام مفصولة حسب العملة حتى لا يتم جمع عملات مختلفة في رقم واحد.</p></div><button type="button" className="primary-button compact-button" onClick={() => void load()}>تحديث</button></div>
+    <div className="data-view-heading"><div><p className="eyebrow">Financial analysis</p><h2>Reports</h2><p className="muted-copy">Amounts are separated by currency to avoid combining unlike currencies.</p></div><button type="button" className="primary-button compact-button" onClick={() => void load()}>{tr("تحديث", "Refresh")}</button></div>
     {error && <p className="notice error" role="alert">{error}</p>}
     <div className="stats-grid">
       <article className="stat-card"><span>الأرصدة الحالية</span><CurrencyList values={summary.balances}/><small>{accounts.length} حساب</small></article>
       <article className="stat-card"><span>الدخل</span><CurrencyList values={summary.income}/><small>المعاملات المكتملة فقط</small></article>
-      <article className="stat-card"><span>المصروفات</span><CurrencyList values={summary.expense}/><small>المعاملات المكتملة فقط</small></article>
+      <article className="stat-card"><span>Expenses</span><CurrencyList values={summary.expense}/><small>المعاملات المكتملة فقط</small></article>
       <article className="stat-card"><span>لك / عليك</span><div className="report-dual"><span>لك: <CurrencyList values={summary.receivable}/></span><span>عليك: <CurrencyList values={summary.payable}/></span></div></article>
     </div>
     <div className="dashboard-grid">
-      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">التدفق</p><h3>الدخل والمصروفات حسب العملة</h3></div></div><div className="report-lines"><div><span>إجمالي الدخل</span><CurrencyList values={summary.income}/></div><div><span>إجمالي المصروفات</span><CurrencyList values={summary.expense}/></div></div></article>
-      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">صافي الملكية</p><h3>الأصول والادخار حسب العملة</h3></div></div><div className="report-lines"><div><span>قيمة الأصول</span><CurrencyList values={summary.assetsValue}/></div><div><span>المدخر حاليًا</span><CurrencyList values={summary.saved}/></div><div><span>أهداف الادخار</span><CurrencyList values={summary.target}/></div></div></article>
+      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">Cash flow</p><h3>Income and expenses by currency</h3></div></div><div className="report-lines"><div><span>Total income</span><CurrencyList values={summary.income}/></div><div><span>Total expenses</span><CurrencyList values={summary.expense}/></div></div></article>
+      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">Net worth</p><h3>Assets and savings by currency</h3></div></div><div className="report-lines"><div><span>Asset value</span><CurrencyList values={summary.assetsValue}/></div><div><span>Current savings</span><CurrencyList values={summary.saved}/></div><div><span>Savings goals</span><CurrencyList values={summary.target}/></div></div></article>
     </div>
-    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">المصروفات</p><h3>أعلى البنود</h3></div></div>{topExpenses.length ? <div className="report-list">{topExpenses.map(([name, values]) => <div className="report-row" key={name}><span>{name}</span><CurrencyList values={values}/></div>)}</div> : <div className="empty-state">لا توجد مصروفات مسجلة بعد.</div>}</article>
-    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">آخر النشاط</p><h3>آخر المعاملات</h3></div></div>{transactions.slice(0, 10).length ? <div className="report-list">{transactions.slice(0, 10).map(t => <div className="report-row" key={t.id}><span>{t.description || "معاملة"}<small>{dateLabel(t.transaction_date)} · {typeLabel[t.type] || t.type}</small></span><strong dir="ltr">{money(Number(t.amount || 0), String(t.currency_code || "LYD"))}</strong></div>)}</div> : <div className="empty-state">لا توجد معاملات بعد.</div>}</article>
+    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">Expenses</p><h3>Top categories</h3></div></div>{topExpenses.length ? <div className="report-list">{topExpenses.map(([name, values]) => <div className="report-row" key={name}><span>{name}</span><CurrencyList values={values}/></div>)}</div> : <div className="empty-state">No expenses recorded yet.</div>}</article>
+    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">Recent activity</p><h3>Recent transactions</h3></div></div>{transactions.slice(0, 10).length ? <div className="report-list">{transactions.slice(0, 10).map(t => <div className="report-row" key={t.id}><span>{t.description || "معاملة"}<small>{dateLabel(t.transaction_date)} · {typeLabel[t.type] || t.type}</small></span><strong dir="ltr">{money(Number(t.amount || 0), String(t.currency_code || "LYD"))}</strong></div>)}</div> : <div className="empty-state">No transactions yet.</div>}</article>
   </section>;
 }
