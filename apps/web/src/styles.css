@@ -402,3 +402,94 @@ html[data-locale="en"] .dashboard-panel { text-align: left; }
     white-space: nowrap;
   }
 }
+
+
+/* Debt UX refinement: concise payment action, independent creditor tabs, and large readable controls. */
+.debt-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.debt-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+  color: var(--text, #ede8de);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+}
+.debt-tab.active {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 16%, var(--panel));
+  color: var(--gold);
+}
+.account-row .debt-payment-action,
+.account-row > .debt-payment-action {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 10px 22px;
+  margin-top: 8px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  writing-mode: horizontal-tb !important;
+}
+.data-view, .data-view p, .data-view label, .data-view .account-details,
+.data-view .account-balance, .debt-payment-panel {
+  font-size: 16px;
+  line-height: 1.75;
+}
+.data-view .account-details h3 { font-size: 19px; line-height: 1.55; }
+.data-view .account-balance strong { font-size: 20px; }
+.data-view :where(input, select, textarea) {
+  min-height: 54px;
+  padding: 12px 15px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.data-view :where(button, .primary-button, .secondary-button, .text-button) {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.data-view .compact-button { padding: 10px 20px; }
+.debt-payment-panel { padding: 22px; }
+.debt-payment-panel h3 { font-size: 22px; }
+.debt-payment-panel h4 { font-size: 19px; margin-top: 22px; }
+.debt-payment-history-row { padding: 16px 0; }
+.debt-payment-history-row strong { font-size: 17px; }
+.debt-payment-history-row small { display: block; font-size: 15px; line-height: 1.8; }
+@media (max-width: 600px) {
+  .debt-tabs { gap: 8px; }
+  .debt-tab { min-height: 62px; padding: 12px 8px; font-size: 16px; }
+  .account-row .debt-payment-action,
+  .account-row > .debt-payment-action {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: fit-content;
+    min-width: 0;
+    min-height: 52px;
+    padding: 10px 22px;
+    white-space: nowrap;
+  }
+  .data-view :where(input, select, textarea) { min-height: 56px; font-size: 17px; }
+  .data-view .account-details h3 { font-size: 18px; }
+}
