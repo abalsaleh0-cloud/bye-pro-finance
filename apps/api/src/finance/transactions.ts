@@ -1,7 +1,7 @@
 export type TransactionInput = {
   account_id: string;
   category_id?: string | null;
-  type: "income" | "expense" | "transfer" | "adjustment";
+  type: "income" | "expense" | "adjustment";
   status?: "pending" | "completed" | "cancelled";
   amount: number;
   currency_code?: string;
@@ -12,7 +12,7 @@ export type TransactionInput = {
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const TYPES = new Set(["income", "expense", "transfer", "adjustment"]);
+const TYPES = new Set(["income", "expense", "adjustment"]);
 const STATUSES = new Set(["pending", "completed", "cancelled"]);
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_DATE_PREFIX = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/;
