@@ -44,7 +44,7 @@ describe("shared icon library contract", () => {
     const names = [...app.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
     expect(names.length).toBeGreaterThan(0);
     for (const name of names) {
-      expect(registry).toMatch(new RegExp(`(?:^|\\\\s)(?:"${name}"|${name}):`, "m"));
+      expect(registry).toMatch(new RegExp(`(?:^|\\s)(?:"${name}"|${name}):`, "m"));
     }
   });
 
