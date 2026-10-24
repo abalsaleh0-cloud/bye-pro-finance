@@ -540,3 +540,12 @@ html[data-locale="en"] .dashboard-panel { text-align: left; }
   .topbar { align-items: flex-start; flex-wrap: wrap; }
   .appearance-controls { margin-inline-start: auto; }
 }
+
+
+/* Account identity chip: show the person's name instead of their email. */
+.profile-chip { display:flex; align-items:center; gap:10px; max-width: min(280px, 45vw); padding:6px 12px 6px 7px; border:1px solid var(--line); border-radius:999px; color:#c5c4c0; background:transparent; text-align:start; }
+.profile-chip-copy { display:grid; min-width:0; gap:3px; }
+.profile-chip-copy strong, .profile-chip-copy small { display:block; max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.profile-chip-copy strong { color:var(--text-main, #f1f0eb); font-size:12px; }
+.profile-chip-copy small { color:var(--muted); font-size:10px; }
+@media(max-width:620px) { .profile-chip { max-width:100%; } .profile-chip-copy strong, .profile-chip-copy small { max-width: min(220px, 60vw); } }
