@@ -10,7 +10,7 @@ export default function DashboardView() {
   const tr = (ar: string, english: string) => en ? english : ar;
   const [accounts, setAccounts] = useState<Row[]>([]), [transactions, setTransactions] = useState<Row[]>([]), [budgets, setBudgets] = useState<Row[]>([]), [debts, setDebts] = useState<Row[]>([]), [bills, setBills] = useState<Row[]>([]), [goals, setGoals] = useState<Row[]>([]), [assets, setAssets] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true), [error, setError] = useState("");
-  useEffect(() => { let alive = true; (async () => { if (!supabase) { setError("إعداد اتصال Supabase غير مكتمل."); setLoading(false); return; } const [a,t,b,d,f,g,s] = await Promise.all([
+  useEffect(() => { let alive = true; (async () => { if (!supabase) { setError(typeof document!=="undefined"&&document.documentElement.lang==="en"?"Supabase connection is not configured.":"إعداد اتصال Supabase غير مكتمل."); setLoading(false); return; } const [a,t,b,d,f,g,s] = await Promise.all([
     supabase.from("accounts").select("*").eq("is_active", true).order("created_at", { ascending: false }),
     supabase.from("transactions").select("*").order("transaction_date", { ascending: false }).limit(50),
     supabase.from("budgets").select("*").eq("is_active", true).order("created_at", { ascending: false }),
