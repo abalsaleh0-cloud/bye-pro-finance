@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidMoneyAmount } from "./money";
+import { isValidMoneyAmount } from "./money.js";
 
 describe("money validation", () => {
   it("accepts zero and values with up to four decimals", () => {
