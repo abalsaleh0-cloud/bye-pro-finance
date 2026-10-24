@@ -19,6 +19,8 @@ const money = (value: number, currency: string) =>
   new Intl.NumberFormat("ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
 
 export default function AccountsView() {
+  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
+  const tr = (ar: string, english: string) => en ? english : ar;
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -115,28 +117,28 @@ export default function AccountsView() {
 
   return <section className="data-view">
     <div className="data-view-heading">
-      <div><p className="eyebrow">إدارة الأرصدة</p><h2>حساباتك</h2><p className="muted-copy">تُقرأ الحسابات من قاعدة بياناتك الخاصة مباشرة.</p></div>
-      <button type="button" className="primary-button compact-button" onClick={() => { setShowForm((value) => !value); setError(""); setNotice(""); }}>{showForm ? "إلغاء" : "+ إضافة حساب"}</button>
+      <div><p className="eyebrow">Account balances</p><h2>Your accounts</h2><p className="muted-copy">Accounts are loaded directly from your private database.</p></div>
+      <button type="button" className="primary-button compact-button" onClick={() => { setShowForm((value) => !value); setError(""); setNotice(""); }}>{showForm ? tr("إلغاء", "Cancel") : "+ "+tr("إضافة حساب", "Add account")}</button>
     </div>
     {error && <p className="notice error" role="alert">{error}</p>}
     {notice && <p className="notice success" role="status">{notice}</p>}
     {showForm && <form className="account-form" onSubmit={createAccount}>
-      <div className="form-field"><label htmlFor="account-name">اسم الحساب *</label><input id="account-name" required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="مثلاً: المحفظة اليومية" /></div>
-      <div className="form-field"><label htmlFor="account-type">نوع الحساب</label><select id="account-type" value={type} onChange={(event) => setType(event.target.value as AccountType)}>{accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
-      <div className="form-field"><label htmlFor="account-currency">العملة</label><select id="account-currency" value={currency} onChange={(event) => setCurrency(event.target.value)}><option value="LYD">دينار ليبي (LYD)</option><option value="USD">دولار أمريكي (USD)</option><option value="EUR">يورو (EUR)</option><option value="GBP">جنيه إسترليني (GBP)</option><option value="SYP">ليرة سورية (SYP)</option><option value="JOD">دينار أردني (JOD)</option></select></div>
-      <div className="form-field"><label htmlFor="account-balance">الرصيد الافتتاحي</label><input id="account-balance" type="number" step="0.01" required value={openingBalance} onChange={(event) => setOpeningBalance(event.target.value)} dir="ltr" /></div>
-      <div className="form-field"><label htmlFor="account-institution">البنك أو الجهة (اختياري)</label><input id="account-institution" maxLength={100} value={institution} onChange={(event) => setInstitution(event.target.value)} /></div>
-      <div className="form-field"><label htmlFor="account-last-four">آخر 4 أرقام (اختياري)</label><input id="account-last-four" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} value={lastFour} onChange={(event) => setLastFour(event.target.value)} dir="ltr" placeholder="1234" /></div>
-      <button type="submit" className="primary-button form-submit" disabled={saving}>{saving ? "جارٍ الحفظ…" : "حفظ الحساب"}</button>
+      <div className="form-field"><label htmlFor="account-name">Account name *</label><input id="account-name" required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Daily wallet" /></div>
+      <div className="form-field"><label htmlFor="account-type">Account type</label><select id="account-type" value={type} onChange={(event) => setType(event.target.value as AccountType)}>{accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+      <div className="form-field"><label htmlFor="account-currency">Currency</label><select id="account-currency" value={currency} onChange={(event) => setCurrency(event.target.value)}><option value="LYD">Libyan dinar (LYD)</option><option value="USD">US dollar (USD)</option><option value="EUR">Euro (EUR)</option><option value="GBP">British pound (GBP)</option><option value="SYP">Syrian pound (SYP)</option><option value="JOD">Jordanian dinar (JOD)</option></select></div>
+      <div className="form-field"><label htmlFor="account-balance">Opening balance</label><input id="account-balance" type="number" step="0.01" required value={openingBalance} onChange={(event) => setOpeningBalance(event.target.value)} dir="ltr" /></div>
+      <div className="form-field"><label htmlFor="account-institution">Bank or institution (optional)</label><input id="account-institution" maxLength={100} value={institution} onChange={(event) => setInstitution(event.target.value)} /></div>
+      <div className="form-field"><label htmlFor="account-last-four">Last 4 digits (optional)</label><input id="account-last-four" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} value={lastFour} onChange={(event) => setLastFour(event.target.value)} dir="ltr" placeholder="1234" /></div>
+      <button type="submit" className="primary-button form-submit" disabled={saving}>{saving ? tr("جارٍ الحفظ…", "Saving…") : tr("حفظ الحساب", "Save account")}</button>
     </form>}
     <div className="balance-summary">
       {Object.entries(totalByCurrency).length === 0 ? <div><span>إجمالي الأرصدة</span><strong>—</strong><small>أضف حسابًا لعرض الرصيد حسب العملة.</small></div> : Object.entries(totalByCurrency).map(([code, total]) => <div key={code}><span>إجمالي الأرصدة النشطة · {code}</span><strong dir="ltr">{money(total, code)}</strong><small>{accounts.filter((item) => item.is_active && item.currency_code === code).length} حساب نشط</small></div>)}
     </div>
-    {loading ? <div className="empty-state">جارٍ تحميل الحسابات…</div> : accounts.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="wallet" size={28} /></span><h3>لا توجد حسابات بعد</h3><p>أضف حسابك الأول لبدء تنظيم أموالك.</p><button type="button" className="secondary-button" onClick={() => setShowForm(true)}>إضافة أول حساب</button></div> : <div className="account-list">
+    {loading ? <div className="empty-state">Loading accounts…</div> : accounts.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="wallet" size={28} /></span><h3>No accounts yet</h3><p>Add your first account to start organizing your money.</p><button type="button" className="secondary-button" onClick={() => setShowForm(true)}>{tr("إضافة أول حساب", "Add your first account")}</button></div> : <div className="account-list">
       {accounts.map((account) => <article className={account.is_active ? "account-row" : "account-row inactive"} key={account.id}>
         <span className="account-type-icon">{accountTypes.find((item) => item.value === account.type)?.label.slice(0, 1) ?? "ح"}</span>
-        <div className="account-details"><h3>{account.name}</h3><p>{account.institution_name || accountTypes.find((item) => item.value === account.type)?.label}{account.last_four ? ` · •••• ${account.last_four}` : ""}</p><span className={account.is_active ? "account-status" : "account-status off"}>{account.is_active ? "نشط" : "متوقف"}</span></div>
-        <div className="account-balance"><strong dir="ltr">{money(Number(account.current_balance), account.currency_code)}</strong><button type="button" className="text-button" onClick={() => void toggleAccount(account)}>{account.is_active ? "إيقاف الحساب" : "تفعيل الحساب"}</button></div>
+        <div className="account-details"><h3>{account.name}</h3><p>{account.institution_name || accountTypes.find((item) => item.value === account.type)?.label}{account.last_four ? ` · •••• ${account.last_four}` : ""}</p><span className={account.is_active ? "account-status" : "account-status off"}>{account.is_active ? tr("نشط", "Active") : tr("متوقف", "Inactive")}</span></div>
+        <div className="account-balance"><strong dir="ltr">{money(Number(account.current_balance), account.currency_code)}</strong><button type="button" className="text-button" onClick={() => void toggleAccount(account)}>{account.is_active ? tr("إيقاف الحساب", "Deactivate account") : tr("تفعيل الحساب", "Activate account")}</button></div>
       </article>)}
     </div>}
   </section>;
