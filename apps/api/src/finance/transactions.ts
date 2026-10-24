@@ -1,3 +1,5 @@
+import { isValidMoneyAmount } from "./money";
+
 export type TransactionInput = {
   account_id: string;
   category_id?: string | null;
@@ -44,7 +46,7 @@ export function validateTransactionInput(value: unknown):
   if (body.category_id != null && (typeof body.category_id !== "string" || !UUID.test(body.category_id))) return { ok: false, error: "INVALID_CATEGORY_ID" };
   if (typeof body.type !== "string" || !TYPES.has(body.type)) return { ok: false, error: "INVALID_TRANSACTION_TYPE" };
   if (body.status != null && (typeof body.status !== "string" || !STATUSES.has(body.status))) return { ok: false, error: "INVALID_TRANSACTION_STATUS" };
-  if (typeof body.amount !== "number" || !Number.isFinite(body.amount) || body.amount < 0) return { ok: false, error: "INVALID_AMOUNT" };
+  if (!isValidMoneyAmount(body.amount)) return { ok: false, error: "INVALID_AMOUNT" };
   if (body.currency_code != null && (typeof body.currency_code !== "string" || !/^[A-Z]{3,5}$/.test(body.currency_code))) return { ok: false, error: "INVALID_CURRENCY" };
   if (body.description != null && (typeof body.description !== "string" || body.description.length > 2000)) return { ok: false, error: "INVALID_DESCRIPTION" };
   if (body.reference != null && (typeof body.reference !== "string" || body.reference.length > 200)) return { ok: false, error: "INVALID_REFERENCE" };
@@ -57,7 +59,7 @@ export function validateTransactionInput(value: unknown):
       category_id: (body.category_id as string | null | undefined) ?? null,
       type: body.type as TransactionInput["type"],
       status: (body.status as TransactionInput["status"]) ?? "completed",
-      amount: body.amount,
+      amount: body.amount as number,
       currency_code: (body.currency_code as string | undefined) ?? "LYD",
       description: (body.description as string | null | undefined) ?? null,
       transaction_date: (body.transaction_date as string | undefined) ?? new Date().toISOString(),
