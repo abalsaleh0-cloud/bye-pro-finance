@@ -1,5 +1,6 @@
 import "./advanced-finance.css";
 import { useEffect, useState, type FormEvent } from "react";
+import { Icon, type IconName } from "../../../packages/ui/src";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AccountsView from "./components/AccountsView";
 import TransactionsView from "./components/TransactionsView";
@@ -10,25 +11,25 @@ import { DocumentsView, NotificationsView } from "./components/AdvancedFinanceVi
 import { AdminView, AssistantView, HouseholdView, ImportExportView, SettingsView, SmartScanView, TransfersView } from "./components/PlatformViews";
 
 type ActiveModule = "لوحة التحكم" | "الحسابات" | "المعاملات" | "التحويلات" | "الميزانيات" | "الديون" | "الفواتير" | "الادخار" | "الأصول" | "التقارير" | "المنزل" | "المستندات" | "المسح الذكي" | "المساعد المالي" | "الإشعارات" | "استيراد وتصدير" | "الإعدادات" | "الإدارة";
-const modules: { title: ActiveModule; description: string; number: string; icon: string }[] = [
-  { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "◈" },
-  { title: "الحسابات", description: "الحسابات والأرصدة", number: "01", icon: "▤" },
-  { title: "المعاملات", description: "الدخل والمصروفات", number: "02", icon: "⇄" },
-  { title: "التحويلات", description: "نقل الأموال بين الحسابات", number: "03", icon: "↔" },
-  { title: "الميزانيات", description: "خطط الإنفاق", number: "04", icon: "▥" },
-  { title: "الديون", description: "المستحقات والالتزامات", number: "05", icon: "↗" },
-  { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "□" },
-  { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "◇" },
-  { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "◆" },
+const modules: { title: ActiveModule; description: string; number: string; icon: IconName }[] = [
+  { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "layout-dashboard" },
+  { title: "الحسابات", description: "الحسابات والأرصدة", number: "01", icon: "wallet" },
+  { title: "المعاملات", description: "الدخل والمصروفات", number: "02", icon: "arrow-left-right" },
+  { title: "التحويلات", description: "نقل الأموال بين الحسابات", number: "03", icon: "repeat-2" },
+  { title: "الميزانيات", description: "خطط الإنفاق", number: "04", icon: "pie-chart" },
+  { title: "الديون", description: "المستحقات والالتزامات", number: "05", icon: "hand-coins" },
+  { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "calendar-days" },
+  { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "trending-up" },
+  { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "credit-card" },
   { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "▥" },
-  { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "⌂" },
-  { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "▧" },
-  { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "⌕" },
-  { title: "المساعد المالي", description: "التحليل والمساعدة الذكية", number: "13", icon: "✦" },
-  { title: "الإشعارات", description: "التنبيهات المالية", number: "14", icon: "◉" },
-  { title: "استيراد وتصدير", description: "نقل بياناتك", number: "15", icon: "⇵" },
-  { title: "الإعدادات", description: "تفضيلات الحساب", number: "16", icon: "⚙" },
-  { title: "الإدارة", description: "مراقبة وإدارة النظام", number: "17", icon: "▣" },
+  { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "home" },
+  { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "folder" },
+  { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "search" },
+  { title: "المساعد المالي", description: "التحليل والمساعدة الذكية", number: "13", icon: "sparkles" },
+  { title: "الإشعارات", description: "التنبيهات المالية", number: "14", icon: "bell" },
+  { title: "استيراد وتصدير", description: "نقل بياناتك", number: "15", icon: "refresh-cw" },
+  { title: "الإعدادات", description: "تفضيلات الحساب", number: "16", icon: "settings" },
+  { title: "الإدارة", description: "مراقبة وإدارة النظام", number: "17", icon: "shield-check" },
 ];
 
 type AuthMode = "signin" | "signup" | "reset";
@@ -64,5 +65,5 @@ export default function App(){
   if(!sessionReady)return <main className="loading-screen"><span className="brand-mark">B</span><p>جارٍ تجهيز مساحتك الآمنة…</p></main>;
   if(!signedIn)return <main className="app-shell"><header className="topbar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><span className="private-label"><span className="status-dot"/> مساحة مالية خاصة</span></header><AuthPanel/><footer className="footer"><span>BYE PRO FINANCE</span><span>الخصوصية أولاً</span></footer></main>;
   const active=modules.find(i=>i.title===activeModule)??modules[0];
-  return <main className="workspace"><aside className="sidebar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><p className="nav-caption">مساحة العمل</p><nav className="main-nav" aria-label="الأقسام الرئيسية">{modules.map(item=><button type="button" key={item.number} className={activeModule===item.title?"nav-item active":"nav-item"} onClick={()=>setActiveModule(item.title)}><span className="nav-icon">{item.icon}</span><span>{item.title}</span><small>{item.number}</small></button>)}</nav><div className="sidebar-bottom"><span className="status-dot"/><span>جلسة دخول نشطة</span><button type="button" className="text-button" onClick={signOut}>تسجيل الخروج</button></div></aside><section className="workspace-main"><header className="workspace-topbar"><div><p className="eyebrow">مساحتك المالية · {active.number}</p><h1>{active.title}</h1></div><div className="user-chip"><span className="avatar">{email.slice(0,1).toUpperCase()||"U"}</span><span dir="ltr">{email}</span></div></header><SectionContent activeModule={activeModule}/><footer className="footer"><span>BYE PRO FINANCE</span><span>بياناتك المالية خاصة بك · {modules.length} وحدات</span></footer></section></main>;
+  return <main className="workspace"><aside className="sidebar"><a className="brand" href="/" aria-label="BYE PRO FINANCE"><span className="brand-mark">B</span><span><strong>BYE PRO</strong><small>FINANCE</small></span></a><p className="nav-caption">مساحة العمل</p><nav className="main-nav" aria-label="الأقسام الرئيسية">{modules.map(item=><button type="button" key={item.number} className={activeModule===item.title?"nav-item active":"nav-item"} onClick={()=>setActiveModule(item.title)}><span className="nav-icon"><Icon name={item.icon} size={18} /></span><span>{item.title}</span><small>{item.number}</small></button>)}</nav><div className="sidebar-bottom"><span className="status-dot"/><span>جلسة دخول نشطة</span><button type="button" className="text-button" onClick={signOut}>تسجيل الخروج</button></div></aside><section className="workspace-main"><header className="workspace-topbar"><div><p className="eyebrow">مساحتك المالية · {active.number}</p><h1>{active.title}</h1></div><div className="user-chip"><span className="avatar">{email.slice(0,1).toUpperCase()||"U"}</span><span dir="ltr">{email}</span></div></header><SectionContent activeModule={activeModule}/><footer className="footer"><span>BYE PRO FINANCE</span><span>بياناتك المالية خاصة بك · {modules.length} وحدات</span></footer></section></main>;
 }
