@@ -1,4 +1,4 @@
-import { isValidMoneyAmount } from "./money";
+import { isValidMoneyAmount } from "./money.js";
 
 export type TransactionInput = {
   account_id: string;
@@ -55,7 +55,7 @@ export function validateTransactionInput(value: unknown):
   return {
     ok: true,
     value: {
-      account_id: body.account_id,
+      account_id: body.account_id as string,
       category_id: (body.category_id as string | null | undefined) ?? null,
       type: body.type as TransactionInput["type"],
       status: (body.status as TransactionInput["status"]) ?? "completed",
