@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const registry = readFileSync("packages/ui/src/icons.tsx", "utf8");
 const exports = readFileSync("packages/ui/src/index.tsx", "utf8");
+const app = readFileSync("apps/web/src/App.tsx", "utf8");
 
 describe("shared icon library contract", () => {
   it("exports the shared icon component and registry from the UI package", () => {
@@ -33,6 +34,13 @@ describe("shared icon library contract", () => {
     expect(registry).toContain("aria-hidden={label ? undefined : true}");
     expect(registry).toContain('role={label ? "img" : undefined}');
     expect(registry).toContain("aria-label={label}");
+  });
+
+  it("uses the shared icon component for every primary navigation item", () => {
+    expect(app).toContain('import { Icon, type IconName } from "../../../packages/ui/src"');
+    expect(app).toContain("icon: IconName");
+    expect(app).toContain('<Icon name={item.icon} size={18} />');
+    expect(app).not.toMatch(/icon: "[◈▤⇄↔▥↗□◇◆⌂▧⌕✦◉⇵⚙▣]"/u);
   });
 
   it("derives valid icon names from the registry instead of accepting arbitrary strings", () => {
