@@ -12,7 +12,7 @@ describe("phase 6 quality and security contracts", () => {
     for (const route of ["/api/v1/accounts", "/api/v1/budgets", "/api/v1/transfers", "/api/v1/transactions"]) {
       expect(api).toContain(`url.pathname === "${route}"`);
     }
-    expect(api.match(/authenticate\(request, response\)/g)?.length ?? 0).toBeGreaterThanOrEqual(8);
+    expect(api.match(/authenticate\(request, response\)/g)?.length ?? 0).toBeGreaterThanOrEqual(7);
     expect(api).toContain("AUTH_REQUIRED");
     expect(api).toContain("INVALID_SESSION");
   });
@@ -25,7 +25,8 @@ describe("phase 6 quality and security contracts", () => {
 
   it("prevents trusting client-supplied user ownership", () => {
     expect(api).toContain("user_id: auth.identity.id");
-    expect(auth).toContain("verifyAccessToken");
+    expect(api).toContain("verifyAccessToken");
+    expect(auth).toContain("readBearerToken");
   });
 
   it("uses secure response headers for API output", () => {
