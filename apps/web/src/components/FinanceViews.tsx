@@ -24,6 +24,13 @@ function buildPayload(module:ModuleKey,form:Record<string,string>){const payload
 export function CollectionView({module}:{module:ModuleKey}){
  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
  const dictionary: Record<string,string> = {
+ "تابع الفواتير القادمة والمدفوعة والمتأخرة.":"Track upcoming, paid, and overdue bills.",
+ "حوّل أهدافك إلى تقدم واضح قابل للمتابعة.":"Turn your goals into measurable progress.",
+ "سجل الأصول وقيمتها التقديرية ضمن الصورة المالية الكاملة.":"Record assets and their estimated values as part of your overall financial picture.",
+ "سجل المستندات المرتبطة بعملياتك المالية.":"Keep records of documents linked to your financial activity.",
+ "تنبيهات الحساب والميزانية والفواتير في مكان واحد.":"Account, budget, and bill alerts in one place.",
+ "الميزانية":"Budget","الفترة":"Period","المبلغ":"Amount","العملة":"Currency","الحالة":"Status","قادمة":"Upcoming","مدفوعة":"Paid","متأخرة":"Overdue","ملغاة":"Cancelled","الهدف":"Goal","المستهدف":"Target","الحالي":"Current","القيمة":"Value","الاقتناء":"Acquired","الصافي":"Net","إجمالي الدخل":"Total income","إجمالي المصروفات":"Total expenses",
+ "تم تسجيل دفعة بقيمة":"Payment recorded:","بتاريخ":"on","تم حذف السجل.":"Record deleted.","تم تحديث السجل بنجاح.":"Record updated successfully.","انتهت جلسة الدخول.":"Your session has expired."
  "الميزانيات":"Budgets","التخطيط المالي":"Financial planning","خطط الإنفاق مع متابعة المبلغ المخصص لكل فترة.":"Plan spending and track allocations for each period.",
  "الديون":"Debts","الالتزامات":"Liabilities","تتبع ما لك وما عليك حتى التسوية الكاملة.":"Track money owed to you and by you until fully settled.",
  "الفواتير":"Bills","المدفوعات":"Payments","تابع الفواتير ومواعيد الاستحقاق وحالة السداد.":"Track bills, due dates, and payment status.",
