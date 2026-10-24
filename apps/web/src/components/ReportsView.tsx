@@ -7,13 +7,13 @@ type CurrencyTotals = Record<string, number>;
 
 const money = (value: number, currency: string) => {
   try {
-    return new Intl.NumberFormat("ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value || 0);
+    return new Intl.NumberFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { style: "currency", currency, maximumFractionDigits: 2 }).format(value || 0);
   } catch {
-    return `${Number(value || 0).toLocaleString("ar")} ${currency}`;
+    return `${Number(value || 0).toLocaleString(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar")} ${currency}`;
   }
 };
 
-const dateLabel = (value: unknown) => value ? new Intl.DateTimeFormat("ar", { dateStyle: "medium" }).format(new Date(String(value))) : "—";
+const dateLabel = (value: unknown) => value ? new Intl.DateTimeFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar", { dateStyle: "medium" }).format(new Date(String(value))) : "—";
 const typeLabel: Record<string, string> = { income: "دخل", expense: "مصروف", transfer: "تحويل", adjustment: "تسوية" };
 
 function addByCurrency(target: CurrencyTotals, currency: unknown, value: unknown) {
