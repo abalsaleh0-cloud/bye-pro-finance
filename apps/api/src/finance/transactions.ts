@@ -15,13 +15,24 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const TYPES = new Set(["income", "expense", "transfer", "adjustment"]);
 const STATUSES = new Set(["pending", "completed", "cancelled"]);
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATE_PREFIX = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/;
 
-function isValidDate(value: string): boolean {
-  if (!Number.isFinite(Date.parse(value))) return false;
-  if (!DATE_ONLY.test(value)) return true;
-  const [year, month, day] = value.split("-").map(Number);
+function isValidCalendarDate(year: number, month: number, day: number): boolean {
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+function isValidDate(value: string): boolean {
+  const datePrefix = ISO_DATE_PREFIX.exec(value);
+  if (datePrefix && !isValidCalendarDate(Number(datePrefix[1]), Number(datePrefix[2]), Number(datePrefix[3]))) {
+    return false;
+  }
+  if (!Number.isFinite(Date.parse(value))) return false;
+  if (DATE_ONLY.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return isValidCalendarDate(year, month, day);
+  }
+  return true;
 }
 
 export function validateTransactionInput(value: unknown):
