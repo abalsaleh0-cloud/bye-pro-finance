@@ -21,7 +21,7 @@ const modules: { title: ActiveModule; description: string; number: string; icon:
   { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "calendar-days" },
   { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "trending-up" },
   { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "credit-card" },
-  { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "▥" },
+  { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "activity" },
   { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "home" },
   { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "folder" },
   { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "search" },
