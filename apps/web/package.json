@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc -p ../../tsconfig.app.json && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "dev": "vite --config ../../vite.config.ts --host 0.0.0.0",
+    "build": "tsc -p ../../tsconfig.app.json && vite --config ../../vite.config.ts build",
+    "preview": "vite --config ../../vite.config.ts preview --host 0.0.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.76.1",
