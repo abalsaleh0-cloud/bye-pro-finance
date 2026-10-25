@@ -4,8 +4,12 @@
 export { AccountsView } from "./accounts";
 export { TransactionsView } from "./transactions";
 export { DashboardView } from "./dashboard";
-export { CollectionView } from "./budgets";
 export { ReportsView } from "./reports";
+export { AssetsView } from "./assets";
+export { BillsView } from "./bills";
+export { BudgetsView } from "./budgets";
+export { DebtsView } from "./debts";
+export { SavingsView } from "./savings";
 export { DocumentsView } from "./documents";
 export { NotificationsView } from "./notifications";
 export { AssistantView } from "./assistant";
