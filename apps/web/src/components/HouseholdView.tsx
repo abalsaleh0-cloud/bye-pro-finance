@@ -8,9 +8,10 @@ type Expense = { id: string; member_id: string | null; category: string; descrip
 const roles = ["owner", "partner", "child", "parent", "family", "other"];
 const categories = ["طعام", "كهرباء", "ماء", "إيجار", "غاز", "إنترنت", "تعليم", "صحة", "مواصلات", "تسوق", "عام"];
 const tr = (en: boolean, ar: string, enText: string) => (en ? enText : ar);
-const today = () => new Date().toISOString().slice(0, 10);
-const monthStart = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10); };
-const monthEnd = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10); };
+const localDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const today = () => localDate(new Date());
+const monthStart = () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)); };
+const monthEnd = () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth() + 1, 0)); };
 const categoryLabels: Record<string,string> = { "طعام":"Food", "كهرباء":"Electricity", "ماء":"Water", "إيجار":"Rent", "غاز":"Gas", "إنترنت":"Internet", "تعليم":"Education", "صحة":"Health", "مواصلات":"Transport", "تسوق":"Shopping", "عام":"General" };
 const roleLabels: Record<string,string> = { owner:"Owner", partner:"Partner", child:"Child", parent:"Parent", family:"Family", other:"Other" };
 
@@ -29,7 +30,7 @@ export default function HouseholdView() {
   const [expenseForm, setExpenseForm] = useState({ member_id: "", category: "عام", description: "", amount: "", currency_code: "LYD", expense_date: today(), is_recurring: false, notes: "" });
 
   const load = async () => {
-    if (!supabase) return;
+    if (!supabase) { setBusy(false); setError(tr(en, "خدمة البيانات غير مهيأة.", "Data service is not configured.")); return; }
     setBusy(true); setError("");
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) { setBusy(false); return; }
