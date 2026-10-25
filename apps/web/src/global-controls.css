@@ -1,0 +1,21 @@
+/* Final control normalization: one size, one field surface, one focus treatment across the whole finance workspace. */
+:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea){box-sizing:border-box;width:100%;min-width:0;min-height:43px;height:43px;padding:10px 12px;border:1px solid #363740;border-radius:9px;background:#101115!important;color:#f7f4ec!important;color-scheme:dark;font:inherit;line-height:1.35;box-shadow:none;opacity:1}
+:where(body) :where(textarea){height:auto;min-height:120px;resize:vertical}
+:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea))::placeholder{color:#777983;opacity:1}
+:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):focus{border-color:var(--gold,#d6b56d);outline:none;box-shadow:0 0 0 1px var(--gold,#d6b56d)}
+:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):hover{border-color:#4b4d56}
+:where(body) :where(input:disabled,select:disabled,textarea:disabled,input[readonly]){opacity:1;background:#101115!important;color:#f7f4ec!important}
+:where(body) :where(input[type="file"]){box-sizing:border-box;width:100%;min-height:43px;padding:8px 10px;border:1px solid #363740;border-radius:9px;background:#101115!important;color:#f7f4ec!important}
+:where(body) :where(input[type="file"])::file-selector-button{margin-inline-end:10px;padding:7px 10px;border:1px solid #655638;border-radius:7px;background:#211e18;color:var(--gold,#d6b56d);font:inherit;cursor:pointer}
+:where(body) :where(input[type="checkbox"]){width:auto;min-height:auto;accent-color:var(--gold,#d6b56d)}
+/* Equal paired fields. */
+:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start}
+:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters)>*{min-width:0}
+:where(.form-grid)>.wide{grid-column:1/-1}
+/* Light mode changes every control, including readonly/disabled fields and buttons. */
+html[data-theme="light"] :where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea){background:#fff!important;color:#20232a!important;border-color:#c8c9cf!important;color-scheme:light}
+html[data-theme="light"] :where(body) :where(input[readonly],input:disabled,select:disabled,textarea:disabled){background:#fff!important;color:#20232a!important;opacity:1}
+html[data-theme="light"] :where(body) :where(input[type="file"]){background:#fff!important;color:#20232a!important;border-color:#c8c9cf!important}
+html[data-theme="light"] :where(body) :where(input[type="file"])::file-selector-button{background:#f2ead7;color:#6c5420;border-color:#b99b5e}
+html[data-theme="light"] :where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):focus{border-color:#8a671d!important;box-shadow:0 0 0 1px #8a671d}
+@media(max-width:700px){:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:1fr!important}:where(.form-grid)>.wide{grid-column:auto}}
