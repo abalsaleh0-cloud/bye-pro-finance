@@ -37,7 +37,7 @@ jobs:
         run: pnpm install --lockfile-only --no-frozen-lockfile
       - name: Commit generated lockfile
         run: |
-          if [ -f pnpm-lock.yaml ] && git diff --quiet -- pnpm-lock.yaml; then
+          if git ls-files --error-unmatch pnpm-lock.yaml >/dev/null 2>&1 && git diff --quiet -- pnpm-lock.yaml; then
             echo "Lockfile is already current."
             exit 0
           fi
