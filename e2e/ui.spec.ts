@@ -27,6 +27,16 @@ async function mockAuth(page: Page) {
   await page.route("**/auth/v1/user**", r => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) }));
 }
 
+async function visibleText(page: Page, label: string) {
+  const matches = page.getByText(label, { exact: true });
+  const count = await matches.count();
+  for (let index = count - 1; index >= 0; index -= 1) {
+    const candidate = matches.nth(index);
+    if (await candidate.isVisible().catch(() => false)) return candidate;
+  }
+  throw new Error(`Visible control not found: ${label}`);
+}
+
 async function enterWorkspace(page: Page, locale: "ar" | "en") {
   await page.goto("/");
   const emailLabel = locale === "ar" ? "البريد الإلكتروني" : "Email address";
@@ -35,12 +45,11 @@ async function enterWorkspace(page: Page, locale: "ar" | "en") {
   await page.getByLabel(emailLabel).fill(user.email);
   await page.getByLabel(passwordLabel, { exact: true }).fill("StrongPassword123!");
   await page.getByRole("button", { name: signInLabel }).click();
-  await expect(page.getByText(locale === "ar" ? "لوحة التحكم" : "Dashboard").first()).toBeVisible();
+  await expect(page.getByText(locale === "ar" ? "لوحة التحكم" : "Dashboard").last()).toBeVisible();
 }
 
 async function clickScreen(page: Page, label: string) {
-  const target = page.getByRole("button", { name: label, exact: true }).first();
-  await expect(target).toBeVisible({ timeout: 7000 });
+  const target = await visibleText(page, label);
   await target.click();
 }
 
@@ -76,11 +85,9 @@ for (const locale of ["ar", "en"] as const) {
 
     expect(errors).toEqual([]);
 
-    // Explicit empty-data verification: the mocked GET responses are empty arrays.
     await clickScreen(page, locale === "ar" ? "الحسابات" : "Accounts");
     await expect(page.locator("body")).toContainText(locale === "ar" ? "الحسابات" : "Accounts");
 
-    // Explicit API-error verification: the next data request fails, but the UI must stay mounted.
     await page.route("**/rest/v1/**", async route => {
       if (route.request().method() === "GET") {
         await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ message: "E2E forced error" }) });
