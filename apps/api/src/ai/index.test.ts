@@ -75,7 +75,7 @@ describe("free local financial assistant", () => {
   it("answers in Arabic when the user writes in Arabic", async () => {
     const result = await runAiAssistant(client, { task: "assistant", input: "حلل مصروفاتي" });
     expect(result.ok).toBe(true);
-    if (result.ok) { expect(result.answer).toContain("المساعد"); expect(result.answer).toContain("LYD"); }
+    if (result.ok) { expect(result.answer).toContain("مساعد BYE PRO FINANCE"); expect(result.answer).toContain("LYD"); }
   });
 
   it("returns a safe error when financial data cannot be read", async () => {
