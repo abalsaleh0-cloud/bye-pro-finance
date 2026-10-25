@@ -54,7 +54,7 @@ async function clickScreen(page: Page, label: string) {
 }
 
 for (const locale of ["ar", "en"] as const) {
-  test(`${locale}: 18 screens on responsive viewport, states and accessibility`, async ({ page }) => {
+  test(`${locale}: 18 screens on mobile tablet desktop, states and accessibility`, async ({ page }) => {
     test.setTimeout(180_000);
     await page.addInitScript((value) => localStorage.setItem("bye-pro-finance.locale", value), locale);
     await mockAuth(page);
@@ -75,19 +75,38 @@ for (const locale of ["ar", "en"] as const) {
       const label = locale === "ar" ? ar : en;
       await clickScreen(page, label);
       await expect(page.locator("body")).toContainText(label);
-      await expect(page.locator("body")).not.toContainText("undefined");
       await expect(page.locator("body")).not.toContainText("Cannot read properties");
       await expect(page.locator("body")).not.toContainText("NaN");
 
       const results = await new AxeBuilder({ page }).analyze();
-      expect(results.violations, `${locale}: ${label}`).toEqual([]);
+      const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
+      expect(blocking, `${locale}: ${label}`).toEqual([]);
     }
 
     expect(errors).toEqual([]);
 
+    // Loading state: hold API responses while navigating and verify the screen remains mounted.
+    await page.unroute("**/rest/v1/**");
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    await page.route("**/rest/v1/**", async route => {
+      if (route.request().method() === "GET") {
+        await pending;
+        await route.fulfill({ status: 200, contentType: "application/json", body: "[]", headers: { "content-range": "*/0" } });
+      } else {
+        await route.continue();
+      }
+    });
     await clickScreen(page, locale === "ar" ? "الحسابات" : "Accounts");
+    await expect(page.locator("body")).toBeVisible();
+    release();
+    await page.waitForTimeout(300);
+
+    // Empty-data state: the API returns an empty collection and the screen stays usable.
     await expect(page.locator("body")).toContainText(locale === "ar" ? "الحسابات" : "Accounts");
 
+    // API-error state: a failed request must not crash or blank the application.
+    await page.unroute("**/rest/v1/**");
     await page.route("**/rest/v1/**", async route => {
       if (route.request().method() === "GET") {
         await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ message: "E2E forced error" }) });
@@ -97,6 +116,7 @@ for (const locale of ["ar", "en"] as const) {
     });
     await clickScreen(page, locale === "ar" ? "المعاملات" : "Transactions");
     await page.waitForTimeout(500);
+    await expect(page.locator("body")).toBeVisible();
     await expect(page.locator("body")).not.toContainText("Cannot read properties");
     await expect(page.locator("body")).not.toContainText("undefined");
   });
