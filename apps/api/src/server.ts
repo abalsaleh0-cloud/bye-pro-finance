@@ -6,6 +6,7 @@ import { createUserScopedClient } from "./database/user-client.js";
 import { readJsonBody, validateTransactionInput } from "./finance/transactions.js";
 import { validateBudgetInput } from "./finance/budgets.js";
 import { validateTransferInput } from "./finance/transfers.js";
+import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -122,6 +123,15 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     const validated = validateTransferInput(body);
     if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
 
+    const rawIdempotencyKey = request.headers["idempotency-key"];
+    const idempotencyKey = Array.isArray(rawIdempotencyKey)
+      ? null
+      : normalizeIdempotencyKey(rawIdempotencyKey);
+    if (rawIdempotencyKey !== undefined && !idempotencyKey) {
+      json(response, 400, { error: "INVALID_IDEMPOTENCY_KEY" });
+      return;
+    }
+
     const accountIds = [validated.value.from_account_id, validated.value.to_account_id];
     const { data: accounts, error: accountsError } = await auth.client.from("accounts")
       .select("id,currency_code,is_active")
@@ -140,12 +150,69 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       return;
     }
 
+    const transferId = idempotencyKey
+      ? buildIdempotentTransferId(auth.identity.id, idempotencyKey)
+      : undefined;
+    const selectColumns = "id,from_account_id,to_account_id,amount,fee,currency_code,description,transfer_date,status,created_at";
+
+    const matchesRequest = (row: Record<string, unknown>) =>
+      row.from_account_id === validated.value.from_account_id &&
+      row.to_account_id === validated.value.to_account_id &&
+      Number(row.amount) === validated.value.amount &&
+      Number(row.fee) === validated.value.fee &&
+      row.currency_code === validated.value.currency_code &&
+      row.description === validated.value.description &&
+      row.transfer_date === validated.value.transfer_date &&
+      row.status === validated.value.status;
+
+    if (transferId) {
+      const { data: existing, error: existingError } = await auth.client.from("transfers")
+        .select(selectColumns)
+        .eq("id", transferId)
+        .maybeSingle();
+      if (existingError) { json(response, 502, { error: "TRANSFER_LOOKUP_FAILED" }); return; }
+      if (existing) {
+        if (!matchesRequest(existing as Record<string, unknown>)) {
+          json(response, 409, { error: "IDEMPOTENCY_KEY_REUSED" });
+          return;
+        }
+        json(response, 200, { data: existing });
+        return;
+      }
+    }
+
     const { data, error } = await auth.client.from("transfers")
-      .insert({ ...validated.value, user_id: auth.identity.id })
-      .select("id,from_account_id,to_account_id,amount,fee,currency_code,description,transfer_date,status,created_at")
+      .insert({
+        ...validated.value,
+        user_id: auth.identity.id,
+        ...(transferId ? { id: transferId } : {}),
+      })
+      .select(selectColumns)
       .single();
-    if (error) { json(response, 400, { error: "TRANSFER_CREATE_FAILED" }); return; }
-    json(response, 201, { data });
+
+    if (!error) {
+      json(response, 201, { data });
+      return;
+    }
+
+    if (transferId && error.code === "23505") {
+      const { data: existing, error: existingError } = await auth.client.from("transfers")
+        .select(selectColumns)
+        .eq("id", transferId)
+        .maybeSingle();
+      if (existingError || !existing) {
+        json(response, 409, { error: "TRANSFER_IDEMPOTENCY_CONFLICT" });
+        return;
+      }
+      if (!matchesRequest(existing as Record<string, unknown>)) {
+        json(response, 409, { error: "IDEMPOTENCY_KEY_REUSED" });
+        return;
+      }
+      json(response, 200, { data: existing });
+      return;
+    }
+
+    json(response, 400, { error: "TRANSFER_CREATE_FAILED" });
     return;
   }
 
