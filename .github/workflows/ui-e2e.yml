@@ -1,0 +1,42 @@
+name: UI E2E
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ui-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Install Playwright and accessibility runner
+        run: pnpm add -Dw @playwright/test@1.55.1 @axe-core/playwright@4.11.0
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build web with isolated E2E configuration
+        env:
+          VITE_SUPABASE_URL: https://e2e-ui.invalid
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e2e_ui_test_key
+        run: pnpm --filter @bye-pro-finance/web build
+      - name: Start preview server
+        env:
+          VITE_SUPABASE_URL: https://e2e-ui.invalid
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e2e_ui_test_key
+        run: pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/bye-pro-finance-vite.log 2>&1 &
+      - name: Run responsive, locale, state and accessibility E2E
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+        run: pnpm exec playwright test e2e/ui.spec.ts
