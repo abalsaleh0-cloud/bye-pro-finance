@@ -27,56 +27,51 @@ describe("AI per-user request limit", () => {
   });
 });
 
-describe("AI provider integration", () => {
+describe("free local financial assistant", () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
-  it("returns an explicit setup error instead of fabricating an answer", async () => {
+  const rows: Record<string, unknown[]> = {
+    transactions: [
+      { type: "income", status: "completed", amount: 1000, currency_code: "LYD", description: "Salary", transaction_date: "2026-10-01", category_id: "income" },
+      { type: "expense", status: "completed", amount: 300, currency_code: "LYD", description: "Food", transaction_date: "2026-10-02", category_id: "food" },
+      { type: "expense", status: "completed", amount: 50, currency_code: "USD", description: "Travel", transaction_date: "2026-10-03", category_id: "travel" },
+    ],
+    accounts: [{ name: "Main", currency_code: "LYD", is_active: true }],
+    budgets: [{ name: "Food budget", amount: 200, currency_code: "LYD", period: "monthly", category_id: "food", start_date: "2026-10-01", end_date: null, is_active: true }],
+    categories: [{ id: "income", name: "Income" }, { id: "food", name: "Food" }, { id: "travel", name: "Travel" }],
+  };
+  const client = { from: (table: string) => {
+    const query: any = { select: () => query, order: () => query, limit: async () => ({ data: rows[table] ?? [], error: null }) };
+    return query;
+  }};
+
+  it("calculates totals separately by currency without provider credentials", async () => {
     vi.stubEnv("AI_API_KEY", "");
     vi.stubEnv("OPENAI_API_KEY", "");
-    const client = { from: () => { throw new Error("DB should not be queried without provider credentials"); } };
-    await expect(runAiAssistant(client, { task: "assistant", input: "How much did I spend?" })).resolves.toEqual({
-      ok: false, status: 503, error: "AI_PROVIDER_NOT_CONFIGURED",
-    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await runAiAssistant(client, { task: "financial-insights", input: "Analyze my spending" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.model).toBe("bye-pro-local-finance-v1");
+      expect(result.answer).toContain("income 1,000 LYD");
+      expect(result.answer).toContain("expenses 300 LYD");
+      expect(result.answer).toContain("50 USD");
+      expect(result.answer).toContain("Food budget");
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("maps provider throttling and outages to stable safe errors", async () => {
-    vi.stubEnv("AI_API_KEY", "unit-test-key");
-    vi.stubEnv("AI_BASE_URL", "https://provider.example/v1");
-    const rows: Record<string, unknown[]> = { transactions: [], accounts: [], budgets: [], categories: [] };
-    const client = { from: (table: string) => {
-      const query: any = { select: () => query, order: () => query, limit: async () => ({ data: rows[table] ?? [], error: null }) };
-      return query;
-    }};
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 429 })));
-    await expect(runAiAssistant(client, { task: "assistant", input: "help" })).resolves.toMatchObject({ ok: false, status: 429, error: "AI_PROVIDER_RATE_LIMITED" });
-    vi.stubGlobal("fetch", vi.fn(async () => { throw new DOMException("Timed out", "TimeoutError"); }));
-    await expect(runAiAssistant(client, { task: "assistant", input: "help" })).resolves.toMatchObject({ ok: false, status: 504, error: "AI_PROVIDER_TIMEOUT" });
+  it("answers in Arabic when the user writes in Arabic", async () => {
+    const result = await runAiAssistant(client, { task: "assistant", input: "حلل مصروفاتي" });
+    expect(result.ok).toBe(true);
+    if (result.ok) { expect(result.answer).toContain("المساعد"); expect(result.answer).toContain("LYD"); }
   });
-  it("sends RLS-scoped financial context to the configured OpenAI-compatible provider", async () => {
-    vi.stubEnv("AI_API_KEY", "unit-test-key");
-    vi.stubEnv("AI_BASE_URL", "https://provider.example/v1");
-    vi.stubEnv("AI_MODEL", "test-model");
-    const rows = {
-      transactions: [{ type: "income", status: "completed", amount: 100, currency_code: "LYD", description: "Salary", transaction_date: "2026-10-01", category_id: "cat-income" }, { type: "expense", status: "completed", amount: 25, currency_code: "LYD", description: "Food", transaction_date: "2026-10-02", category_id: "cat-food" }],
-      accounts: [{ name: "Main", currency_code: "LYD", is_active: true }],
-      budgets: [{ name: "Food budget", amount: 200, currency_code: "LYD", period: "monthly", category_id: "cat-food", start_date: "2026-10-01", end_date: null, is_active: true }],
-      categories: [{ id: "cat-income", name: "Income" }, { id: "cat-food", name: "Food" }],
-    } as Record<string, unknown[]>;
-    const client = { from: (table: string) => {
-      const query: any = { select: () => query, order: () => query, limit: async () => ({ data: rows[table] ?? [], error: null }) };
+
+  it("returns a safe error when financial data cannot be read", async () => {
+    const brokenClient = { from: () => {
+      const query: any = { select: () => query, order: () => query, limit: async () => ({ data: null, error: { message: "failed" } }) };
       return query;
     }};
-    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body));
-      expect(body.model).toBe("test-model");
-      expect(body.max_tokens).toBe(700);
-      expect(JSON.stringify(body.messages)).toContain("Food budget");
-      expect(JSON.stringify(body.messages)).toContain("LYD");
-      return new Response(JSON.stringify({ model: "test-model", choices: [{ message: { content: "Your recorded income is 100 LYD and expenses are 25 LYD." } }], usage: { total_tokens: 25 } }), { status: 200, headers: { "content-type": "application/json" } });
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    await expect(runAiAssistant(client, { task: "financial-insights", input: "Analyze my spending" })).resolves.toMatchObject({
-      ok: true, answer: "Your recorded income is 100 LYD and expenses are 25 LYD.", model: "test-model", usage: { total_tokens: 25 },
-    });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await expect(runAiAssistant(brokenClient, { task: "assistant", input: "help" })).resolves.toEqual({ ok: false, status: 502, error: "FINANCIAL_DATA_UNAVAILABLE" });
   });
 });
