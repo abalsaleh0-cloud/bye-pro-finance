@@ -18,4 +18,4 @@ export { ImportExportView } from "./import-export";
 export { ProfileSettingsView } from "./settings";
 export { SmartScanView } from "./smart-scan";
 export { TransfersView } from "./transfers";
-export { AdminView } from "../components/PlatformViews";
+export { AdminView } from "./admin";
