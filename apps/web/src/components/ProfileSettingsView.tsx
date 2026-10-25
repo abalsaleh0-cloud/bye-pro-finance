@@ -1,54 +1,85 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { getStoredTheme, setStoredLocale, setStoredTheme, applyLocale, type Locale, type Theme } from "../i18n";
+import "./ProfileSettingsView.css";
 
-type Profile = { id:string; full_name:string; username:string|null; avatar_url:string|null; currency_code:string; locale:string; timezone:string; full_name_changed_at:string|null; username_changed_at:string|null };
-const currencies=["LYD","USD","EUR","GBP","SAR","AED","EGP"];
-const timezones=["Africa/Tripoli","Asia/Damascus","Asia/Amman","Europe/Istanbul","Europe/London","UTC"];
+type Profile = { id: string; full_name: string; username: string | null; avatar_url: string | null };
+type UserSettings = { theme: Theme; locale: Locale; timezone: string; currency_code: string; date_format: string; number_format: string; email_notifications: boolean; transaction_alerts: boolean; bill_reminders: boolean; budget_alerts: boolean };
+const defaults: UserSettings = { theme: "dark", locale: "ar", timezone: "Africa/Tripoli", currency_code: "LYD", date_format: "YYYY-MM-DD", number_format: "1,234.56", email_notifications: true, transaction_alerts: true, bill_reminders: true, budget_alerts: true };
+const currencies = ["LYD", "USD", "EUR", "GBP", "SAR", "AED", "EGP"];
+const timezones = ["Africa/Tripoli", "Asia/Damascus", "Asia/Amman", "Europe/Istanbul", "Europe/London", "UTC"];
 
-export default function ProfileSettingsView(){
-  const en=typeof document!=="undefined"&&document.documentElement.lang==="en";
-  const tr=(ar:string,english:string)=>en?english:ar;
-  const [profile,setProfile]=useState<Profile|null>(null),[email,setEmail]=useState(""),[fullName,setFullName]=useState(""),[username,setUsername]=useState(""),[currency,setCurrency]=useState("LYD"),[locale,setLocale]=useState(en?"en":"ar"),[timezone,setTimezone]=useState("Africa/Tripoli"),[avatarUrl,setAvatarUrl]=useState(""),[busy,setBusy]=useState(true),[saving,setSaving]=useState(false),[uploading,setUploading]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState(""),[avatarFile,setAvatarFile]=useState<File|null>(null),[avatarPreviewUrl,setAvatarPreviewUrl]=useState(""),[cropZoom,setCropZoom]=useState(1),[cropX,setCropX]=useState(0),[cropY,setCropY]=useState(0);
-  const drag=useRef<{x:number;y:number;startX:number;startY:number}|null>(null);
-  const fullNameAllowed=useMemo(()=>!profile?.full_name_changed_at||Date.now()-new Date(profile.full_name_changed_at).getTime()>=30*86400000,[profile]);
-  const usernameAllowed=useMemo(()=>!profile?.username_changed_at||Date.now()-new Date(profile.username_changed_at).getTime()>=60*86400000,[profile]);
-  const remainingDays=(stamp:string|null|undefined,days:number)=>!stamp?0:Math.max(0,Math.ceil((new Date(stamp).getTime()+days*86400000-Date.now())/86400000));
-  const load=async()=>{if(!supabase){setError(tr("الاتصال بقاعدة البيانات غير مُعد.","Database connection is not configured."));setBusy(false);return}setBusy(true);setError("");const {data:auth,error:authError}=await supabase.auth.getUser();if(authError||!auth.user){setError(tr("يرجى تسجيل الدخول مجددًا.","Please sign in again."));setBusy(false);return}setEmail(auth.user.email??"");const {data,error:profileError}=await supabase.from("profiles").select("id,full_name,username,avatar_url,currency_code,locale,timezone,full_name_changed_at,username_changed_at").eq("id",auth.user.id).maybeSingle();if(profileError){setError(profileError.message);setBusy(false);return}const next:Profile=data??{id:auth.user.id,full_name:String(auth.user.user_metadata?.full_name??""),username:String(auth.user.user_metadata?.username??"")||null,avatar_url:null,currency_code:"LYD",locale:"ar",timezone:"Africa/Tripoli",full_name_changed_at:null,username_changed_at:null};setProfile(next);setFullName(next.full_name??"");setUsername(next.username??"");setAvatarUrl(next.avatar_url??"");setCurrency(next.currency_code??"LYD");setLocale(next.locale??"ar");setTimezone(next.timezone??"Africa/Tripoli");setBusy(false)};
-  useEffect(()=>{void load()},[]);
-  useEffect(()=>{if(!avatarFile){setAvatarPreviewUrl("");return}const url=URL.createObjectURL(avatarFile);setAvatarPreviewUrl(url);return()=>URL.revokeObjectURL(url)},[avatarFile]);
-  const resetCrop=()=>{setCropZoom(1);setCropX(0);setCropY(0)};
-  const onCropPointerDown=(e:ReactPointerEvent<HTMLDivElement>)=>{e.currentTarget.setPointerCapture(e.pointerId);drag.current={x:cropX,y:cropY,startX:e.clientX,startY:e.clientY}};
-  const onCropPointerMove=(e:ReactPointerEvent<HTMLDivElement>)=>{if(!drag.current)return;const dx=(e.clientX-drag.current.startX)/120;const dy=(e.clientY-drag.current.startY)/120;setCropX(Math.max(-1,Math.min(1,drag.current.x+dx)));setCropY(Math.max(-1,Math.min(1,drag.current.y+dy)))};
-  const onCropPointerUp=()=>{drag.current=null};
-  async function uploadAvatar(){
-    if(!supabase||!profile||!avatarFile)return;
-    if(!["image/jpeg","image/png","image/webp"].includes(avatarFile.type)){setError(tr("اختر صورة JPG أو PNG أو WEBP.","Choose a JPG, PNG, or WEBP image."));return}
-    if(avatarFile.size>5*1024*1024){setError(tr("حجم الصورة يجب ألا يتجاوز 5 ميغابايت.","Image must be 5 MB or smaller."));return}
-    setUploading(true);setError("");setMessage("");
-    try{
-      const image=await createImageBitmap(avatarFile);const side=Math.min(image.width,image.height)/cropZoom;const maxX=Math.max(0,image.width-side);const maxY=Math.max(0,image.height-side);const sx=Math.max(0,Math.min(maxX,(image.width-side)/2+cropX*maxX/2));const sy=Math.max(0,Math.min(maxY,(image.height-side)/2+cropY*maxY/2));
-      const canvas=document.createElement("canvas");canvas.width=512;canvas.height=512;const context=canvas.getContext("2d");if(!context)throw new Error(tr("تعذر تجهيز الصورة.","Could not prepare the image."));context.imageSmoothingEnabled=true;context.imageSmoothingQuality="high";context.drawImage(image,sx,sy,side,side,0,0,512,512);image.close();
-      const cropped=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error(tr("تعذر قص الصورة.","Could not crop the image."))),"image/jpeg",0.92));
-      const path=profile.id+"/avatar.jpg";const {error:uploadError}=await supabase.storage.from("profile-avatars").upload(path,cropped,{upsert:true,contentType:"image/jpeg",cacheControl:"3600"});if(uploadError)throw uploadError;const {data}=supabase.storage.from("profile-avatars").getPublicUrl(path);const publicUrl=data.publicUrl+"?v="+Date.now();const {error:updateError}=await supabase.from("profiles").update({avatar_url:publicUrl,updated_at:new Date().toISOString()}).eq("id",profile.id);if(updateError)throw updateError;setAvatarUrl(publicUrl);setMessage(tr("تم ضبط الصورة وحفظها بنجاح.","Photo position and zoom were saved successfully."));setAvatarFile(null);resetCrop();window.dispatchEvent(new CustomEvent("bye-profile-updated"));
-    }catch(cause){setError(cause instanceof Error?cause.message:tr("تعذر رفع الصورة.","Could not upload the photo."))}finally{setUploading(false)}
+export default function ProfileSettingsView() {
+  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
+  const tr = (ar: string, english: string) => en ? english : ar;
+  const [profile, setProfile] = useState<Profile | null>(null), [email, setEmail] = useState(""), [settings, setSettings] = useState<UserSettings>(defaults), [busy, setBusy] = useState(true), [saving, setSaving] = useState(false), [error, setError] = useState(""), [message, setMessage] = useState(""), [avatarFile, setAvatarFile] = useState<File | null>(null), [avatarPreview, setAvatarPreview] = useState("");
+
+  const load = async () => {
+    if (!supabase) { setError(tr("الاتصال بقاعدة البيانات غير مُعد.", "Database connection is not configured.")); setBusy(false); return; }
+    setBusy(true); setError("");
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || !auth.user) { setError(tr("يرجى تسجيل الدخول مجددًا.", "Please sign in again.")); setBusy(false); return; }
+    setEmail(auth.user.email ?? "");
+    const [{ data: p, error: pe }, { data: s, error: se }] = await Promise.all([
+      supabase.from("profiles").select("id,full_name,username,avatar_url").eq("id", auth.user.id).maybeSingle(),
+      supabase.from("user_settings").select("theme,locale,timezone,currency_code,date_format,number_format,email_notifications,transaction_alerts,bill_reminders,budget_alerts").eq("user_id", auth.user.id).maybeSingle()
+    ]);
+    if (pe) { setError(pe.message); setBusy(false); return; }
+    if (se) { setError(se.message); setBusy(false); return; }
+    setProfile(p ?? { id: auth.user.id, full_name: String(auth.user.user_metadata?.full_name ?? ""), username: String(auth.user.user_metadata?.username ?? "") || null, avatar_url: null });
+    const next = { ...defaults, ...(s ?? {}) } as UserSettings;
+    setSettings(next); setStoredTheme(next.theme); setStoredLocale(next.locale); applyLocale(next.locale, next.theme); setBusy(false);
+  };
+  useEffect(() => { void load(); }, []);
+  useEffect(() => { if (!avatarFile) { setAvatarPreview(""); return; } const u = URL.createObjectURL(avatarFile); setAvatarPreview(u); return () => URL.revokeObjectURL(u); }, [avatarFile]);
+  const patch = (value: Partial<UserSettings>) => setSettings(current => ({ ...current, ...value }));
+
+  async function saveSettings() {
+    if (!supabase || !profile) return; setSaving(true); setError(""); setMessage("");
+    const { error: saveError } = await supabase.from("user_settings").upsert({ user_id: profile.id, ...settings, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+    if (saveError) { setError(saveError.message); setSaving(false); return; }
+    setStoredTheme(settings.theme); setStoredLocale(settings.locale); applyLocale(settings.locale, settings.theme); setMessage(tr("تم حفظ إعداداتك الشخصية. سيتم تطبيقها الآن.", "Your personal settings were saved and will be applied now."));
+    window.setTimeout(() => window.location.reload(), 350);
   }
-  async function save(){if(!supabase||!profile)return;const cleanName=fullName.trim(),cleanUsername=username.trim().replace(/^@/,"").toLowerCase();if(cleanName.length<2||cleanName.length>100){setError(tr("الاسم الكامل يجب أن يكون بين حرفين و100 حرف.","Full name must be 2–100 characters."));return}if(!/^[a-z0-9_]{3,24}$/.test(cleanUsername)){setError(tr("اسم المستخدم يجب أن يتكون من 3–24 حرفًا إنجليزيًا أو رقمًا أو _.","Username must be 3–24 letters, numbers, or underscores."));return}if(!fullNameAllowed&&cleanName!==profile.full_name){setError(tr("لا يمكنك تغيير الاسم الكامل قبل انتهاء مدة 30 يومًا.","Full name can only be changed every 30 days."));return}if(!usernameAllowed&&cleanUsername!==(profile.username??"")){setError(tr("لا يمكنك تغيير اسم المستخدم قبل انتهاء مدة 60 يومًا.","Username can only be changed every 60 days."));return}setSaving(true);setError("");setMessage("");const {error:saveError}=await supabase.from("profiles").update({full_name:cleanName,username:cleanUsername,currency_code:currency,locale,timezone,updated_at:new Date().toISOString()}).eq("id",profile.id);if(saveError)setError(saveError.message);else{setMessage(tr("تم حفظ بيانات الملف الشخصي والإعدادات.","Profile and account settings saved."));await load();window.dispatchEvent(new CustomEvent("bye-profile-updated"));window.dispatchEvent(new CustomEvent("bye-locale-updated",{detail:{locale}}))}setSaving(false)}
-  function onAvatarChange(event:ChangeEvent<HTMLInputElement>){const file=event.target.files?.[0]??null;setAvatarFile(file);resetCrop();setMessage("");setError("");event.target.value=""}
-  if(busy)return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…","Loading your profile…")}</p></section>;
-  const previewObjectPosition=`${50+cropX*50}% ${50+cropY*50}%`;
-  return <section className="panel profile-settings">
-    <div className="section-heading"><div><p className="eyebrow">BYE PRO FINANCE · ACCOUNT</p><h2>{tr("ملفي الشخصي","My profile")}</h2><p>{tr("بيانات حسابك الشخصية وتفضيلات مساحتك المالية.","Your personal account details and finance workspace preferences.")}</p></div></div>
-    {error&&<p className="notice error" role="alert">{error}</p>}{message&&<p className="notice success" role="status">{message}</p>}
-    <div className="profile-identity-card"><div className="profile-avatar-large">{avatarUrl?<img src={avatarUrl} alt={tr("الصورة الشخصية","Profile photo")}/>:<span>{(fullName.trim()[0]||username[0]||"B").toUpperCase()}</span>}</div><div className="profile-identity-copy"><strong>{fullName||tr("أضف اسمك الكامل","Add your full name")}</strong><span>@{username||tr("اسم المستخدم","username")}</span><small>{email}</small></div><div className="profile-avatar-actions"><label className="secondary-button file-picker">{tr("اختيار صورة","Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onAvatarChange}/></label></div></div>
-    {avatarFile&&<div className="avatar-editor"><div className="avatar-editor-heading"><div><strong>{tr("ضبط الصورة الشخصية","Adjust profile photo")}</strong><p>{tr("اسحب الصورة داخل الإطار أفقيًا وعموديًا، ثم اضبط التكبير. الموضع الذي تختاره هو الذي سيتم حفظه.","Drag the photo horizontally and vertically inside the frame, then adjust zoom. The selected position is the one that will be saved.")}</p></div><div className="avatar-crop-preview" onPointerDown={onCropPointerDown} onPointerMove={onCropPointerMove} onPointerUp={onCropPointerUp} onPointerCancel={onCropPointerUp} onPointerLeave={onCropPointerUp}><img src={avatarPreviewUrl} alt={tr("معاينة الصورة","Photo preview")} style={{objectFit:"cover",objectPosition:previewObjectPosition,transform:`scale(${cropZoom})`}} draggable={false}/></div></div><div className="avatar-adjustments"><label>{tr("التكبير","Zoom")}<input type="range" min="1" max="3" step="0.05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/><small>{cropZoom.toFixed(2)}×</small></label></div><div className="avatar-editor-actions"><button className="secondary-button" type="button" onClick={resetCrop}>{tr("إعادة الضبط","Reset")}</button><button className="primary-button" type="button" disabled={uploading} onClick={()=>void uploadAvatar()}>{uploading?tr("جارٍ تجهيز الصورة…","Preparing photo…"):tr("اعتماد الصورة وحفظها","Apply and save photo")}</button></div></div>}
-    <div className="profile-settings-grid">
-      <label className="profile-field"><span>{tr("الاسم الكامل","Full name")}<small>{tr("التغيير كل 30 يومًا","Change every 30 days")}</small></span><input value={fullName} minLength={2} maxLength={100} onChange={e=>setFullName(e.target.value)} disabled={!fullNameAllowed} autoComplete="name"/>{!fullNameAllowed&&<small>{tr("متاح بعد","Available in")} {remainingDays(profile?.full_name_changed_at,30)} {tr("يومًا","days")}</small>}</label>
-      <label className="profile-field"><span>{tr("البريد الإلكتروني","Email address")}</span><input value={email} readOnly dir="ltr"/><small>{tr("لتغيير البريد استخدم إجراءات أمان الحساب.","Use account security options to change your email.")}</small></label>
-      <label className="profile-field"><span>{tr("اسم المستخدم","Username")}<small>{tr("التغيير كل 60 يومًا","Change every 60 days")}</small></span><div className="username-field"><span>@</span><input value={username} minLength={3} maxLength={24} pattern="[A-Za-z0-9_]{3,24}" onChange={e=>setUsername(e.target.value.replace(/^@/,""))} disabled={!usernameAllowed} autoComplete="username" dir="ltr"/></div>{!usernameAllowed&&<small>{tr("متاح بعد","Available in")} {remainingDays(profile?.username_changed_at,60)} {tr("يومًا","days")}</small>}</label>
-      <label className="profile-field"><span>{tr("العملة الافتراضية","Default currency")}</span><select value={currency} onChange={e=>setCurrency(e.target.value)}>{currencies.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-      <label className="profile-field"><span>{tr("لغة الحساب","Account language")}</span><select value={locale} onChange={e=>setLocale(e.target.value)}><option value="ar">{tr("العربية","Arabic")}</option><option value="en">English</option></select></label>
-      <label className="profile-field"><span>{tr("المنطقة الزمنية","Time zone")}</span><select value={timezone} onChange={e=>setTimezone(e.target.value)}>{timezones.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+  async function saveProfile() {
+    if (!supabase || !profile) return; const name = profile.full_name.trim(); if (name.length < 2 || name.length > 100) { setError(tr("الاسم الكامل يجب أن يكون بين حرفين و100 حرف.", "Full name must be 2–100 characters.")); return; }
+    setSaving(true); setError(""); setMessage(""); const { error: e } = await supabase.from("profiles").update({ full_name: name, updated_at: new Date().toISOString() }).eq("id", profile.id);
+    if (e) setError(e.message); else { setMessage(tr("تم حفظ الملف الشخصي.", "Profile saved.")); window.dispatchEvent(new CustomEvent("bye-profile-updated")); } setSaving(false);
+  }
+  async function requestPasswordReset() {
+    if (!supabase || !email) return; setSaving(true); setError(""); setMessage(""); const { error: e } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    if (e) setError(e.message); else setMessage(tr("تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني.", "A password reset link was sent to your email.")); setSaving(false);
+  }
+  if (busy) return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…", "Loading your profile…")}</p></section>;
+
+  return <section className="panel profile-settings-page">
+    <div className="section-heading"><div><p className="eyebrow">BYE PRO FINANCE · ACCOUNT</p><h2>{tr("الملف الشخصي والإعدادات", "Profile & settings")}</h2><p>{tr("ملفك الشخصي وإعداداتك الشخصية منفصلة تمامًا عن خصائص التطبيق.", "Your profile and personal settings are fully separated from application properties.")}</p></div></div>
+    {error && <p className="notice error" role="alert">{error}</p>}{message && <p className="notice success" role="status">{message}</p>}
+
+    <div className="settings-card profile-card">
+      <div className="settings-card-head"><div><span className="eyebrow">01 · PROFILE</span><h3>{tr("الملف الشخصي", "Profile")}</h3><p>{tr("المعلومات التي تعرّف حسابك أنت فقط.", "Information that identifies your account only.")}</p></div></div>
+      <div className="profile-identity-row"><div className="profile-avatar-large">{avatarPreview || profile?.avatar_url ? <img src={avatarPreview || profile?.avatar_url || ""} alt={tr("الصورة الشخصية", "Profile photo")} /> : <span>{(profile?.full_name || email || "U").slice(0,1).toUpperCase()}</span>}</div><label className="secondary-button file-picker">{tr("اختيار صورة", "Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} /></label></div>
+      {avatarFile && <div className="profile-photo-preview"><img src={avatarPreview} alt={tr("معاينة الصورة", "Photo preview")} /><span>{tr("هذه هي الصورة التي ستظهر في الحساب. يمكنك استبدالها قبل اعتمادها.", "This is the photo that will appear on the account. You can replace it before applying it.")}</span><button type="button" className="secondary-button" onClick={() => setAvatarFile(null)}>{tr("إلغاء الاختيار", "Cancel selection")}</button></div>}
+      <div className="profile-grid"><label className="profile-field"><span>{tr("الاسم الكامل", "Full name")}</span><input value={profile?.full_name ?? ""} maxLength={100} onChange={e => setProfile(p => p ? { ...p, full_name: e.target.value } : p)} autoComplete="name" /></label><label className="profile-field"><span>{tr("البريد الإلكتروني", "Email address")}</span><input value={email} readOnly dir="ltr" /><small>{tr("مرتبط بحساب الدخول.", "Linked to your sign-in account.")}</small></label><label className="profile-field"><span>{tr("معرّف المستخدم", "User ID")}</span><input value={profile?.id ?? ""} readOnly dir="ltr" className="readonly-id" /><small>{tr("معرّف UUID فريد وثابت لهذا الحساب فقط.", "A stable unique UUID belonging only to this account.")}</small></label></div>
+      <div className="settings-actions"><button type="button" className="primary-button" disabled={saving} onClick={() => void saveProfile()}>{tr("حفظ الملف الشخصي", "Save profile")}</button></div>
     </div>
-    <div className="profile-settings-footer"><span>{tr("بياناتك المالية خاصة بك، ولا تُعرض للمستخدمين الآخرين.","Your financial data is private and is not shown to other users.")}</span><button className="primary-button" type="button" disabled={saving} onClick={()=>void save()}>{saving?tr("جارٍ الحفظ…","Saving…"):tr("حفظ التغييرات","Save changes")}</button></div>
+
+    <div className="settings-card">
+      <div className="settings-card-head"><div><span className="eyebrow">02 · PERSONAL SETTINGS</span><h3>{tr("إعدادات المستخدم", "User settings")}</h3><p>{tr("إعدادات شخصية تُحفظ باسم معرّف المستخدم ولا تؤثر على أي مستخدم آخر.", "Personal settings stored against your user ID and never applied to another user.")}</p></div></div>
+      <div className="settings-grid"><label><span>{tr("المظهر", "Appearance")}</span><select value={settings.theme} onChange={e => patch({ theme: e.target.value as Theme })}><option value="dark">{tr("داكن", "Dark")}</option><option value="light">{tr("فاتح", "Light")}</option></select></label><label><span>{tr("لغة الحساب", "Account language")}</span><select value={settings.locale} onChange={e => patch({ locale: e.target.value as Locale })}><option value="ar">{tr("العربية", "Arabic")}</option><option value="en">English</option></select></label><label><span>{tr("العملة الافتراضية", "Default currency")}</span><select value={settings.currency_code} onChange={e => patch({ currency_code: e.target.value })}>{currencies.map(c => <option key={c}>{c}</option>)}</select></label><label><span>{tr("المنطقة الزمنية", "Time zone")}</span><select value={settings.timezone} onChange={e => patch({ timezone: e.target.value })}>{timezones.map(t => <option key={t}>{t}</option>)}</select></label><label><span>{tr("تنسيق التاريخ", "Date format")}</span><select value={settings.date_format} onChange={e => patch({ date_format: e.target.value })}><option>YYYY-MM-DD</option><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option></select></label><label><span>{tr("تنسيق الأرقام", "Number format")}</span><select value={settings.number_format} onChange={e => patch({ number_format: e.target.value })}><option>1,234.56</option><option>1.234,56</option><option>1 234,56</option></select></label></div>
+      <div className="settings-toggles"><label><input type="checkbox" checked={settings.email_notifications} onChange={e => patch({ email_notifications: e.target.checked })} /><span>{tr("إشعارات البريد", "Email notifications")}</span></label><label><input type="checkbox" checked={settings.transaction_alerts} onChange={e => patch({ transaction_alerts: e.target.checked })} /><span>{tr("تنبيهات المعاملات", "Transaction alerts")}</span></label><label><input type="checkbox" checked={settings.bill_reminders} onChange={e => patch({ bill_reminders: e.target.checked })} /><span>{tr("تذكيرات الفواتير", "Bill reminders")}</span></label><label><input type="checkbox" checked={settings.budget_alerts} onChange={e => patch({ budget_alerts: e.target.checked })} /><span>{tr("تنبيهات الميزانيات", "Budget alerts")}</span></label></div>
+      <div className="settings-actions"><button type="button" className="primary-button" disabled={saving} onClick={() => void saveSettings()}>{saving ? tr("جارٍ الحفظ…", "Saving…") : tr("حفظ إعداداتي", "Save my settings")}</button></div>
+    </div>
+
+    <div className="settings-card">
+      <div className="settings-card-head"><div><span className="eyebrow">03 · SECURITY</span><h3>{tr("أمان الحساب", "Account security")}</h3><p>{tr("إجراءات تخص حسابك فقط، ولا تمنحك صلاحية على حسابات الآخرين.", "Actions for your account only; they never grant access to other accounts.")}</p></div></div>
+      <div className="security-row"><div><strong>{tr("كلمة المرور", "Password")}</strong><p>{tr("إرسال رابط آمن لتغيير كلمة مرور حسابك.", "Send a secure link to change your account password.")}</p></div><button type="button" className="secondary-button" disabled={saving} onClick={() => void requestPasswordReset()}>{tr("تغيير كلمة المرور", "Change password")}</button></div>
+    </div>
+
+    <div className="settings-card application-card">
+      <div className="settings-card-head"><div><span className="eyebrow">04 · APPLICATION</span><h3>{tr("إعدادات التطبيق وخصائص المشروع", "Application settings & project properties")}</h3><p>{tr("هذه خصائص تشغيلية للمشروع وليست إعدادات شخصية. لا يتم استخدامها لتغيير بيانات أو أموال المستخدمين.", "These are project-level properties, not personal preferences. They never change users' data or money.")}</p></div></div>
+      <div className="application-grid"><div><span>{tr("اسم المشروع", "Project")}</span><strong>BYE PRO FINANCE</strong></div><div><span>{tr("نطاق البيانات", "Data scope")}</span><strong>{tr("معزول لكل مستخدم", "Isolated per user")}</strong></div><div><span>{tr("المصادقة", "Authentication")}</span><strong>Supabase Auth</strong></div><div><span>{tr("حماية الصفوف", "Row security")}</span><strong>RLS · {tr("مفعّل", "Enabled")}</strong></div><div><span>{tr("المستندات", "Documents")}</span><strong>{tr("تخزين خاص", "Private storage")}</strong></div><div><span>{tr("المسح الذكي", "Smart Scan")}</span><strong>OCR · {tr("محلي في المتصفح", "Browser-local")}</strong></div><div><span>{tr("اللغات", "Languages")}</span><strong>العربية · English</strong></div><div><span>{tr("العملة الأساسية", "Base currency")}</span><strong>LYD</strong></div></div>
+      <div className="application-note">{tr("المظهر واللغة والعملة والمنطقة الزمنية والتنبيهات تبقى ضمن إعدادات المستخدم لأنها تختلف من حساب لآخر. خصائص المشروع العامة تبقى مستقلة ولا تُستخدم كصلاحيات مالك.", "Theme, language, currency, timezone, and alerts remain user settings because they differ by account. Project properties stay separate and are not used as owner privileges.")}</div>
+    </div>
   </section>;
 }
