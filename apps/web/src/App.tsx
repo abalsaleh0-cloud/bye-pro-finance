@@ -3,14 +3,22 @@ import { useEffect, useState, type FormEvent } from "react";
 import { applyLocale, getStoredLocale, getStoredTheme, setStoredLocale, setStoredTheme, type Locale, type Theme } from "./i18n";
 import { Icon, type IconName } from "../../../packages/ui/src";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import AccountsView from "./components/AccountsView";
-import TransactionsView from "./components/TransactionsView";
-import DashboardView from "./components/DashboardView";
-import { CollectionView } from "./components/FinanceViews";
-import ReportsView from "./components/ReportsView";
-import { DocumentsView, NotificationsView } from "./components/AdvancedFinanceViews";
-import { AdminView, AssistantView, HouseholdView, ImportExportView, SmartScanView, TransfersView } from "./components/PlatformViews";
-import ProfileSettingsView from "./components/ProfileSettingsView";
+import {
+  AccountsView,
+  AdminView,
+  AssistantView,
+  CollectionView,
+  DashboardView,
+  DocumentsView,
+  HouseholdView,
+  ImportExportView,
+  NotificationsView,
+  ProfileSettingsView,
+  ReportsView,
+  SmartScanView,
+  TransactionsView,
+  TransfersView,
+} from "./features";
 
 type ActiveModule = "لوحة التحكم" | "الحسابات" | "المعاملات" | "التحويلات" | "الميزانيات" | "الديون" | "الفواتير" | "الادخار" | "الأصول" | "التقارير" | "المنزل" | "المستندات" | "المسح الذكي" | "المساعد المالي" | "الإشعارات" | "استيراد وتصدير" | "الإعدادات" | "الإدارة";
 const moduleTitles: Record<Locale, Record<ActiveModule, string>> = {
