@@ -37,6 +37,20 @@ describe("AI provider integration", () => {
       ok: false, status: 503, error: "AI_PROVIDER_NOT_CONFIGURED",
     });
   });
+
+  it("maps provider throttling and outages to stable safe errors", async () => {
+    vi.stubEnv("AI_API_KEY", "unit-test-key");
+    vi.stubEnv("AI_BASE_URL", "https://provider.example/v1");
+    const rows: Record<string, unknown[]> = { transactions: [], accounts: [], budgets: [], categories: [] };
+    const client = { from: (table: string) => {
+      const query: any = { select: () => query, order: () => query, limit: async () => ({ data: rows[table] ?? [], error: null }) };
+      return query;
+    }};
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 429 })));
+    await expect(runAiAssistant(client, { task: "assistant", input: "help" })).resolves.toMatchObject({ ok: false, status: 429, error: "AI_PROVIDER_RATE_LIMITED" });
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new DOMException("Timed out", "TimeoutError"); }));
+    await expect(runAiAssistant(client, { task: "assistant", input: "help" })).resolves.toMatchObject({ ok: false, status: 504, error: "AI_PROVIDER_TIMEOUT" });
+  });
   it("sends RLS-scoped financial context to the configured OpenAI-compatible provider", async () => {
     vi.stubEnv("AI_API_KEY", "unit-test-key");
     vi.stubEnv("AI_BASE_URL", "https://provider.example/v1");
