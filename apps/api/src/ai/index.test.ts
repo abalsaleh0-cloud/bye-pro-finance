@@ -49,7 +49,7 @@ describe("free local financial assistant", () => {
     vi.stubEnv("OPENAI_API_KEY", "");
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    const result = await runAiAssistant(client, { task: "financial-insights", input: "Show my income and spending" });
+    const result = await runAiAssistant(client, { task: "financial-insights", input: "Show my income, spending and budgets" });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.model).toBe("bye-pro-local-finance-v1");
