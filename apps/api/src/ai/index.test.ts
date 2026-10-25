@@ -72,6 +72,17 @@ describe("free local financial assistant", () => {
     expect(result.ok).toBe(true);
     if (result.ok) { expect(result.answer).toContain("Practical saving steps"); expect(result.answer).toContain("Food"); }
   });
+  it("does not pretend to answer unsupported general questions", async () => {
+    const result = await runAiAssistant(client, { task: "assistant", input: "Explain quantum physics" });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.answer).toContain("financial analysis only");
+  });
+
+  it("provides a financial overview for broad finance questions", async () => {
+    const result = await runAiAssistant(client, { task: "assistant", input: "Give me a financial overview" });
+    expect(result.ok).toBe(true);
+    if (result.ok) { expect(result.answer).toContain("Recorded cash flow"); expect(result.answer).toContain("LYD"); }
+  });
   it("answers in Arabic when the user writes in Arabic", async () => {
     const result = await runAiAssistant(client, { task: "assistant", input: "حلل مصروفاتي" });
     expect(result.ok).toBe(true);
