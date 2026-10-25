@@ -105,7 +105,7 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
   const lines: string[] = [];
   if (arabic) {
     lines.push("مساعد BYE PRO FINANCE المجاني — محرك تحليل مالي محلي، لا يرسل بياناتك لمزوّد خارجي ولا ينفّذ معاملات.");
-    if (!recognized) { lines.push("أستطيع حاليًا مساعدتك في التحليل المالي فقط. جرّب سؤالًا عن المصروفات، الدخل، أعلى فئات الإنفاق، الميزانيات، أو طرق الادخار. لا أريد إعطاء إجابة غير موثوقة خارج هذه القدرات."); return lines.join("\\n"); }
+    if (!recognized) { lines.push("أستطيع حاليًا مساعدتك في التحليل المالي فقط. جرّب سؤالًا عن المصروفات، الدخل، أعلى فئات الإنفاق، الميزانيات، أو طرق الادخار. لا أريد إعطاء إجابة غير موثوقة خارج هذه القدرات."); return lines.join("\n"); }
     if (wantsHelp) lines.push("أستطيع تلخيص الدخل والمصروفات لكل عملة، تحديد فئات الإنفاق الأعلى، فحص الميزانيات النشطة، واقتراح خطوات ادخار عامة من البيانات المتاحة.");
     if (wantsSpending || wantsCategory) {
       lines.push("تحليل المصروفات المكتملة حسب العملة (آخر " + context.transactionCount + " حركة متاحة):");
@@ -135,7 +135,7 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
     lines.push("حدود التحليل: يعتمد على البيانات المقروءة فقط (حتى 200 حركة و100 ميزانية)، وقد لا يعكس كل الفترة. هذه معلومات عامة وليست نصيحة مالية مهنية.");
   } else {
     lines.push("BYE PRO FINANCE free assistant — a local financial analysis engine. It sends no records to external AI providers and cannot execute transactions.");
-    if (!recognized) { lines.push("I can currently help with financial analysis only. Ask about expenses, income, top spending categories, budgets, or saving strategies. I will not guess beyond these supported capabilities."); return lines.join("\\n"); }
+    if (!recognized) { lines.push("I can currently help with financial analysis only. Ask about expenses, income, top spending categories, budgets, or saving strategies. I will not guess beyond these supported capabilities."); return lines.join("\n"); }
     if (wantsHelp) lines.push("I can summarize income and expenses by currency, rank spending categories, review active budgets, and suggest general saving steps based on available records.");
     if (wantsSpending || wantsCategory) {
       lines.push("Completed expenses by category (latest " + context.transactionCount + " available transactions):");
