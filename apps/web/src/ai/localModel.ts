@@ -1,6 +1,6 @@
 import type { MLCEngine } from "@mlc-ai/web-llm";
 
-export const LOCAL_FINANCE_MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+export const LOCAL_FINANCE_MODEL_ID = "Qwen3-1.7B-q4f16_1-MLC";
 
 let enginePromise: Promise<MLCEngine> | null = null;
 
