@@ -89,7 +89,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
     const { data, error } = await auth.client.from("budgets")
       .insert({ ...validated.value, user_id: auth.identity.id })
-      .select("id,category_id,name,amount,currency_code,period,end_date,is_active,created_at,updated_at")
+      .select("id,category_id,name,amount,currency_code,period,start_date,end_date,is_active,created_at,updated_at")
       .single();
     if (error) { json(response, 400, { error: "BUDGET_CREATE_FAILED" }); return; }
     json(response, 201, { data });
