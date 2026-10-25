@@ -3,12 +3,9 @@ import { json } from "./security/response.js";
 import { readBearerToken } from "./security/auth.js";
 import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
 import { createUserScopedClient } from "./database/user-client.js";
-import { readJsonBody, validateTransactionInput } from "./finance/transactions.js";
-
+import { readJsonBody } from "./security/body.js";
 import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
-import { listAccounts } from "./accounts/index.js";
-import { createBudget, listBudgets } from "./budgets/index.js";
 import { consumeAiRateLimit, runAiAssistant, validateAiRequest } from "./ai/index.js";
 
 const port = Number(process.env.PORT ?? 3001);
@@ -37,6 +34,12 @@ async function authenticate(request: IncomingMessage, response: ServerResponse) 
   return { identity, client };
 }
 
+/**
+ * API ownership rule:
+ * - Auth/session, AI, admin, and idempotent financial operations belong here.
+ * - Ordinary CRUD for accounts, transactions, and budgets stays in the web app's
+ *   user-scoped Supabase client and is intentionally not duplicated as REST routes.
+ */
 export async function handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
 
@@ -52,54 +55,6 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     const identity = await verifyAccessToken(token, lookupUser);
     if (!identity) { json(response, 401, { error: "INVALID_SESSION" }); return; }
     json(response, 200, { authenticated: true, user: identity });
-    return;
-  }
-
-  if (request.method === "GET" && url.pathname === "/api/v1/accounts") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    const { data, error } = await listAccounts(auth.client);
-    if (error) { json(response, 502, { error: "ACCOUNTS_UNAVAILABLE" }); return; }
-    json(response, 200, { data: data ?? [] });
-    return;
-  }
-
-  if (url.pathname === "/api/v1/budgets" && request.method === "GET") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    const { data, error } = await listBudgets(auth.client);
-    if (error) { json(response, 502, { error: "BUDGETS_UNAVAILABLE" }); return; }
-    json(response, 200, { data: data ?? [] });
-    return;
-  }
-
-  if (url.pathname === "/api/v1/budgets" && request.method === "POST") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    let body: unknown;
-    try { body = await readJsonBody(request); }
-    catch (error) {
-      const code = error instanceof Error ? error.message : "INVALID_JSON";
-      json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
-      return;
-    }
-    const result = await createBudget(auth.client, auth.identity.id, body);
-    if (result.error) { json(response, result.status, { error: result.error }); return; }
-    json(response, result.status, { data: result.data });
-    return;
-  }
-
-  if (request.method === "GET" && url.pathname === "/api/v1/transfers") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    const parsedLimit = Number(url.searchParams.get("limit") ?? 50);
-    const limit = Number.isInteger(parsedLimit) ? Math.max(1, Math.min(parsedLimit, 100)) : 50;
-    const { data, error } = await auth.client.from("transfers")
-      .select("id,from_account_id,to_account_id,amount,fee,currency_code,description,transfer_date,status,created_at")
-      .order("transfer_date", { ascending: false })
-      .limit(limit);
-    if (error) { json(response, 502, { error: "TRANSFERS_UNAVAILABLE" }); return; }
-    json(response, 200, { data: data ?? [] });
     return;
   }
 
@@ -208,50 +163,6 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     json(response, 400, { error: "TRANSFER_CREATE_FAILED" });
     return;
   }
-
-  if (request.method === "GET" && url.pathname === "/api/v1/transactions") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    const parsedLimit = Number(url.searchParams.get("limit") ?? 50);
-    const limit = Number.isInteger(parsedLimit) ? Math.max(1, Math.min(parsedLimit, 100)) : 50;
-    let query = auth.client.from("transactions")
-      .select("id,account_id,category_id,type,status,amount,currency_code,description,transaction_date,reference,metadata,created_at,updated_at")
-      .order("transaction_date", { ascending: false })
-      .limit(limit);
-    const type = url.searchParams.get("type");
-    const allowedTypes = ["income", "expense", "transfer", "adjustment"] as const;
-    if (type !== null && !allowedTypes.includes(type as (typeof allowedTypes)[number])) {
-      json(response, 400, { error: "INVALID_TRANSACTION_TYPE" });
-      return;
-    }
-    if (type !== null) query = query.eq("type", type);
-    const { data, error } = await query;
-    if (error) { json(response, 502, { error: "TRANSACTIONS_UNAVAILABLE" }); return; }
-    json(response, 200, { data: data ?? [] });
-    return;
-  }
-
-  if (request.method === "POST" && url.pathname === "/api/v1/transactions") {
-    const auth = await authenticate(request, response);
-    if (!auth) return;
-    let body: unknown;
-    try { body = await readJsonBody(request); }
-    catch (error) {
-      const code = error instanceof Error ? error.message : "INVALID_JSON";
-      json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
-      return;
-    }
-    const validated = validateTransactionInput(body);
-    if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
-    const { data, error } = await auth.client.from("transactions")
-      .insert({ ...validated.value, user_id: auth.identity.id })
-      .select("id,account_id,category_id,type,status,amount,currency_code,description,transaction_date,reference,metadata,created_at,updated_at")
-      .single();
-    if (error) { json(response, 400, { error: "TRANSACTION_CREATE_FAILED" }); return; }
-    json(response, 201, { data });
-    return;
-  }
-
 
   if (request.method === "POST" && url.pathname === "/api/v1/ai") {
     const auth = await authenticate(request, response);
