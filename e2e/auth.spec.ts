@@ -70,6 +70,7 @@ test.describe("authentication", () => {
     await page.getByLabel("اسم المستخدم").fill("new_e2e_user");
     await page.getByLabel("البريد الإلكتروني").fill("new@example.com");
     await page.getByLabel("كلمة المرور", { exact: true }).fill("StrongPassword123!");
+    await page.getByLabel("تأكيد كلمة المرور", { exact: true }).fill("StrongPassword123!");
     await page.getByRole("button", { name: "إنشاء حساب" }).click();
     await expect(page.getByText("تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.")).toBeVisible();
   });
