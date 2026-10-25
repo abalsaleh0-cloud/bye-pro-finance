@@ -56,11 +56,11 @@ describe("shared icon library contract", () => {
   });
 
   it("uses shared semantic icons in core empty states rather than text glyphs", () => {
-    expect(accountView).toContain('<Icon name="wallet" size={28} />');
-    expect(transactionsView).toContain('<Icon name="arrow-left-right" size={28} />');
-    expect(financeViews).toContain('<Icon name="folder" size={28} />');
-    expect(advancedFinanceViews).toContain('<Icon name="folder" size={28} />');
-    expect(advancedFinanceViews).toContain('<Icon name="bell" size={28} />');
+    expect(accountView).toMatch(/<Icon name="wallet" size={28}\s*\/>/);
+    expect(transactionsView).toMatch(/<Icon name="arrow-left-right" size={28}\s*\/>/);
+    expect(financeViews).toMatch(/<Icon name="folder" size={28}\s*\/>/);
+    expect(advancedFinanceViews).toMatch(/<Icon name="folder" size={28}\s*\/>/);
+    expect(advancedFinanceViews).toMatch(/<Icon name="bell" size={28}\s*\/>/);
   });
 
   it("derives valid icon names from the registry instead of accepting arbitrary strings", () => {
