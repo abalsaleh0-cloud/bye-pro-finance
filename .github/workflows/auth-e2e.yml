@@ -20,7 +20,7 @@ jobs:
       - name: Setup pnpm
         run: npm install --global pnpm@10.15.0
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Install Playwright test runner
         run: pnpm add -Dw @playwright/test@1.55.1
       - name: Install Chromium
