@@ -38,13 +38,14 @@ create table if not exists public.household_expenses (
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint household_expenses_member_owner_fk foreign key (member_id, user_id) references public.household_members(id, user_id) on delete set null
+  constraint household_expenses_member_owner_fk foreign key (member_id, user_id) references public.household_members(id, user_id) on delete set null (member_id)
 );
 
 create index if not exists household_members_user_idx on public.household_members(user_id, is_active);
 create index if not exists household_budgets_user_idx on public.household_budgets(user_id, is_active, start_date);
 create index if not exists household_expenses_user_date_idx on public.household_expenses(user_id, expense_date desc);
 create index if not exists household_expenses_user_category_idx on public.household_expenses(user_id, category);
+create index if not exists household_expenses_member_owner_idx on public.household_expenses(member_id, user_id) where member_id is not null;
 
 alter table public.household_members enable row level security;
 alter table public.household_members force row level security;
