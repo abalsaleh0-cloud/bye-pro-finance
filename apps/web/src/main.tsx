@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./styles.css";
 import "./unified-ui.css";
+import "./global-controls.css";
 import { applyLocale, getStoredLocale } from "./i18n";
 
 applyLocale(getStoredLocale());
