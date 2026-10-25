@@ -1,13 +1,13 @@
-# Financial AI assistant
+# Free local financial assistant
 
-The API route `POST /api/v1/ai` uses an OpenAI-compatible Chat Completions endpoint. It reads financial context through the authenticated user's Supabase client, so row-level security remains in effect.
+The API route POST /api/v1/ai runs a built-in rule-based assistant using the authenticated user financial records. It does not call OpenAI, Gemini, Groq, or any external AI provider and requires no AI API key.
 
-## Server environment
+## Free mode
 
-- `AI_API_KEY` (or `OPENAI_API_KEY`): secret provider key. Never expose this as a `VITE_*` variable.
-- `AI_BASE_URL` (optional): HTTPS base URL, default `https://api.openai.com/v1`.
-- `AI_MODEL` (optional): model name, default `gpt-4o-mini`.
+- No AI_API_KEY, OPENAI_API_KEY, AI_BASE_URL, or AI_MODEL is required.
+- The assistant uses authenticated Supabase queries and preserves row-level security.
+- It summarizes completed income and expenses separately by currency, highlights high spending relative to income, and lists active budgets.
+- The assistant is read-only. Input is limited to 2,000 characters and each authenticated user is limited to 12 requests/minute (in-process, best-effort).
+- The local assistant is rule-based, not a general-purpose large language model. It must not claim to answer questions beyond the financial data and rules it supports.
 
-The assistant is read-only. Input is limited to 2,000 characters, generated output to 700 tokens, provider timeout to 20 seconds, and an in-process per-user limit of 12 requests/minute. The in-process limiter is a best-effort safeguard only: before production, add a shared/distributed limiter if running multiple serverless instances. The service sends up to 200 recent transaction records and up to 100 account labels to the configured provider; do not use a provider without an acceptable data-processing/privacy policy.
-
-If provider credentials are absent, the route returns `503 AI_PROVIDER_NOT_CONFIGURED` rather than fabricating an answer.
+The service reads up to 200 transactions, 100 accounts, 100 budgets, and 500 categories. It sends no financial records to a third-party AI provider. All results are general information, not professional financial, investment, tax, or legal advice.
