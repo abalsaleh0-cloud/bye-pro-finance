@@ -1,0 +1,109 @@
+/* BYE PRO FINANCE — unified visual system for all modules and themes. */
+:root {
+  --ui-field-bg:#101115;
+  --ui-field-text:#f7f4ec;
+  --ui-field-border:#363740;
+  --ui-field-focus:var(--gold,#d6b56d);
+  --ui-panel:#181a1f;
+  --ui-panel-soft:#1e1f24;
+  --ui-text:#f1f0eb;
+  --ui-muted:#a5a7b0;
+  --ui-line:#2b2d34;
+  --ui-danger:#ff8585;
+}
+
+/* Every normal form control uses the same dimensions, surface, border and typography. */
+.panel input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+.panel select,
+.panel textarea,
+.data-view input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+.data-view select,
+.data-view textarea,
+.account-form input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+.account-form select,
+.account-form textarea,
+.transaction-toolbar input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+.transaction-toolbar select,
+.profile-field input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+.profile-field select,
+.profile-field textarea {
+  width:100%;
+  min-width:0;
+  min-height:43px;
+  height:43px;
+  padding:10px 12px;
+  border:1px solid var(--ui-field-border);
+  border-radius:9px;
+  background:var(--ui-field-bg) !important;
+  color:var(--ui-field-text) !important;
+  color-scheme:dark;
+  box-shadow:none;
+  opacity:1;
+}
+.panel textarea,.data-view textarea,.profile-field textarea{height:auto;min-height:120px;resize:vertical}
+.panel input::placeholder,.data-view input::placeholder,.panel textarea::placeholder,.data-view textarea::placeholder{color:#777983;opacity:1}
+.panel input:focus,.panel select:focus,.panel textarea:focus,.data-view input:focus,.data-view select:focus,.data-view textarea:focus,.profile-field input:focus,.profile-field select:focus{border-color:var(--ui-field-focus);outline:none;box-shadow:0 0 0 1px var(--ui-field-focus)}
+.panel input:hover,.panel select:hover,.panel textarea:hover,.data-view input:hover,.data-view select:hover,.data-view textarea:hover{border-color:#4b4d56}
+.panel input:disabled,.panel select:disabled,.panel textarea:disabled,.profile-field input:read-only{background:var(--ui-field-bg)!important;color:var(--ui-field-text)!important;opacity:1}
+
+/* File controls and checkboxes follow the same visual language. */
+input[type="file"]{color:var(--ui-field-text)!important;background:var(--ui-field-bg)!important;border:1px solid var(--ui-field-border)!important;border-radius:9px;min-height:43px;padding:8px 10px}
+input[type="file"]::file-selector-button{margin-inline-end:10px;padding:7px 10px;border:1px solid #655638;border-radius:7px;background:#211e18;color:var(--gold,#d6b56d);font:inherit;cursor:pointer}
+input[type="checkbox"]{accent-color:var(--gold,#d6b56d)}
+
+/* Force two equal columns wherever the application presents paired fields. */
+.form-grid,.profile-settings-grid,.account-form{grid-template-columns:repeat(2,minmax(0,1fr)) !important;align-items:start}
+.form-grid>*{min-width:0}
+.form-grid .wide{grid-column:1/-1}
+.profile-settings-grid{display:grid;gap:15px}
+.profile-field{min-width:0;display:grid;gap:8px;align-content:start}
+.profile-field>span{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-height:18px;color:#d8d5cc;font-size:12px}
+.profile-field>span small{color:var(--ui-muted);font-size:10px;font-weight:400}
+.profile-field>small{color:var(--ui-muted);font-size:10px;line-height:1.5}
+.username-field{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;min-width:0;border:1px solid var(--ui-field-border);border-radius:9px;background:var(--ui-field-bg)}
+.username-field>span{display:grid;place-items:center;color:var(--gold,#d6b56d);font-weight:700}
+.username-field input{border:0!important;box-shadow:none!important;background:transparent!important}
+
+/* Import/export and other paired button/file areas stay equal width. */
+.form-grid>button,.form-grid>.file-picker{width:100%;min-width:0}
+.file-picker{display:inline-flex!important;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.file-picker input[type="file"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0!important}
+
+/* Open/Delete/etc. are real compact buttons, never bare text links. */
+.text-button{display:inline-flex!important;align-items:center;justify-content:center;min-height:36px!important;padding:7px 12px!important;border:1px solid #655638!important;border-radius:8px!important;background:#211e18!important;color:var(--gold,#d6b56d)!important;font-size:11px!important;font-weight:700;line-height:1;white-space:nowrap}
+.text-button:hover{background:#2b261d!important;border-color:#8b7445!important;color:#f4dfaa!important}
+.text-button.danger-text{border-color:#6d3d43!important;background:#24191c!important;color:#ff9c9c!important}
+.text-button.danger-text:hover{background:#321c20!important}
+
+/* Unified modal used for destructive confirmations. */
+.finance-modal-backdrop{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}
+.finance-modal{width:min(460px,100%);padding:22px;border:1px solid #40372a;border-radius:16px;background:linear-gradient(145deg,#1c1d22,#141519);box-shadow:0 24px 80px rgba(0,0,0,.45);color:var(--ui-text)}
+.finance-modal h3{margin:0 0 8px;font-size:18px}.finance-modal p{margin:0;color:var(--ui-muted);font-size:12px;line-height:1.8}.finance-modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.finance-modal-actions button{min-height:40px;padding:9px 15px;border-radius:9px;font:inherit;font-size:12px;font-weight:700}.finance-modal-cancel{border:1px solid var(--ui-line);background:var(--ui-panel-soft);color:var(--ui-text)}.finance-modal-danger{border:1px solid #8a454d;background:#351b20;color:#ffb4b4}
+
+/* Avatar editor: actual movable horizontal/vertical crop viewport. */
+.avatar-editor{margin-top:12px;padding:18px;border:1px solid var(--ui-line);border-radius:16px;background:var(--ui-panel-soft)}
+.avatar-editor-heading{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:18px;align-items:center}.avatar-editor-heading>div:first-child{min-width:0}.avatar-editor-heading strong{display:block;font-size:13px}.avatar-editor-heading p{margin:6px 0 0;color:var(--ui-muted);font-size:10px;line-height:1.7}
+.avatar-crop-preview{width:190px;height:190px;overflow:hidden;border:1px solid #655638;border-radius:14px;background:#050506;cursor:grab;touch-action:none;position:relative}.avatar-crop-preview:active{cursor:grabbing}.avatar-crop-preview img{width:100%;height:100%;display:block;max-width:none;user-select:none;-webkit-user-drag:none;will-change:transform}
+.avatar-adjustments{margin-top:15px}.avatar-adjustments label{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;color:var(--ui-muted);font-size:11px}.avatar-adjustments input[type="range"]{width:100%;height:6px;accent-color:var(--gold,#d6b56d)}.avatar-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.avatar-editor-actions .primary-button,.avatar-editor-actions .secondary-button{margin-top:0}
+
+/* Consistent dark/light theme behavior for every major control and action. */
+[data-theme="light"]{--ui-field-bg:#fff;--ui-field-text:#17181c;--ui-field-border:#c8c9cf;--ui-panel:#fff;--ui-panel-soft:#f3f3f5;--ui-text:#17181c;--ui-muted:#666a74;--ui-line:#d7d8dd;--ui-danger:#a43e45}
+[data-theme="light"] body{background:#f4f4f6!important;color:#17181c}
+[data-theme="light"] .workspace,.data-view,.panel,.profile-settings{color:#17181c}
+[data-theme="light"] .sidebar{background:#fff;border-color:#d7d8dd}
+[data-theme="light"] .workspace-main{background:#f4f4f6}
+[data-theme="light"] .panel-card,.data-view .table-card,.data-view .report-row,.data-view .report-lines>div,.data-list .data-row,.account-row,.transaction-row,.insight-card,.stat-card,.metric-card,.profile-identity-card,.avatar-editor,.finance-modal{background:#fff!important;color:#17181c;border-color:#d7d8dd}
+[data-theme="light"] .welcome-panel{background:linear-gradient(120deg,#fff,#f2eee6)!important;border-color:#d8c8a3}
+[data-theme="light"] .nav-item{color:#555963}
+[data-theme="light"] .nav-item:hover{background:#f1f1f3;color:#17181c}
+[data-theme="light"] .nav-item.active{background:#f2ead7;color:#4a3a1c;border-color:#b89d60}
+[data-theme="light"] .muted-copy,.data-view .muted-copy,.profile-field>small,.profile-field>span small{color:#666a74}
+[data-theme="light"] .secondary-button,.data-view .text-button,.text-button{background:#f7f2e7!important;color:#6c5420!important;border-color:#b99b5e!important}
+[data-theme="light"] .primary-button{background:#d6b56d!important;color:#17130b!important;border-color:#b99b5e!important}
+[data-theme="light"] .finance-modal-backdrop{background:rgba(30,30,34,.38)}
+[data-theme="light"] .finance-modal{background:#fff!important}
+[data-theme="light"] .finance-modal-cancel{background:#f1f1f3;color:#17181c;border-color:#d0d1d6}
+[data-theme="light"] input[type="file"]::file-selector-button{background:#f2ead7;color:#6c5420;border-color:#b99b5e}
+[data-theme="light"] .account-form,.data-view .table-card,.profile-settings-grid{background:transparent}
+
+@media(max-width:700px){.form-grid,.profile-settings-grid,.account-form{grid-template-columns:1fr!important}.form-grid .wide{grid-column:auto}.avatar-editor-heading{grid-template-columns:1fr}.avatar-crop-preview{width:min(260px,100%);height:min(260px,80vw);margin:0 auto}.avatar-editor-actions{flex-direction:column}.avatar-editor-actions button{width:100%}}
