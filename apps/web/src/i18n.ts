@@ -26,9 +26,13 @@ export function applyLocale(locale: Locale, theme: Theme = getStoredTheme()): vo
   if (typeof document === "undefined") return;
   const root = document.documentElement;
   root.lang = locale;
-  root.dir = locale === "ar" ? "rtl" : "ltr";
-  root.dataset.locale = locale;
+  // Arabic is the application's fixed visual/layout direction. Language switching
+  // changes translated strings only; it must never mirror or reorder the UI.
+  root.dir = "rtl";
+  // Keep the visual-layout marker Arabic as well, so legacy locale CSS cannot
+  // mirror/reposition the interface when English translations are selected.
+  root.dataset.locale = "ar";
   root.dataset.theme = theme;
-  document.body.dataset.locale = locale;
+  document.body.dataset.locale = "ar";
   document.body.dataset.theme = theme;
 }

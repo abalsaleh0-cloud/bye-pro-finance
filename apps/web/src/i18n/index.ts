@@ -2,13 +2,14 @@ export const locales = { ar: "العربية", en: "English" } as const;
 export type Locale = keyof typeof locales;
 
 export const messages = {
-  ar: { direction: "rtl", dashboard: "لوحة التحكم", accounts: "الحسابات", transactions: "المعاملات", settings: "الإعدادات" },
-  en: { direction: "ltr", dashboard: "Dashboard", accounts: "Accounts", transactions: "Transactions", settings: "Settings" },
+  ar: { dashboard: "لوحة التحكم", accounts: "الحسابات", transactions: "المعاملات", settings: "الإعدادات" },
+  en: { dashboard: "Dashboard", accounts: "Accounts", transactions: "Transactions", settings: "Settings" },
 } as const;
 
 export function applyLocale(locale: Locale): void {
   document.documentElement.lang = locale;
-  document.documentElement.dir = messages[locale].direction;
+  // Keep the application's Arabic visual direction in every language.
+  document.documentElement.dir = "rtl";
   localStorage.setItem("bye-pro-finance.locale", locale);
 }
 
