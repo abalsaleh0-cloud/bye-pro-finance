@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - packages/*
+
+# pnpm 10 blocks dependency build scripts by default. These packages are required by the build/runtime.
+onlyBuiltDependencies:
+  - esbuild
+  - tesseract.js
