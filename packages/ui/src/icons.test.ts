@@ -44,8 +44,12 @@ describe("shared icon library contract", () => {
   it("registers every semantic icon used by the primary navigation", () => {
     const names = [...app.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
     expect(names.length).toBeGreaterThan(0);
+    const registryKeys = new Set(
+      [...registry.matchAll(/(?:^|[,{]\\s*)(?:"([^"]+)"|([A-Za-z][A-Za-z0-9]*))\\s*:/gm)]
+        .map((match) => match[1] ?? match[2])
+    );
     for (const name of names) {
-      expect(registry).toMatch(new RegExp(`(?:^|\\\\s)(?:"${name}"|${name}):`, "m"));
+      expect(registryKeys.has(name), `missing icon registry entry: ${name}`).toBe(true);
     }
   });
 
