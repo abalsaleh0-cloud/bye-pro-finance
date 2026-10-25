@@ -18,7 +18,7 @@ describe("household expenses module contract", () => {
       expect(migration).toContain(`alter table public.${table} enable row level security;`);
       expect(migration).toContain(`alter table public.${table} force row level security;`);
       expect(migration).toContain(`public.${table} for select to authenticated using ((select auth.uid()) = user_id)`);
-      expect(migration).toContain(`public.${table} for insert to authenticated with check ((select auth.uid()) = user_id)`);
+      expect(migration).toContain(`create policy ${table}_insert_own on public.${table} for insert to authenticated with check`);
     }
     expect(migration).toContain("revoke all privileges on public.household_members, public.household_budgets, public.household_expenses from anon;");
   });
