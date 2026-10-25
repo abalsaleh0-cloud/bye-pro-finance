@@ -7,6 +7,7 @@ import { readJsonBody, validateTransactionInput } from "./finance/transactions.j
 import { validateBudgetInput } from "./finance/budgets.js";
 import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
+import { listAccounts } from "./accounts/index.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -55,9 +56,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
   if (request.method === "GET" && url.pathname === "/api/v1/accounts") {
     const auth = await authenticate(request, response);
     if (!auth) return;
-    const { data, error } = await auth.client.from("accounts")
-      .select("id,name,type,currency_code,opening_balance,current_balance,institution_name,last_four,is_active,created_at,updated_at")
-      .order("created_at", { ascending: false });
+    const { data, error } = await listAccounts(auth.client);
     if (error) { json(response, 502, { error: "ACCOUNTS_UNAVAILABLE" }); return; }
     json(response, 200, { data: data ?? [] });
     return;
