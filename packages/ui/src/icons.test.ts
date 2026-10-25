@@ -8,6 +8,7 @@ const accountView = readFileSync("apps/web/src/components/AccountsView.tsx", "ut
 const transactionsView = readFileSync("apps/web/src/components/TransactionsView.tsx", "utf8");
 const financeViews = readFileSync("apps/web/src/components/FinanceViews.tsx", "utf8");
 const advancedFinanceViews = readFileSync("apps/web/src/components/AdvancedFinanceViews.tsx", "utf8");
+const normalizeJsx = (source: string) => source.replace(/\s+/g, " ").replace(/\s*\/>/g, "/>");
 
 describe("shared icon library contract", () => {
   it("exports the shared icon component and registry from the UI package", () => {
@@ -44,7 +45,12 @@ describe("shared icon library contract", () => {
     const names = [...app.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
     expect(names.length).toBeGreaterThan(0);
     for (const name of names) {
-      expect(registry).toMatch(new RegExp(`(?:^|\\s)(?:"${name}"|${name}):`, "m"));
+      const quotedKey = `"${name}":`;
+      const unquotedKey = `${name}:`;
+      expect(
+        registry.includes(quotedKey) || registry.includes(unquotedKey),
+        `missing icon registry entry: ${name}`
+      ).toBe(true);
     }
   });
 
@@ -56,11 +62,11 @@ describe("shared icon library contract", () => {
   });
 
   it("uses shared semantic icons in core empty states rather than text glyphs", () => {
-    expect(accountView).toContain('<Icon name="wallet" size={28} />');
-    expect(transactionsView).toContain('<Icon name="arrow-left-right" size={28} />');
-    expect(financeViews).toContain('<Icon name="folder" size={28} />');
-    expect(advancedFinanceViews).toContain('<Icon name="folder" size={28} />');
-    expect(advancedFinanceViews).toContain('<Icon name="bell" size={28} />');
+    expect(normalizeJsx(accountView)).toContain('<Icon name="wallet" size={28}/>');
+    expect(normalizeJsx(transactionsView)).toContain('<Icon name="arrow-left-right" size={28}/>');
+    expect(normalizeJsx(financeViews)).toContain('<Icon name="folder" size={28}/>');
+    expect(normalizeJsx(advancedFinanceViews)).toContain('<Icon name="folder" size={28}/>');
+    expect(normalizeJsx(advancedFinanceViews)).toContain('<Icon name="bell" size={28}/>');
   });
 
   it("derives valid icon names from the registry instead of accepting arbitrary strings", () => {

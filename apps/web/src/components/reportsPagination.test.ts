@@ -17,7 +17,7 @@ describe("reports pagination contract", () => {
   it("rejects a report range where the start date is after the end date", () => {
     const source = readFinanceViews();
     expect(source).toContain("const invalidRange=Boolean(from&&to&&from>to)");
-    expect(source).toContain("if(invalidRange)return []");
+    expect(source).toMatch(/if\s*\(invalidRange\)\s*return\s*\[\s*\]/);
     expect(source).toContain("تاريخ البداية يجب ألا يكون بعد تاريخ النهاية.");
   });
 });
