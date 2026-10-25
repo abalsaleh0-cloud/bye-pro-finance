@@ -100,16 +100,19 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
   const wantsSave = has("ادخار", "توفير", "وفر", "أوفر", "وفّر", "save", "saving", "savings", "reduce");
   const wantsCategory = has("فئة", "تصنيف", "أكثر شيء", "أعلى مصروف", "category", "categories", "top", "largest", "highest");
   const wantsHelp = has("ماذا تستطيع", "كيف تستخدم", "مساعدة", "help", "what can you do", "capabilities");
+  const wantsOverview = has("حلل", "تحليل", "وضعي", "مالي", "مالية", "finance", "financial", "analyze", "analysis", "overview", "summary", "cash flow", "تدفق");
+  const recognized = wantsSpending || wantsIncome || wantsBudget || wantsSave || wantsCategory || wantsHelp || wantsOverview;
   const lines: string[] = [];
   if (arabic) {
     lines.push("مساعد BYE PRO FINANCE المجاني — محرك تحليل مالي محلي، لا يرسل بياناتك لمزوّد خارجي ولا ينفّذ معاملات.");
+    if (!recognized) { lines.push("أستطيع حاليًا مساعدتك في التحليل المالي فقط. جرّب سؤالًا عن المصروفات، الدخل، أعلى فئات الإنفاق، الميزانيات، أو طرق الادخار. لا أريد إعطاء إجابة غير موثوقة خارج هذه القدرات."); return lines.join("\\n"); }
     if (wantsHelp) lines.push("أستطيع تلخيص الدخل والمصروفات لكل عملة، تحديد فئات الإنفاق الأعلى، فحص الميزانيات النشطة، واقتراح خطوات ادخار عامة من البيانات المتاحة.");
     if (wantsSpending || wantsCategory) {
       lines.push("تحليل المصروفات المكتملة حسب العملة (آخر " + context.transactionCount + " حركة متاحة):");
       if (!context.categoryExpenses.length) lines.push("لا توجد مصروفات مكتملة كافية لتحليل الفئات.");
       for (const item of context.categoryExpenses.slice(0, wantsCategory ? 10 : 5)) lines.push("• " + item.category + " — " + formatAmount(item.amount, item.currency) + "، عدد الحركات: " + item.count + ".");
     }
-    if (wantsIncome || (!wantsSpending && !wantsBudget && !wantsSave && !wantsHelp)) {
+    if (wantsIncome || wantsOverview) {
       lines.push("ملخص التدفق المالي المسجّل لكل عملة:");
       if (!context.currencyTotals.length) lines.push("لا توجد حركات مالية كافية لعرض إجماليات بعد.");
       for (const item of context.currencyTotals) {
@@ -118,7 +121,7 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
         else if (item.income > 0 && item.expenses / item.income >= 0.8) lines.push("  تنبيه: المصروفات تستهلك 80% أو أكثر من الدخل المسجّل بعملة " + item.currency + ".");
       }
     }
-    if (wantsBudget || (!wantsSpending && !wantsIncome && !wantsSave && !wantsCategory && !wantsHelp)) {
+    if (wantsBudget) {
       const active = context.budgets.filter((b) => b.is_active);
       lines.push("الميزانيات النشطة: " + active.length + ".");
       if (!active.length) lines.push("لم أجد ميزانيات نشطة ضمن البيانات المتاحة. أنشئ ميزانية للفئات المتكررة لمقارنة الصرف بالخطة.");
@@ -132,13 +135,14 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
     lines.push("حدود التحليل: يعتمد على البيانات المقروءة فقط (حتى 200 حركة و100 ميزانية)، وقد لا يعكس كل الفترة. هذه معلومات عامة وليست نصيحة مالية مهنية.");
   } else {
     lines.push("BYE PRO FINANCE free assistant — a local financial analysis engine. It sends no records to external AI providers and cannot execute transactions.");
+    if (!recognized) { lines.push("I can currently help with financial analysis only. Ask about expenses, income, top spending categories, budgets, or saving strategies. I will not guess beyond these supported capabilities."); return lines.join("\\n"); }
     if (wantsHelp) lines.push("I can summarize income and expenses by currency, rank spending categories, review active budgets, and suggest general saving steps based on available records.");
     if (wantsSpending || wantsCategory) {
       lines.push("Completed expenses by category (latest " + context.transactionCount + " available transactions):");
       if (!context.categoryExpenses.length) lines.push("There are not enough completed expenses to analyze categories.");
       for (const item of context.categoryExpenses.slice(0, wantsCategory ? 10 : 5)) lines.push("• " + item.category + " — " + formatAmount(item.amount, item.currency) + ", transactions: " + item.count + ".");
     }
-    if (wantsIncome || (!wantsSpending && !wantsBudget && !wantsSave && !wantsHelp)) {
+    if (wantsIncome || wantsOverview) {
       lines.push("Recorded cash flow by currency:");
       if (!context.currencyTotals.length) lines.push("There are not enough recorded transactions to show totals yet.");
       for (const item of context.currencyTotals) {
@@ -147,7 +151,7 @@ function buildLocalAnswer(request: AiRequest, context: FinancialContext): string
         else if (item.income > 0 && item.expenses / item.income >= 0.8) lines.push("  Alert: recorded expenses use at least 80% of recorded income in " + item.currency + ".");
       }
     }
-    if (wantsBudget || (!wantsSpending && !wantsIncome && !wantsSave && !wantsCategory && !wantsHelp)) {
+    if (wantsBudget) {
       const active = context.budgets.filter((b) => b.is_active);
       lines.push("Active budgets: " + active.length + ".");
       if (!active.length) lines.push("No active budgets were found in the available data. Create budgets for recurring categories to compare actual spending with your plan.");
