@@ -31,11 +31,6 @@ jobs:
           VITE_SUPABASE_URL: https://e2e-ui.invalid
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e2e_ui_test_key
         run: pnpm --filter @bye-pro-finance/web build
-      - name: Start preview server
-        env:
-          VITE_SUPABASE_URL: https://e2e-ui.invalid
-          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e2e_ui_test_key
-        run: pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/bye-pro-finance-vite.log 2>&1 &
       - name: Run responsive, locale, state and accessibility E2E
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
