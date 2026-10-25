@@ -10,19 +10,24 @@ const auth = readFileSync("apps/api/src/security/auth.ts", "utf8");
 const response = readFileSync("apps/api/src/security/response.ts", "utf8");
 
 describe("phase 6 quality and security contracts", () => {
-  it("keeps authenticated API routes behind bearer authentication", () => {
-    for (const route of ["/api/v1/accounts", "/api/v1/budgets", "/api/v1/transfers", "/api/v1/transactions"]) {
-      expect(api).toContain(`url.pathname === "${route}"`);
+  it("keeps only server-owned financial operations behind bearer authentication", () => {
+    expect(api).toContain('url.pathname === "/api/v1/session"');
+    expect(api).toContain('url.pathname === "/api/v1/transfers"');
+    expect(api).toContain('url.pathname === "/api/v1/ai"');
+    for (const duplicateRoute of ["/api/v1/accounts", "/api/v1/budgets", "/api/v1/transactions"]) {
+      expect(api).not.toContain(`url.pathname === "${duplicateRoute}"`);
     }
-    expect(api.match(/authenticate\(request, response\)/g)?.length ?? 0).toBeGreaterThanOrEqual(7);
+    expect(api).toContain("Ordinary CRUD for accounts, transactions, and budgets");
+    expect(api.match(/authenticate\(request, response\)/g)?.length ?? 0).toBe(2);
     expect(api).toContain("AUTH_REQUIRED");
     expect(api).toContain("INVALID_SESSION");
   });
 
-  it("limits API list queries and rejects invalid transaction filters", () => {
-    expect(api).toContain("Math.min(parsedLimit, 100)");
-    expect(api).toContain("INVALID_TRANSACTION_TYPE");
-    expect(api).toContain("Math.max(1, Math.min(parsedLimit, 100))");
+  it("keeps ordinary CRUD in the user-scoped Supabase layer instead of duplicating REST handlers", () => {
+    expect(api).not.toContain("listAccounts");
+    expect(api).not.toContain("listBudgets");
+    expect(api).not.toContain("validateTransactionInput(body)");
+    expect(api).toContain("user-scoped Supabase client");
   });
 
   it("prevents trusting client-supplied user ownership", () => {
