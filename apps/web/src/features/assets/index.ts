@@ -1,1 +1,1 @@
-export { CollectionView } from "../../components/FinanceViews";
+export { CollectionView, CollectionView as AssetsView } from "../../components/FinanceViews";
