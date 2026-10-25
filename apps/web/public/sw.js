@@ -1,4 +1,4 @@
-const CACHE_VERSION = "bye-pro-finance-v1";
+const CACHE_VERSION = "bye-pro-finance-v2";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = "/offline.html";
@@ -26,7 +26,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
@@ -38,24 +37,30 @@ self.addEventListener("fetch", (event) => {
           event.waitUntil(caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)));
           return response;
         })
-        .catch(async () => {
-          const cached = await caches.match(request);
-          return cached || caches.match(OFFLINE_URL);
-        }),
+        .catch(async () => (await caches.match(request)) || caches.match(OFFLINE_URL)),
+    );
+    return;
+  }
+
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)));
+        }
+        return response;
+      }).catch(() => caches.match(request)),
     );
     return;
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") return response;
-        const copy = response.clone();
-        event.waitUntil(caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)));
-        return response;
-      });
-    }),
+    caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+      if (!response || response.status !== 200 || response.type !== "basic") return response;
+      const copy = response.clone();
+      event.waitUntil(caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy)));
+      return response;
+    })),
   );
 });

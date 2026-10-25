@@ -6,6 +6,7 @@ import { csvRows } from "../lib/csv.js";
 type ModuleKey = "budgets" | "debts" | "bills" | "savings_goals" | "assets" | "documents" | "notifications";
 type Row = Record<string, any> & { id: string; created_at?: string };
 type Field = { key:string; label:string; type:"text"|"number"|"date"|"select"; options?:{value:string;label:string}[]; required?:boolean };
+type DeleteTarget = { row: Row; label: string };
 const money=(value:number,currency="LYD")=>{try{return new Intl.NumberFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar",{style:"currency",currency,maximumFractionDigits:2}).format(value)}catch{return `${value.toLocaleString(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar")} ${currency}`}};
 const dateLabel=(value:any)=>value?new Intl.DateTimeFormat(typeof document !== "undefined" && document.documentElement.lang === "en" ? "en" : "ar",{dateStyle:"medium"}).format(new Date(String(value))):"—";
 const currencyOptions=()=>[{value:"LYD",label:"دينار ليبي"},{value:"USD",label:"دولار"},{value:"EUR",label:"يورو"},{value:"GBP",label:"جنيه إسترليني"},{value:"SYP",label:"ليرة سورية"},{value:"JOD",label:"دينار أردني"}];
@@ -24,168 +25,24 @@ function buildPayload(module:ModuleKey,form:Record<string,string>){const payload
 export function CollectionView({module}:{module:ModuleKey}){
  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
  const dictionary: Record<string,string> = {
-  "تابع الفواتير القادمة والمدفوعة والمتأخرة.": "Track upcoming, paid, and overdue bills.",
-  "حوّل أهدافك إلى تقدم واضح قابل للمتابعة.": "Turn your goals into measurable progress.",
-  "سجل الأصول وقيمتها التقديرية ضمن الصورة المالية الكاملة.": "Record assets and their estimated values as part of your overall financial picture.",
-  "سجل المستندات المرتبطة بعملياتك المالية.": "Keep records of documents linked to your financial activity.",
-  "تنبيهات الحساب والميزانية والفواتير في مكان واحد.": "Account, budget, and bill alerts in one place.",
-  "الميزانية": "Budget",
-  "الفترة": "Period",
-  "المبلغ": "Amount",
-  "العملة": "Currency",
-  "الحالة": "Status",
-  "قادمة": "Upcoming",
-  "مدفوعة": "Paid",
-  "متأخرة": "Overdue",
-  "ملغاة": "Cancelled",
-  "الهدف": "Goal",
-  "المستهدف": "Target",
-  "الحالي": "Current",
-  "القيمة": "Value",
-  "الاقتناء": "Acquired",
-  "الصافي": "Net",
-  "إجمالي الدخل": "Total income",
-  "إجمالي المصروفات": "Total expenses",
-  "تم تسجيل دفعة بقيمة": "Payment recorded:",
-  "بتاريخ": "on",
-  "تم حذف السجل.": "Record deleted.",
-  "تم تحديث السجل بنجاح.": "Record updated successfully.",
-  "انتهت جلسة الدخول.": "Your session has expired.",
-  "الميزانيات": "Budgets",
-  "التخطيط المالي": "Financial planning",
-  "خطط الإنفاق مع متابعة المبلغ المخصص لكل فترة.": "Plan spending and track allocations for each period.",
-  "الديون": "Debts",
-  "الالتزامات": "Liabilities",
-  "تتبع ما لك وما عليك حتى التسوية الكاملة.": "Track money owed to you and by you until fully settled.",
-  "الفواتير": "Bills",
-  "المدفوعات": "Payments",
-  "تابع الفواتير ومواعيد الاستحقاق وحالة السداد.": "Track bills, due dates, and payment status.",
-  "الادخار": "Savings",
-  "الأهداف المالية": "Financial goals",
-  "تابع تقدمك نحو أهداف الادخار.": "Track your progress toward savings goals.",
-  "الأصول": "Assets",
-  "صافي الملكية": "Net worth",
-  "سجل الأصول والقيمة التقديرية لكل منها.": "Record assets and their estimated values.",
-  "المستندات": "Documents",
-  "الأرشيف المالي": "Financial archive",
-  "الإشعارات": "Notifications",
-  "التنبيهات": "Alerts",
-  "اسم الميزانية": "Budget name",
-  "نقدي": "Cash",
-  "حساب بنكي": "Bank account",
-  "محفظة إلكترونية": "E-wallet",
-  "بطاقة ائتمان": "Credit card",
-  "استثمار": "Investment",
-  "أخرى": "Other",
-  "دينار ليبي": "Libyan dinar",
-  "دولار": "US dollar",
-  "يورو": "Euro",
-  "جنيه إسترليني": "British pound",
-  "ليرة سورية": "Syrian pound",
-  "دينار أردني": "Jordanian dinar",
-  "أسبوعية": "Weekly",
-  "شهرية": "Monthly",
-  "ربع سنوية": "Quarterly",
-  "سنوية": "Yearly",
-  "مخصصة": "Custom",
-  "تاريخ البداية": "Start date",
-  "تاريخ النهاية": "End date",
-  "اسم الشخص أو الجهة": "Person or organization",
-  "نوع الدين": "Debt type",
-  "لي عنده": "Owed to me",
-  "عليّ له": "I owe",
-  "المبلغ الأصلي": "Original amount",
-  "المتبقي": "Remaining",
-  "اسم الفاتورة": "Bill name",
-  "تاريخ الاستحقاق": "Due date",
-  "اسم الهدف": "Goal name",
-  "المبلغ المستهدف": "Target amount",
-  "المبلغ الحالي": "Current amount",
-  "اسم الأصل": "Asset name",
-  "القيمة التقديرية": "Estimated value",
-  "الوصف": "Description",
-  "إلغاء": "Cancel",
-  "إضافة": "Add",
-  "اختر…": "Select…",
-  "جارٍ الحفظ…": "Saving…",
-  "حفظ التعديلات": "Save changes",
-  "حفظ": "Save",
-  "بحث في السجلات…": "Search records…",
-  "جارٍ التحميل…": "Loading…",
-  "لا توجد نتائج": "No results",
-  "لا توجد سجلات بعد": "No records yet",
-  "جرّب تغيير عبارة البحث.": "Try changing your search.",
-  "ابدأ بإضافة أول سجل.": "Add your first record to get started.",
-  "إضافة أول سجل": "Add first record",
-  "تعديل": "Edit",
-  "حذف": "Delete",
-  "تصدير CSV": "Export CSV",
-  "من": "From",
-  "إلى": "To",
-  "تحديث": "Refresh",
-  "نوع الأصل": "Asset type",
-  "ملاحظات": "Notes",
-  "التكرار": "Recurrence",
-  "اسم الملف": "File name",
-  "نوع المستند": "Document type",
-  "إيصال": "Receipt",
-  "فاتورة": "Invoice",
-  "كشف حساب": "Statement",
-  "عقد": "Contract",
-  "مسار التخزين": "Storage path",
-  "نوع الملف": "File type",
-  "الملف": "File",
-  "الصيغة": "Format",
-  "الإضافة": "Added",
-  "العنوان": "Title",
-  "التفاصيل": "Details",
-  "البداية": "Start",
-  "الاستحقاق": "Due",
-  "الفاتورة": "Bill",
-  "الأصل": "Asset",
-  "الطرف": "Party",
-  "النوع": "Type",
-  "سجل السداد": "Payment history",
-  "دفعات": "Payments for",
-  "تم السداد بالكامل": "Fully paid",
-  "دين مفتوح": "Open debt",
-  "مبلغ الدفعة": "Payment amount",
-  "اليوم والوقت والتاريخ": "Date and time",
-  "طريقة الدفع أو تفاصيل إضافية": "Payment method or additional details",
-  "جارٍ تسجيل الدفعة…": "Recording payment…",
-  "حفظ الدفعة": "Save payment",
-  "الدفعات السابقة": "Previous payments",
-  "لا توجد دفعات مسجلة لهذا الدين بعد.": "No payments recorded for this debt yet.",
-  "المبلغ المدفوع": "Amount paid",
-  "الوقت": "Time",
-  "إغلاق": "Close",
-  "دائن — لي عنده": "Creditor — Owed to me",
-  "مدين — عليّ له": "Debtor — I owe",
-  "دفعة": "Payment",
-  "تبويبات الديون": "Debt tabs",
-  "إعداد اتصال Supabase غير مكتمل.": "Supabase connection is not configured.",
-  "أدخل مبلغ دفعة صحيحاً.": "Enter a valid payment amount.",
-  "مبلغ الدفعة أكبر من المبلغ المتبقي.": "Payment amount exceeds the remaining balance.",
-  "هل تريد حذف هذا السجل نهائيًا؟": "Do you want to permanently delete this record?",
-  "النهاية": "End",
-  "التاريخ المستهدف": "Target date",
-  "تاريخ الاقتناء": "Acquisition date",
-  "التاريخ": "Date",
-  "تم تسجيل السجل بنجاح.": "Record saved successfully.",
- };;
+  "تابع الفواتير القادمة والمدفوعة والمتأخرة.": "Track upcoming, paid, and overdue bills.","حوّل أهدافك إلى تقدم واضح قابل للمتابعة.": "Turn your goals into measurable progress.","سجل الأصول وقيمتها التقديرية ضمن الصورة المالية الكاملة.": "Record assets and their estimated values as part of your overall financial picture.","سجل المستندات المرتبطة بعملياتك المالية.": "Keep records of documents linked to your financial activity.","تنبيهات الحساب والميزانية والفواتير في مكان واحد.": "Account, budget, and bill alerts in one place.","الميزانية": "Budget","الفترة": "Period","المبلغ": "Amount","العملة": "Currency","الحالة": "Status","قادمة": "Upcoming","مدفوعة": "Paid","متأخرة": "Overdue","ملغاة": "Cancelled","الهدف": "Goal","المستهدف": "Target","الحالي": "Current","القيمة": "Value","الاقتناء": "Acquired","الصافي": "Net","إجمالي الدخل": "Total income","إجمالي المصروفات": "Total expenses","تم تسجيل دفعة بقيمة": "Payment recorded:","بتاريخ": "on","تم حذف السجل.": "Record deleted.","تم تحديث السجل بنجاح.": "Record updated successfully.","انتهت جلسة الدخول.": "Your session has expired.","الميزانيات": "Budgets","التخطيط المالي": "Financial planning","خطط الإنفاق مع متابعة المبلغ المخصص لكل فترة.": "Plan spending and track allocations for each period.","الديون": "Debts","الالتزامات": "Liabilities","تتبع ما لك وما عليك حتى التسوية الكاملة.": "Track money owed to you and by you until fully settled.","الفواتير": "Bills","المدفوعات": "Payments","تابع الفواتير ومواعيد الاستحقاق وحالة السداد.": "Track bills, due dates, and payment status.","الادخار": "Savings","الأهداف المالية": "Financial goals","تابع تقدمك نحو أهداف الادخار.": "Track your progress toward savings goals.","الأصول": "Assets","صافي الملكية": "Net worth","سجل الأصول والقيمة التقديرية لكل منها.": "Record assets and their estimated values.","المستندات": "Documents","الأرشيف المالي": "Financial archive","الإشعارات": "Notifications","التنبيهات": "Alerts","اسم الميزانية": "Budget name","نقدي": "Cash","حساب بنكي": "Bank account","محفظة إلكترونية": "E-wallet","بطاقة ائتمان": "Credit card","استثمار": "Investment","أخرى": "Other","دينار ليبي": "Libyan dinar","دولار": "US dollar","يورو": "Euro","جنيه إسترليني": "British pound","ليرة سورية": "Syrian pound","دينار أردني": "Jordanian dinar","أسبوعية": "Weekly","شهرية": "Monthly","ربع سنوية": "Quarterly","سنوية": "Yearly","مخصصة": "Custom","تاريخ البداية": "Start date","تاريخ النهاية": "End date","اسم الشخص أو الجهة": "Person or organization","نوع الدين": "Debt type","لي عنده": "Owed to me","عليّ له": "I owe","المبلغ الأصلي": "Original amount","المتبقي": "Remaining","اسم الفاتورة": "Bill name","تاريخ الاستحقاق": "Due date","اسم الهدف": "Goal name","المبلغ المستهدف": "Target amount","المبلغ الحالي": "Current amount","اسم الأصل": "Asset name","القيمة التقديرية": "Estimated value","الوصف": "Description","إلغاء": "Cancel","إضافة": "Add","اختر…": "Select…","جارٍ الحفظ…": "Saving…","حفظ التعديلات": "Save changes","حفظ": "Save","بحث في السجلات…": "Search records…","جارٍ التحميل…": "Loading…","لا توجد نتائج": "No results","لا توجد سجلات بعد": "No records yet","جرّب تغيير عبارة البحث.": "Try changing your search.","ابدأ بإضافة أول سجل.": "Add your first record to get started.","إضافة أول سجل": "Add first record","تعديل": "Edit","حذف": "Delete","تصدير CSV": "Export CSV","من": "From","إلى": "To","تحديث": "Refresh","نوع الأصل": "Asset type","ملاحظات": "Notes","التكرار": "Recurrence","اسم الملف": "File name","نوع المستند": "Document type","إيصال": "Receipt","فاتورة": "Invoice","كشف حساب": "Statement","عقد": "Contract","مسار التخزين": "Storage path","نوع الملف": "File type","الملف": "File","الصيغة": "Format","الإضافة": "Added","العنوان": "Title","التفاصيل": "Details","البداية": "Start","الاستحقاق": "Due","الفاتورة": "Bill","الأصل": "Asset","الطرف": "Party","النوع": "Type","سجل السداد": "Payment history","دفعات": "Payments for","تم السداد بالكامل": "Fully paid","دين مفتوح": "Open debt","مبلغ الدفعة": "Payment amount","اليوم والوقت والتاريخ": "Date and time","طريقة الدفع أو تفاصيل إضافية": "Payment method or additional details","جارٍ تسجيل الدفعة…": "Recording payment…","حفظ الدفعة": "Save payment","الدفعات السابقة": "Previous payments","لا توجد دفعات مسجلة لهذا الدين بعد.": "No payments recorded for this debt yet.","المبلغ المدفوع": "Amount paid","الوقت": "Time","إغلاق": "Close","دائن — لي عنده": "Creditor — Owed to me","مدين — عليّ له": "Debtor — I owe","دفعة": "Payment","تبويبات الديون": "Debt tabs","إعداد اتصال Supabase غير مكتمل.": "Supabase connection is not configured.","أدخل مبلغ دفعة صحيحاً.": "Enter a valid payment amount.","مبلغ الدفعة أكبر من المبلغ المتبقي.": "Payment amount exceeds the remaining balance.","هل تريد حذف هذا السجل نهائيًا؟": "Do you want to permanently delete this record?","النهاية": "End","التاريخ المستهدف": "Target date","تاريخ الاقتناء": "Acquisition date","التاريخ": "Date","تم تسجيل السجل بنجاح.": "Record saved successfully.","تأكيد الحذف": "Confirm deletion","حذف نهائيًا": "Delete permanently"};
  const tr = (value: string) => en ? (dictionary[value] ?? value) : value;
- const config = {...configs[module], title:tr(configs[module].title), eyebrow:tr(configs[module].eyebrow), description:tr(configs[module].description), fields:configs[module].fields.map(f=>({...f,label:tr(f.label),options:f.options?.map(o=>({...o,label:tr(o.label)}))})), columns:configs[module].columns.map(col=>({...col,label:tr(col.label)}))};const [rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[showForm,setShowForm]=useState(false),[editing,setEditing]=useState<Row|null>(null),[form,setForm]=useState<Record<string,string>>({}),[error,setError]=useState(""),[notice,setNotice]=useState(""),[search,setSearch]=useState("");
+ const config = {...configs[module], title:tr(configs[module].title), eyebrow:tr(configs[module].eyebrow), description:tr(configs[module].description), fields:configs[module].fields.map(f=>({...f,label:tr(f.label),options:f.options?.map(o=>({...o,label:tr(o.label)}))})), columns:configs[module].columns.map(col=>({...col,label:tr(col.label)}))};
+ const [rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[showForm,setShowForm]=useState(false),[editing,setEditing]=useState<Row|null>(null),[form,setForm]=useState<Record<string,string>>({}),[error,setError]=useState(""),[notice,setNotice]=useState(""),[search,setSearch]=useState("");
  const [debtTab,setDebtTab]=useState<"owed_to_me"|"i_owe">("owed_to_me");
  const [paymentDebt,setPaymentDebt]=useState<Row|null>(null),[paymentAmount,setPaymentAmount]=useState(""),[paymentDate,setPaymentDate]=useState(()=>{const now=new Date();return new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16)}),[paymentNotes,setPaymentNotes]=useState(""),[paymentHistory,setPaymentHistory]=useState<Row[]>([]),[paymentBusy,setPaymentBusy]=useState(false);
+ const [deleteTarget,setDeleteTarget]=useState<DeleteTarget|null>(null);
  const load=useCallback(async()=>{if(!supabase){setError(en?"Supabase connection is not configured.":"إعداد اتصال Supabase غير مكتمل.");setLoading(false);return}setLoading(true);const db=supabase as any;const result=await db.from(config.table).select("*").order("created_at",{ascending:false});if(result.error)setError(result.error.message);else setRows(result.data??[]);setLoading(false)},[config.table]);useEffect(()=>{void load()},[load]);
  function openNew(){setEditing(null);setForm(module==="debts"?{type:debtTab}:{});setError("");setNotice("");setShowForm(true)}
  function openEdit(row:Row){const next:Record<string,string>={};for(const f of config.fields)next[f.key]=row[f.key]===null||row[f.key]===undefined?"":String(row[f.key]).slice(0,10);setEditing(row);setForm(next);setError("");setNotice("");setShowForm(true)}
  async function submit(e:FormEvent){e.preventDefault();if(!supabase)return;const {data}=await supabase.auth.getUser();if(!data.user){setError(tr("انتهت جلسة الدخول."));return}for(const f of config.fields)if(f.required&&!String(form[f.key]??"").trim()){setError(en ? `Enter ${f.label}.` : `أدخل ${f.label}.`);return}setSaving(true);setError("");const payload=buildPayload(module,form);if(module==="debts"){payload.remaining_amount=editing?Number(editing.remaining_amount):Number(payload.principal_amount||0);payload.is_settled=payload.remaining_amount<=0}let result:any;if(editing)result=await (supabase as any).from(config.table).update(payload).eq("id",editing.id).eq("user_id",data.user.id);else{payload.user_id=data.user.id;result=await (supabase as any).from(config.table).insert(payload)}if(result.error)setError(result.error.message);else{setNotice(editing?tr("تم تحديث السجل بنجاح."):(en?`New record added to ${config.title}.`:`تمت إضافة سجل جديد في ${config.title}.`));setShowForm(false);setEditing(null);setForm({});await load()}setSaving(false)}
  async function openPayments(row:Row){setPaymentDebt(row);setPaymentAmount("");setPaymentNotes("");setError("");setNotice("");const result=await (supabase as any).from("debt_payments").select("*").eq("debt_id",row.id).order("payment_date",{ascending:false});if(result.error){setError(result.error.message);setPaymentHistory([])}else setPaymentHistory(result.data??[])}
  async function recordPayment(e:FormEvent){e.preventDefault();if(!paymentDebt||!supabase)return;const amount=Number(paymentAmount);if(!Number.isFinite(amount)||amount<=0){setError(tr("أدخل مبلغ دفعة صحيحاً."));return}if(amount>Number(paymentDebt.remaining_amount||0)){setError(tr("مبلغ الدفعة أكبر من المبلغ المتبقي."));return}setPaymentBusy(true);setError("");const result=await (supabase as any).rpc("register_debt_payment",{p_debt_id:paymentDebt.id,p_amount:amount,p_payment_date:new Date(paymentDate).toISOString(),p_notes:paymentNotes.trim()||null});if(result.error){setError(result.error.message);setPaymentBusy(false);return}setNotice(en ? `Payment of ${money(amount,paymentDebt.currency_code||"LYD")} recorded on ${new Intl.DateTimeFormat("en",{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(paymentDate))}.` : `تم تسجيل دفعة بقيمة ${money(amount,paymentDebt.currency_code||"LYD")} بتاريخ ${new Intl.DateTimeFormat("ar",{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(paymentDate))}.`);setPaymentAmount("");setPaymentNotes("");await load();const refreshed=await (supabase as any).from("debts").select("*").eq("id",paymentDebt.id).single();if(!refreshed.error){setPaymentDebt(refreshed.data);const history=await (supabase as any).from("debt_payments").select("*").eq("debt_id",paymentDebt.id).order("payment_date",{ascending:false});setPaymentHistory(history.data??[])}setPaymentBusy(false)}
- async function remove(row:Row){if(!supabase||!window.confirm(tr("هل تريد حذف هذا السجل نهائيًا؟")))return;const {data}=await supabase.auth.getUser();if(!data.user){setError(tr("انتهت جلسة الدخول.") );return}const result=await (supabase as any).from(config.table).delete().eq("id",row.id).eq("user_id",data.user.id);if(result.error)setError(result.error.message);else{setNotice(tr("تم حذف السجل."));await load()}}
+ async function removeConfirmed(){if(!deleteTarget||!supabase)return;const row=deleteTarget.row;setDeleteTarget(null);const {data}=await supabase.auth.getUser();if(!data.user){setError(tr("انتهت جلسة الدخول."));return}const result=await (supabase as any).from(config.table).delete().eq("id",row.id).eq("user_id",data.user.id);if(result.error)setError(result.error.message);else{setNotice(tr("تم حذف السجل."));await load()}}
  const visible=useMemo(()=>{const locale=typeof document!=="undefined"&&document.documentElement.lang==="en"?"en":"ar";const q=search.trim().toLocaleLowerCase(locale);return rows.filter(r=>(module!=="debts"||r.type===debtTab)&&(!q||Object.values(r).some(v=>String(v??"").toLocaleLowerCase(locale).includes(q))))},[rows,search,module,debtTab]);
- return <section className="data-view"><div className="data-view-heading"><div><p className="eyebrow">{config.eyebrow}</p><h2>{config.title}</h2><p className="muted-copy">{config.description}</p></div>{config.fields.length>0&&<button type="button" className="primary-button compact-button" onClick={()=>showForm?setShowForm(false):openNew()}>{showForm?tr("إلغاء"):"+ "+tr("إضافة")}</button>}</div>{error&&<p className="notice error" role="alert">{error}</p>}{notice&&<p className="notice success" role="status">{notice}</p>}{module==="debts"&&<div className="debt-tabs" role="tablist" aria-label="تبويبات الديون"><button type="button" role="tab" aria-selected={debtTab==="owed_to_me"} className={debtTab==="owed_to_me"?"debt-tab active":"debt-tab"} onClick={()=>{setDebtTab("owed_to_me");setPaymentDebt(null);setSearch("");}}>{tr("دائن — لي عنده")}</button><button type="button" role="tab" aria-selected={debtTab==="i_owe"} className={debtTab==="i_owe"?"debt-tab active":"debt-tab"} onClick={()=>{setDebtTab("i_owe");setPaymentDebt(null);setSearch("");}}>{tr("مدين — عليّ له")}</button></div>}{showForm&&<form className="account-form" onSubmit={submit}>{config.fields.map(f=><div className="form-field" key={f.key}><label htmlFor={`${module}-${f.key}`}>{f.label}{f.required?" *":""}</label>{f.type==="select"?<select id={`${module}-${f.key}`} required={f.required} value={form[f.key]??""} onChange={e=>setForm(v=>({...v,[f.key]:e.target.value}))}><option value="">{tr("اختر…")}</option>{f.options?.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:<input id={`${module}-${f.key}`} type={f.type} required={f.required} value={form[f.key]??""} onChange={e=>setForm(v=>({...v,[f.key]:e.target.value}))} dir={f.type==="number"?"ltr":undefined}/>}</div>)}<button className="primary-button form-submit" type="submit" disabled={saving}>{saving?tr("جارٍ الحفظ…"):editing?tr("حفظ التعديلات"):tr("حفظ")}</button></form>}{!loading&&rows.length>0&&<div className="transaction-toolbar"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tr("بحث في السجلات…")}/><span className="muted-copy">{visible.length} من {rows.length}</span></div>}{loading?<div className="empty-state">{tr("جارٍ التحميل…")}</div>:visible.length===0?<div className="empty-state"><span className="empty-icon"><Icon name="folder" size={28} /></span><h3>{rows.length?tr("لا توجد نتائج"):tr("لا توجد سجلات بعد")}</h3><p>{rows.length?tr("جرّب تغيير عبارة البحث."):tr("ابدأ بإضافة أول سجل.")}</p>{config.fields.length>0&&<button type="button" className="secondary-button" onClick={openNew}>{tr("إضافة أول سجل")}</button>}</div>:<div className="account-list">{visible.map(row=><article className="account-row" key={row.id}><span className="account-type-icon">{config.title.slice(0,1)}</span><div className="account-details"><h3>{String(row[config.columns[0]?.key]??"سجل")}</h3><p>{config.columns.slice(1).map(c=>`${c.label}: ${human(c.key,row[c.key])}`).join(" · ")}</p><span className="account-status">{dateLabel(row.created_at??new Date().toISOString())}</span></div><div className="account-balance"><strong>{config.columns[1]&&human(config.columns[1].key,row[config.columns[1].key])}</strong>{config.fields.length>0&&<div><button type="button" className="text-button" onClick={()=>openEdit(row)}>{tr("تعديل")}</button><button type="button" className="text-button danger-text" onClick={()=>void remove(row)}>{tr("حذف")}</button></div>}</div>{module==="debts"&&<button type="button" className="secondary-button compact-button debt-payment-action" onClick={()=>void openPayments(row)}>{tr("دفعة")}</button>}</article>)}</div>}{module==="debts"&&paymentDebt&&<section className="dashboard-panel debt-payment-panel"><header><div><p className="eyebrow">{tr("سجل السداد")}</p><h3>{tr("دفعات")} {paymentDebt.person_name}</h3><p className="muted-copy">{tr("المتبقي")}: {human("remaining_amount",paymentDebt.remaining_amount)} · {tr(paymentDebt.is_settled?"تم السداد بالكامل":"دين مفتوح")}</p></div><button type="button" className="text-button" onClick={()=>setPaymentDebt(null)}>إغلاق</button></header><form className="account-form" onSubmit={recordPayment}><div className="form-field"><label>{tr("مبلغ الدفعة")} *</label><input type="number" min="0.01" max={Number(paymentDebt.remaining_amount||0)} step="0.01" required value={paymentAmount} onChange={e=>setPaymentAmount(e.target.value)} /></div><div className="form-field"><label>{tr("اليوم والوقت والتاريخ")} *</label><input type="datetime-local" required value={paymentDate} onChange={e=>setPaymentDate(e.target.value)} /></div><div className="form-field"><label>{tr("ملاحظات")}</label><input value={paymentNotes} onChange={e=>setPaymentNotes(e.target.value)} placeholder={tr("طريقة الدفع أو تفاصيل إضافية")} /></div><button className="primary-button form-submit" type="submit" disabled={paymentBusy||Number(paymentDebt.remaining_amount||0)<=0}>{paymentBusy?tr("جارٍ تسجيل الدفعة…"):tr("حفظ الدفعة")}</button></form><h4>{tr("الدفعات السابقة")}</h4>{paymentHistory.length===0?<p className="empty-copy">{tr("لا توجد دفعات مسجلة لهذا الدين بعد.")}</p>:paymentHistory.map(p=><div className="dashboard-line debt-payment-history-row" key={p.id}><div><strong>{tr("المبلغ المدفوع")}: {money(Number(p.amount),p.currency_code||paymentDebt.currency_code||"LYD")}</strong><small>{tr("اليوم والتاريخ")}: {new Intl.DateTimeFormat(en?"en":"ar",{weekday:"long",year:"numeric",month:"long",day:"numeric"}).format(new Date(p.payment_date))}</small><small>{tr("الوقت")}: {new Intl.DateTimeFormat(en?"en":"ar",{hour:"2-digit",minute:"2-digit"}).format(new Date(p.payment_date))}</small>{p.notes&&<small>{tr("ملاحظات")}: {p.notes}</small>}</div></div>)}</section>}</section>
+ return <section className="data-view"><div className="data-view-heading"><div><p className="eyebrow">{config.eyebrow}</p><h2>{config.title}</h2><p className="muted-copy">{config.description}</p></div>{config.fields.length>0&&<button type="button" className="primary-button compact-button" onClick={()=>showForm?setShowForm(false):openNew()}>{showForm?tr("إلغاء"):"+ "+tr("إضافة")}</button>}</div>{error&&<p className="notice error" role="alert">{error}</p>}{notice&&<p className="notice success" role="status">{notice}</p>}{module==="debts"&&<div className="debt-tabs" role="tablist" aria-label="تبويبات الديون"><button type="button" role="tab" aria-selected={debtTab==="owed_to_me"} className={debtTab==="owed_to_me"?"debt-tab active":"debt-tab"} onClick={()=>{setDebtTab("owed_to_me");setPaymentDebt(null);setSearch("");}}>{tr("دائن — لي عنده")}</button><button type="button" role="tab" aria-selected={debtTab==="i_owe"} className={debtTab==="i_owe"?"debt-tab active":"debt-tab"} onClick={()=>{setDebtTab("i_owe");setPaymentDebt(null);setSearch("");}}>{tr("مدين — عليّ له")}</button></div>}{showForm&&<form className="account-form" onSubmit={submit}>{config.fields.map(f=><div className="form-field" key={f.key}><label htmlFor={`${module}-${f.key}`}>{f.label}{f.required?" *":""}</label>{f.type==="select"?<select id={`${module}-${f.key}`} required={f.required} value={form[f.key]??""} onChange={e=>setForm(v=>({...v,[f.key]:e.target.value}))}><option value="">{tr("اختر…")}</option>{f.options?.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:<input id={`${module}-${f.key}`} type={f.type} required={f.required} value={form[f.key]??""} onChange={e=>setForm(v=>({...v,[f.key]:e.target.value}))} dir={f.type==="number"?"ltr":undefined}/>}</div>)}<button className="primary-button form-submit" type="submit" disabled={saving}>{saving?tr("جارٍ الحفظ…"):editing?tr("حفظ التعديلات"):tr("حفظ")}</button></form>}{!loading&&rows.length>0&&<div className="transaction-toolbar"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tr("بحث في السجلات…")}/><span className="muted-copy">{visible.length} من {rows.length}</span></div>}{loading?<div className="empty-state">{tr("جارٍ التحميل…")}</div>:visible.length===0?<div className="empty-state"><span className="empty-icon"><Icon name="folder" size={28} /></span><h3>{rows.length?tr("لا توجد نتائج"):tr("لا توجد سجلات بعد")}</h3><p>{rows.length?tr("جرّب تغيير عبارة البحث."):tr("ابدأ بإضافة أول سجل.")}</p>{config.fields.length>0&&<button type="button" className="secondary-button" onClick={openNew}>{tr("إضافة أول سجل")}</button>}</div>:<div className="account-list">{visible.map(row=><article className="account-row" key={row.id}><span className="account-type-icon">{config.title.slice(0,1)}</span><div className="account-details"><h3>{String(row[config.columns[0]?.key]??"سجل")}</h3><p>{config.columns.slice(1).map(c=>`${c.label}: ${human(c.key,row[c.key])}`).join(" · ")}</p><span className="account-status">{dateLabel(row.created_at??new Date().toISOString())}</span></div><div className="account-balance"><strong>{config.columns[1]&&human(config.columns[1].key,row[config.columns[1].key])}</strong>{config.fields.length>0&&<div><button type="button" className="text-button" onClick={()=>openEdit(row)}>{tr("تعديل")}</button><button type="button" className="text-button danger-text" onClick={()=>setDeleteTarget({row,label:String(row[config.columns[0]?.key]??"سجل")})}>{tr("حذف")}</button></div>}</div>{module==="debts"&&<button type="button" className="secondary-button compact-button debt-payment-action" onClick={()=>void openPayments(row)}>{tr("دفعة")}</button>}</article>)}</div>}{module==="debts"&&paymentDebt&&<section className="dashboard-panel debt-payment-panel"><header><div><p className="eyebrow">{tr("سجل السداد")}</p><h3>{tr("دفعات")} {paymentDebt.person_name}</h3><p className="muted-copy">{tr("المتبقي")}: {human("remaining_amount",paymentDebt.remaining_amount)} · {tr(paymentDebt.is_settled?"تم السداد بالكامل":"دين مفتوح")}</p></div><button type="button" className="text-button" onClick={()=>setPaymentDebt(null)}>إغلاق</button></header><form className="account-form" onSubmit={recordPayment}><div className="form-field"><label>{tr("مبلغ الدفعة")} *</label><input type="number" min="0.01" max={Number(paymentDebt.remaining_amount||0)} step="0.01" required value={paymentAmount} onChange={e=>setPaymentAmount(e.target.value)} /></div><div className="form-field"><label>{tr("اليوم والوقت والتاريخ")} *</label><input type="datetime-local" required value={paymentDate} onChange={e=>setPaymentDate(e.target.value)} /></div><div className="form-field"><label>{tr("ملاحظات")}</label><input value={paymentNotes} onChange={e=>setPaymentNotes(e.target.value)} placeholder={tr("طريقة الدفع أو تفاصيل إضافية")} /></div><button className="primary-button form-submit" type="submit" disabled={paymentBusy||Number(paymentDebt.remaining_amount||0)<=0}>{paymentBusy?tr("جارٍ تسجيل الدفعة…"):tr("حفظ الدفعة")}</button></form><h4>{tr("الدفعات السابقة")}</h4>{paymentHistory.length===0?<p className="empty-copy">{tr("لا توجد دفعات مسجلة لهذا الدين بعد.")}</p>:paymentHistory.map(p=><div className="dashboard-line debt-payment-history-row" key={p.id}><div><strong>{tr("المبلغ المدفوع")}: {money(Number(p.amount),p.currency_code||paymentDebt.currency_code||"LYD")}</strong><small>{tr("اليوم والتاريخ")}: {new Intl.DateTimeFormat(en?"en":"ar",{weekday:"long",year:"numeric",month:"long",day:"numeric"}).format(new Date(p.payment_date))}</small><small>{tr("الوقت")}: {new Intl.DateTimeFormat(en?"en":"ar",{hour:"2-digit",minute:"2-digit"}).format(new Date(p.payment_date))}</small>{p.notes&&<small>{tr("ملاحظات")}: {p.notes}</small>}</div></div>)}</section>}
+ {deleteTarget&&<div className="finance-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setDeleteTarget(null)}}><div className="finance-modal" role="dialog" aria-modal="true" aria-labelledby="finance-delete-title" aria-describedby="finance-delete-description" onMouseDown={event=>event.stopPropagation()}><h3 id="finance-delete-title">{tr("تأكيد الحذف")}</h3><p id="finance-delete-description">{en?`Do you want to permanently delete “${deleteTarget.label}”?`: `هل تريد حذف «${deleteTarget.label}» نهائيًا؟`}</p><div className="finance-modal-actions"><button type="button" className="finance-modal-cancel" onClick={()=>setDeleteTarget(null)}>{tr("إلغاء")}</button><button type="button" className="finance-modal-danger" onClick={()=>void removeConfirmed()}>{tr("حذف نهائيًا")}</button></div></div></div>}
+ </section>
 }
 export function ReportsView(){
  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
