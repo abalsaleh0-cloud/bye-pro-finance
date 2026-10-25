@@ -19,6 +19,8 @@ The API route `POST /api/v1/ai` runs a deterministic, rule-based financial reaso
 - This is a local reasoning engine, not a general-purpose large language model. It must not pretend to understand arbitrary requests or claim abilities outside its implemented rules.
 - Financial data is not sent to a third-party AI provider. Results are general information, not professional financial, investment, tax, or legal advice.
 
-## Advanced model roadmap
+## Generative model mode
 
-A genuinely generative model would require either local inference on user-owned hardware or a hosted provider. Hosted providers can impose usage limits or fees, so this free-by-default implementation deliberately avoids external inference and secret keys. Do not add a paid provider or silently switch to one without explicit approval.
+The web client now also offers an explicit, optional browser-local model using WebLLM + WebGPU. It is separate from this API rule engine and is documented in apps/web/src/ai/README.md. It requires a compatible device and a large first-time model download; it does not send prompts to a hosted inference API. The small model is experimental and is not claimed to match ChatGPT.
+
+The API endpoint remains deterministic and does not call OpenAI, Gemini, or another hosted inference provider. No paid provider or API key is configured, and the UI keeps the basic assistant available if WebGPU is unsupported.
