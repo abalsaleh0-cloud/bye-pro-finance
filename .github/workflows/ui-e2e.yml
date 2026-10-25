@@ -35,4 +35,4 @@ jobs:
       - name: Run responsive, locale, state and accessibility E2E
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
-        run: pnpm exec playwright test e2e/ui.spec.ts
+        run: pnpm exec playwright test -c playwright.ui.config.ts e2e/ui.spec.ts
