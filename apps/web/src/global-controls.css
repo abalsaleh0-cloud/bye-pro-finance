@@ -1,24 +1,198 @@
-/* Final control normalization: one size, one field surface, one focus treatment across the whole finance workspace. */
-:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea){box-sizing:border-box;width:100%;min-width:0;min-height:43px;height:43px;padding:10px 12px;border:1px solid #363740;border-radius:9px;background:#101115!important;color:#f7f4ec!important;color-scheme:dark;font:inherit;line-height:1.35;box-shadow:none;opacity:1}
-:where(body) :where(textarea){height:auto;min-height:120px;resize:vertical}
-:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea)::placeholder{color:#777983;opacity:1}
-:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):focus{border-color:var(--gold,#d6b56d);outline:none;box-shadow:0 0 0 1px var(--gold,#d6b56d)}
-:where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):hover{border-color:#4b4d56}
-:where(body) :where(input:disabled,select:disabled,textarea:disabled,input[readonly]){opacity:1;background:#101115!important;color:#f7f4ec!important}
-:where(body) :where(input[type="file"]){box-sizing:border-box;width:100%;min-height:43px;padding:8px 10px;border:1px solid #363740;border-radius:9px;background:#101115!important;color:#f7f4ec!important}
-:where(body) :where(input[type="file"])::file-selector-button{margin-inline-end:10px;padding:7px 10px;border:1px solid #655638;border-radius:7px;background:#211e18;color:var(--gold,#d6b56d);font:inherit;cursor:pointer}
-:where(body) :where(input[type="checkbox"]){width:auto;min-height:auto;accent-color:var(--gold,#d6b56d)}
-:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start}
+/*
+ * BYE PRO FINANCE — GLOBAL FORM CONTRACT
+ * One control system for every screen, section, modal and toolbar.
+ * No page is allowed to invent its own field size or surface.
+ */
+:root{
+  --control-height:43px;
+  --control-radius:9px;
+  --control-padding:10px 12px;
+  --control-border:1px solid var(--line,#2a2530);
+  --control-bg:var(--surface-2,#151119);
+  --control-text:var(--text-main,#ede8de);
+  --control-placeholder:var(--text-dim,#948c7e);
+  --control-focus:#d6b56d;
+}
+
+/* Every native form control uses exactly the same geometry. */
+:where(body) :where(
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea
+){
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  height:var(--control-height);
+  min-height:var(--control-height);
+  margin:0;
+  padding:var(--control-padding);
+  border:var(--control-border);
+  border-radius:var(--control-radius);
+  background:var(--control-bg)!important;
+  color:var(--control-text)!important;
+  color-scheme:dark;
+  font:inherit;
+  font-size:14px;
+  line-height:1.35;
+  box-shadow:none;
+  appearance:auto;
+  opacity:1;
+}
+
+:where(body) :where(textarea){
+  height:120px;
+  min-height:120px;
+  resize:vertical;
+}
+
+/* File fields follow the same outer geometry. */
+:where(body) :where(input[type="file"]){
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  height:var(--control-height);
+  min-height:var(--control-height);
+  margin:0;
+  padding:7px 10px;
+  border:var(--control-border);
+  border-radius:var(--control-radius);
+  background:var(--control-bg)!important;
+  color:var(--control-text)!important;
+  color-scheme:dark;
+  font:inherit;
+  font-size:14px;
+  line-height:1.35;
+}
+
+:where(body) :where(input[type="file"])::file-selector-button{
+  height:29px;
+  margin-inline-end:10px;
+  padding:4px 10px;
+  border:1px solid #655638;
+  border-radius:7px;
+  background:#211e18;
+  color:var(--gold,#d6b56d);
+  font:inherit;
+  cursor:pointer;
+}
+
+:where(body) :where(input)::placeholder,
+:where(body) :where(textarea)::placeholder{
+  color:var(--control-placeholder)!important;
+  opacity:1;
+}
+
+:where(body) :where(
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea,
+  input[type="file"]
+):hover{
+  border-color:var(--line-strong,#3a3341);
+}
+
+:where(body) :where(
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea,
+  input[type="file"]
+):focus{
+  border-color:var(--control-focus)!important;
+  outline:none;
+  box-shadow:0 0 0 1px var(--control-focus)!important;
+}
+
+:where(body) :where(input:disabled,select:disabled,textarea:disabled,input[readonly]){
+  opacity:1;
+}
+
+:where(body) :where(input[type="checkbox"],input[type="radio"]){
+  width:auto;
+  min-width:auto;
+  height:auto;
+  min-height:auto;
+  margin:0;
+  padding:0;
+  accent-color:var(--gold,#d6b56d);
+}
+
+:where(body) :where(input[type="range"]){
+  width:100%;
+  margin:0;
+  accent-color:var(--gold,#d6b56d);
+}
+
+/* One grid rule for all repeated field groups. */
+:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px;
+  align-items:start;
+}
 :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters)>*{min-width:0}
-:where(.form-grid)>.wide{grid-column:1/-1}
-[data-theme="light"] :where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea){background:#fff!important;color:#20232a!important;border-color:#c8c9cf!important;color-scheme:light}
-[data-theme="light"] :where(body) :where(input[readonly],input:disabled,select:disabled,textarea:disabled){background:#fff!important;color:#20232a!important;opacity:1}
-[data-theme="light"] :where(body) :where(input[type="file"]){background:#fff!important;color:#20232a!important;border-color:#c8c9cf!important}
-[data-theme="light"] :where(body) :where(input[type="file"])::file-selector-button{background:#f2ead7;color:#6c5420;border-color:#b99b5e}
-[data-theme="light"] :where(body) :where(input:not([type="range"]):not([type="checkbox"]):not([type="file"]),select,textarea):focus{border-color:#8a671d!important;box-shadow:0 0 0 1px #8a671d}
-[data-theme="light"] .household-form input,[data-theme="light"] .household-form select,[data-theme="light"] .household-form textarea{background:#fff!important;color:#20232a!important;border-color:#c8c9cf!important;color-scheme:light}
-[data-theme="light"] .household-form input::placeholder,[data-theme="light"] .household-form textarea::placeholder{color:#777983!important}
+:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters) .wide{grid-column:1/-1}
+
+/* Light mode: absolutely no dark form islands anywhere. */
+[data-theme="light"] :where(body) :where(
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea,
+  input[type="file"]
+){
+  background:var(--control-bg,#fff)!important;
+  color:var(--control-text,#202020)!important;
+  border-color:var(--line-strong,#c8c1b5)!important;
+  color-scheme:light;
+}
+
+[data-theme="light"] :where(body) :where(input::placeholder,textarea::placeholder){
+  color:var(--control-placeholder,#8a857c)!important;
+}
+
+[data-theme="light"] :where(body) :where(input[type="file"])::file-selector-button{
+  background:var(--surface-3,#f1eee8)!important;
+  color:#6c5420!important;
+  border-color:var(--line-strong,#c8c1b5)!important;
+}
+
+[data-theme="light"] :where(body) :where(input:disabled,select:disabled,textarea:disabled,input[readonly]){
+  background:var(--control-bg,#fff)!important;
+  color:var(--control-text,#202020)!important;
+  opacity:1;
+}
+
+[data-theme="light"] :where(body) :where(input[type="checkbox"],input[type="radio"]){
+  background:transparent!important;
+  accent-color:#a67c12;
+}
+
+/* Legacy component rules must not reintroduce different field geometry. */
+[data-theme="light"] .form-grid input,
+[data-theme="light"] .form-grid select,
+[data-theme="light"] .form-grid textarea,
+[data-theme="light"] .household-form input,
+[data-theme="light"] .household-form select,
+[data-theme="light"] .household-form textarea,
+[data-theme="light"] .account-form input,
+[data-theme="light"] .account-form select,
+[data-theme="light"] .account-form textarea,
+[data-theme="light"] .profile-settings-grid input,
+[data-theme="light"] .profile-settings-grid select,
+[data-theme="light"] .profile-settings-grid textarea{
+  height:var(--control-height)!important;
+  min-height:var(--control-height)!important;
+  padding:var(--control-padding)!important;
+  border-radius:var(--control-radius)!important;
+  background:var(--control-bg,#fff)!important;
+  color:var(--control-text,#202020)!important;
+}
+
 [data-theme="light"] .finance-modal-cancel{background:#f1f1f3!important;color:#17181c!important;border-color:#d0d1d6!important}
 [data-theme="light"] .finance-modal-danger{background:#f9e7e9!important;color:#8d2833!important;border-color:#c87881!important}
 [data-theme="light"] .appearance-button{background:#f7f2e7!important;color:#6c5420!important;border-color:#b99b5e!important}
-@media(max-width:700px){:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:1fr!important}:where(.form-grid)>.wide{grid-column:auto}}
+
+@media(max-width:700px){
+  :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:1fr!important}
+  :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters) .wide{grid-column:auto}
+}
