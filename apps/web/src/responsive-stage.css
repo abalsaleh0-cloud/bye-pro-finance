@@ -5,65 +5,45 @@
 *,*::before,*::after{box-sizing:border-box}
 html,body,#root{max-width:100%;min-width:0;overflow-x:hidden}
 img,svg,video,canvas{max-width:100%}
-
-/* Never let a child force its grid/flex parent wider than the viewport. */
 .form-row,.toolbar-row,.panel-head,.section-head,.page-header,.profile-chip,.nav-item,.sidebar-item{min-width:0;max-width:100%}
 .form-row>*,.toolbar-row>*,.panel-head>*,.section-head>*,.page-header>*,.profile-chip>*{min-width:0;max-width:100%}
-
-/* Shared field groups. */
-:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--stage-gap);align-items:start;min-width:0
-}
+:where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--stage-gap);align-items:start;min-width:0}
 :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters)>*{min-width:0;max-width:100%}
 :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters) .wide{grid-column:1/-1}
-
-/* Tables scroll inside their own area instead of breaking the whole screen. */
 .table-wrap,.data-table-wrap,.overflow-x-auto{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 table{max-width:100%}
-
-/* Icons always keep a fixed optical box. */
-:where(button,a,[role="button"]) :where(svg,img,.icon){
-  flex:0 0 auto;width:var(--stage-icon);height:var(--stage-icon);max-width:var(--stage-icon);max-height:var(--stage-icon);object-fit:contain
-}
+:where(button,a,[role="button"]) :where(svg,img,.icon){flex:0 0 auto;width:var(--stage-icon);height:var(--stage-icon);max-width:var(--stage-icon);max-height:var(--stage-icon);object-fit:contain}
 :where(button,a,[role="button"]) :where(.icon-sm){width:16px;height:16px;max-width:16px;max-height:16px}
 :where(button,a,[role="button"]) :where(.icon-lg){width:24px;height:24px;max-width:24px;max-height:24px}
-
-/* Long labels, filenames and numbers cannot create layout overflow. */
 :where(h1,h2,h3,h4,h5,h6,p,span,label,strong,small,a,td,th){overflow-wrap:anywhere}
 :where(input,select,textarea){min-width:0;max-width:100%}
+.category-manager{min-width:0;max-width:100%;margin-top:var(--stage-gap)}
+.category-manager header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+.category-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--stage-gap);margin-top:16px;min-width:0}
+.category-columns>div{min-width:0}
+.category-columns h4{margin:0 0 10px}
+.category-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-inline-start:auto}
 
-/* Mobile: 0–767px */
 @media(max-width:767px){
   :root{--stage-gutter:12px;--stage-gap:12px;--stage-icon:19px}
   :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters){grid-template-columns:1fr!important}
   :where(.form-grid,.account-form,.profile-settings-grid,.transaction-toolbar,.report-filters) .wide{grid-column:auto}
   .app-main,.workspace,.content,.page-content,.data-view{width:100%;min-width:0;padding-inline:var(--stage-gutter)}
   .panel,.panel-card,.card,.stat-card,.table-card,.section-card{min-width:0;max-width:100%}
-  .stats-grid{grid-template-columns:1fr!important}
-  .dashboard-grid{grid-template-columns:1fr!important}
-  .panel-head,.section-head,.page-header{gap:10px;flex-wrap:wrap}
-  .toolbar-row,.transaction-toolbar{width:100%;grid-template-columns:1fr!important}
-  .profile-chip-copy strong{max-width:150px}
-  .table-wrap,.data-table-wrap{margin-inline:calc(var(--stage-gutter) * -1);padding-inline:var(--stage-gutter)}
+  .stats-grid{grid-template-columns:1fr!important}.dashboard-grid{grid-template-columns:1fr!important}
+  .panel-head,.section-head,.page-header{gap:10px;flex-wrap:wrap}.toolbar-row,.transaction-toolbar{width:100%;grid-template-columns:1fr!important}
+  .profile-chip-copy strong{max-width:150px}.table-wrap,.data-table-wrap{margin-inline:calc(var(--stage-gutter) * -1);padding-inline:var(--stage-gutter)}
+  .category-columns{grid-template-columns:1fr}.category-manager header{flex-direction:column}.category-manager header button{width:100%}.category-actions{justify-content:flex-start}
 }
-
-/* Tablet: 768–1199px */
 @media(min-width:768px) and (max-width:1199px){
   :root{--stage-gutter:18px;--stage-gap:14px;--stage-icon:20px}
   .app-main,.workspace,.content,.page-content,.data-view{width:100%;min-width:0;padding-inline:var(--stage-gutter)}
-  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .dashboard-grid{grid-template-columns:1fr!important}
-  .panel-head,.section-head,.page-header{gap:12px;flex-wrap:wrap}
-  .profile-chip-copy strong{max-width:190px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.dashboard-grid{grid-template-columns:1fr!important}
+  .panel-head,.section-head,.page-header{gap:12px;flex-wrap:wrap}.profile-chip-copy strong{max-width:190px}
 }
-
-/* Desktop: 1200px+ */
 @media(min-width:1200px){
   :root{--stage-gutter:24px;--stage-gap:16px;--stage-icon:20px}
   .app-main,.workspace,.content,.page-content,.data-view{width:100%;min-width:0;padding-inline:var(--stage-gutter)}
-  .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-
-/* Modals/drawers stay inside the physical viewport. */
 .modal,.dialog,[role="dialog"],.drawer,.sheet{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto}
