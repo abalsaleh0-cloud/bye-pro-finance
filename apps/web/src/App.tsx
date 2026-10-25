@@ -7,14 +7,18 @@ import {
   AccountsView,
   AdminView,
   AssistantView,
-  CollectionView,
+  AssetsView,
+  BillsView,
+  BudgetsView,
   DashboardView,
+  DebtsView,
   DocumentsView,
   HouseholdView,
   ImportExportView,
   NotificationsView,
   ProfileSettingsView,
   ReportsView,
+  SavingsView,
   SmartScanView,
   TransactionsView,
   TransfersView,
@@ -51,7 +55,7 @@ function AuthPanel({ locale, recovery = false, onRecoveryComplete }: { locale: L
 
 function SectionContent({activeModule}:{activeModule:ActiveModule}) {
   if(activeModule==="لوحة التحكم")return <DashboardView/>; if(activeModule==="الحسابات")return <AccountsView/>; if(activeModule==="المعاملات")return <TransactionsView/>; if(activeModule==="التحويلات")return <TransfersView/>; if(activeModule==="التقارير")return <ReportsView/>; if(activeModule==="المنزل")return <HouseholdView/>; if(activeModule==="المستندات")return <DocumentsView/>; if(activeModule==="المسح الذكي")return <SmartScanView/>; if(activeModule==="المساعد المالي")return <AssistantView/>; if(activeModule==="الإشعارات")return <NotificationsView/>; if(activeModule==="استيراد وتصدير")return <ImportExportView/>; if(activeModule==="الإعدادات")return <ProfileSettingsView/>; if(activeModule==="الإدارة")return <AdminView/>;
-  const map:Record<string,"budgets"|"debts"|"bills"|"savings_goals"|"assets">={"الميزانيات":"budgets","الديون":"debts","الفواتير":"bills","الادخار":"savings_goals","الأصول":"assets"}; return <CollectionView module={map[activeModule]}/>;
+  if(activeModule==="الميزانيات")return <BudgetsView module="budgets"/>; if(activeModule==="الديون")return <DebtsView module="debts"/>; if(activeModule==="الفواتير")return <BillsView module="bills"/>; if(activeModule==="الادخار")return <SavingsView module="savings_goals"/>; if(activeModule==="الأصول")return <AssetsView module="assets"/>; return null;
 }
 
 export default function App(){
