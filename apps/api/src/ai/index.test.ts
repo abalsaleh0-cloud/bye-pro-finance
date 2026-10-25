@@ -61,6 +61,17 @@ describe("free local financial assistant", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("routes spending questions to category-level analysis", async () => {
+    const result = await runAiAssistant(client, { task: "assistant", input: "Show my top spending categories" });
+    expect(result.ok).toBe(true);
+    if (result.ok) { expect(result.answer).toContain("Food"); expect(result.answer).toContain("expenses by category"); }
+  });
+
+  it("gives saving guidance tied to recorded categories", async () => {
+    const result = await runAiAssistant(client, { task: "assistant", input: "How can I save money?" });
+    expect(result.ok).toBe(true);
+    if (result.ok) { expect(result.answer).toContain("Practical saving steps"); expect(result.answer).toContain("Food"); }
+  });
   it("answers in Arabic when the user writes in Arabic", async () => {
     const result = await runAiAssistant(client, { task: "assistant", input: "حلل مصروفاتي" });
     expect(result.ok).toBe(true);
