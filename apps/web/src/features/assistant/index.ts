@@ -1,1 +1,1 @@
-export const assistantFeature = "assistant" as const;
+export { AssistantView } from "../../components/PlatformViews";

@@ -1,1 +1,1 @@
-export const smartScanFeature = "smart-scan" as const;
+export { SmartScanView } from "../../components/PlatformViews";

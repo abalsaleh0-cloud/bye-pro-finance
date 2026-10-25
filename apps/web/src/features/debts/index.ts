@@ -1,1 +1,1 @@
-export const debtsFeature = "debts" as const;
+export { CollectionView } from "../../components/FinanceViews";
