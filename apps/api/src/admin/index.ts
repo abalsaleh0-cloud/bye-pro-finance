@@ -60,6 +60,17 @@ export async function handleAdmin(request: IncomingMessage, response: ServerResp
     return true;
   }
 
+  if (request.method === "GET" && url.pathname === "/api/v1/admin/users") {
+    const { data, error } = await auth.client
+      .from("profiles")
+      .select("id,public_id,username,full_name,created_at")
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (error) { json(response, 403, { error: "ADMIN_USERS_UNAVAILABLE" }); return true; }
+    json(response, 200, { data: data ?? [] });
+    return true;
+  }
+
   if (request.method === "POST" && url.pathname === "/api/v1/admin/roles") {
     let body: any;
     try { body = await readBody(request); } catch (error) {
