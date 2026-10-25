@@ -1,1 +1,1 @@
-export const transactionsFeature = "transactions" as const;
+export { default as TransactionsView } from "../../components/TransactionsView";

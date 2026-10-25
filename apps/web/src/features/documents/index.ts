@@ -1,1 +1,1 @@
-export const documentsFeature = "documents" as const;
+export { DocumentsView } from "../../components/AdvancedFinanceViews";

@@ -1,1 +1,1 @@
-export const transfersFeature = "transfers" as const;
+export { TransfersView } from "../../components/PlatformViews";

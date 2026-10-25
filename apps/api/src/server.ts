@@ -9,6 +9,7 @@ import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
 import { listAccounts } from "./accounts/index.js";
 import { createBudget, listBudgets } from "./budgets/index.js";
+import { consumeAiRateLimit, runAiAssistant, validateAiRequest } from "./ai/index.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -248,6 +249,35 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       .single();
     if (error) { json(response, 400, { error: "TRANSACTION_CREATE_FAILED" }); return; }
     json(response, 201, { data });
+    return;
+  }
+
+
+  if (request.method === "POST" && url.pathname === "/api/v1/ai") {
+    const auth = await authenticate(request, response);
+    if (!auth) return;
+    let body: unknown;
+    try { body = await readJsonBody(request, 8 * 1024); }
+    catch (error) {
+      const code = error instanceof Error ? error.message : "INVALID_JSON";
+      json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
+      return;
+    }
+    const validated = validateAiRequest(body);
+    if (validated.ok === false) {
+      json(response, 400, { error: validated.error });
+      return;
+    }
+    if (!consumeAiRateLimit(auth.identity.id)) {
+      json(response, 429, { error: "AI_RATE_LIMIT_EXCEEDED", retry_after_seconds: 60 });
+      return;
+    }
+    const result = await runAiAssistant(auth.client, validated.value);
+    if (!result.ok) {
+      json(response, result.status, { error: result.error });
+      return;
+    }
+    json(response, 200, { data: result });
     return;
   }
 

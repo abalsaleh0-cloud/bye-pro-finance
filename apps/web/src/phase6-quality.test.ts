@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 const app = readFileSync("apps/web/src/App.tsx", "utf8");
 const styles = readFileSync("apps/web/src/styles.css", "utf8");
 const api = readFileSync("apps/api/src/server.ts", "utf8");
+const platformViews = readFileSync("apps/web/src/components/PlatformViews.tsx", "utf8");
+const localModel = readFileSync("apps/web/src/ai/localModel.ts", "utf8");
 const auth = readFileSync("apps/api/src/security/auth.ts", "utf8");
 const response = readFileSync("apps/api/src/security/response.ts", "utf8");
 
@@ -41,6 +43,19 @@ describe("phase 6 quality and security contracts", () => {
     expect(styles).toContain("prefers-reduced-motion: reduce");
     expect(styles).toContain("min-height: 44px");
     expect(styles).toContain("overflow-wrap: anywhere");
+  });
+
+  it("routes transfers through the authenticated validation API instead of direct table inserts", () => {
+    expect(platformViews).toContain('fetch("/api/v1/transfers"');
+    expect(platformViews).not.toContain('supabase.from("transfers").insert');
+    expect(platformViews).toContain('"idempotency-key":crypto.randomUUID()');
+  });
+
+  it("keeps the generative model on-device and checks WebGPU support", () => {
+    expect(localModel).toContain("Qwen3-1.7B-q4f16_1-MLC");
+    expect(localModel).toContain("if (!browser.gpu)");
+    expect(localModel).toContain("engine.chat.completions.create");
+    expect(localModel).not.toContain("openai.com");
   });
 
   it("keeps both application shells accessible to language and theme controls", () => {

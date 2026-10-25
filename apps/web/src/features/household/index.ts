@@ -1,1 +1,1 @@
-export const householdFeature = "household" as const;
+export { HouseholdView } from "../../components/PlatformViews";

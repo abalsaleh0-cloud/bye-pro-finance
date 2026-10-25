@@ -1,1 +1,1 @@
-export const settingsFeature = "settings" as const;
+export { default as ProfileSettingsView } from "../../components/ProfileSettingsView";

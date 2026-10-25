@@ -1,1 +1,1 @@
-export const dashboardFeature = "dashboard" as const;
+export { default as DashboardView } from "../../components/DashboardView";

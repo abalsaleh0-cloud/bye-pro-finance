@@ -1,1 +1,1 @@
-export const reportsFeature = "reports" as const;
+export { default as ReportsView } from "../../components/ReportsView";

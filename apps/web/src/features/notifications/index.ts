@@ -1,1 +1,1 @@
-export const notificationsFeature = "notifications" as const;
+export { NotificationsView } from "../../components/AdvancedFinanceViews";
