@@ -3,7 +3,7 @@ import { json } from "./security/response.js";
 import { readBearerToken } from "./security/auth.js";
 import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
 import { createUserScopedClient } from "./database/user-client.js";
-import { readJsonBody } from "./security/body.js";
+import { readJsonBody } from "./finance/transactions.js";
 import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
 import { consumeAiRateLimit, runAiAssistant, validateAiRequest } from "./ai/index.js";
