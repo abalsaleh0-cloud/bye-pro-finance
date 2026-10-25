@@ -3,3 +3,56 @@
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.form-grid input,.form-grid select,.form-grid textarea,.form-grid input[type="file"]{width:100%;min-height:43px;padding:10px 12px;border:1px solid #363740;border-radius:9px;background:#101115;color:#f7f4ec;color-scheme:dark;box-shadow:none;appearance:auto}.form-grid textarea{min-height:120px;resize:vertical}.form-grid input::placeholder,.form-grid textarea::placeholder{color:#777983;opacity:1}.form-grid input:hover,.form-grid select:hover,.form-grid textarea:hover{border-color:#4b4d56}.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{border-color:var(--gold);outline:2px solid transparent;box-shadow:0 0 0 1px var(--gold)}.form-grid input[type="file"]{padding:8px 10px}.form-grid input[type="file"]::file-selector-button{margin-inline-end:10px;padding:7px 10px;border:1px solid #655638;border-radius:7px;background:#211e18;color:var(--gold);font:inherit;cursor:pointer}.form-grid .wide{grid-column:1/-1}.form-grid+.notice,.form-grid~.notice{margin-top:12px}.panel .form-grid h3{grid-column:1/-1}.household-form input,.household-form select,.household-form textarea{background:#101115!important;color:#f7f4ec!important;border-color:#363740!important}.household-form input::placeholder,.household-form textarea::placeholder{color:#777983!important}.household-check input[type="checkbox"]{width:auto;min-height:auto;accent-color:var(--gold)}.household-card .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.household-card .form-grid .wide{grid-column:1/-1}@media(max-width:700px){.form-grid,.household-card .form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}}
 /* Workspace profile identity: the home header shows the full name only. Username remains available inside the profile page. */
 .profile-chip-copy small{display:none!important}.profile-chip-copy strong{display:block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-chip .avatar{overflow:hidden}.profile-chip .avatar img{width:100%;height:100%;object-fit:cover;display:block}[data-theme="light"] .profile-chip-copy strong{color:#242424}[data-theme="light"] .profile-chip-copy{color:#242424}
+
+/* ================================================================
+   GLOBAL THEME CONTRACT
+   Every screen must consume these semantic tokens. Hard-coded dark
+   form/control surfaces are overridden below so light mode never
+   leaves isolated dark panels, fields, menus, dialogs or tables.
+   ================================================================ */
+:root{color-scheme:dark;--app-bg:#0b0a0c;--surface:#111015;--surface-2:#151119;--surface-3:#1c1721;--surface-hover:#211c25;--line:#2a2530;--line-strong:#3a3341;--text-main:#ede8de;--text:#d8d3ca;--text-dim:#948c7e;--muted:#a5a7b0;--control-bg:#101115;--control-text:#f7f4ec;--control-placeholder:#777983;--overlay:rgba(0,0,0,.62);--shadow:0 16px 40px rgba(0,0,0,.24)}
+:root[data-theme="light"],body[data-theme="light"]{color-scheme:light;--app-bg:#f5f3ef;--surface:#ffffff;--surface-2:#fbfaf7;--surface-3:#f1eee8;--surface-hover:#e9e5dd;--line:#d9d4ca;--line-strong:#c8c1b5;--text-main:#202020;--text:#303030;--text-dim:#6b665d;--muted:#68645c;--control-bg:#ffffff;--control-text:#202020;--control-placeholder:#8a857c;--overlay:rgba(32,30,27,.38);--shadow:0 14px 34px rgba(54,48,39,.10)}
+html,body,#root{background:var(--app-bg);color:var(--text-main);color-scheme:inherit}
+body{background-color:var(--app-bg)!important;color:var(--text-main)!important}
+/* Shared containers/cards */
+[data-theme="light"] .app-shell,[data-theme="light"] .app-main,[data-theme="light"] main,[data-theme="light"] .workspace,[data-theme="light"] .content,[data-theme="light"] .page-content,[data-theme="light"] .data-view,[data-theme="light"] .panel,[data-theme="light"] .panel-card,[data-theme="light"] .stat-card,[data-theme="light"] .card,[data-theme="light"] .table-card,[data-theme="light"] .section-card{background-color:var(--surface);color:var(--text-main);border-color:var(--line)}
+[data-theme="light"] .panel,[data-theme="light"] .panel-card,[data-theme="light"] .card,[data-theme="light"] .stat-card{box-shadow:var(--shadow)}
+[data-theme="light"] h1,[data-theme="light"] h2,[data-theme="light"] h3,[data-theme="light"] h4,[data-theme="light"] h5,[data-theme="light"] h6,[data-theme="light"] strong{color:var(--text-main)}
+[data-theme="light"] p,[data-theme="light"] span,[data-theme="light"] small,[data-theme="light"] label,[data-theme="light"] .muted,[data-theme="light"] .text-muted{color:var(--text)}
+[data-theme="light"] .text-dim,[data-theme="light"] .eyebrow,[data-theme="light"] .field-hint{color:var(--text-dim)!important}
+/* Navigation, headers, sidebars and menus */
+[data-theme="light"] .sidebar,[data-theme="light"] .side-nav,[data-theme="light"] .navigation,[data-theme="light"] .topbar,[data-theme="light"] .header,[data-theme="light"] .app-header,[data-theme="light"] .mobile-nav,[data-theme="light"] .profile-menu,[data-theme="light"] .dropdown-menu,[data-theme="light"] .context-menu{background:var(--surface)!important;color:var(--text-main)!important;border-color:var(--line)!important}
+[data-theme="light"] .sidebar a,[data-theme="light"] .side-nav a,[data-theme="light"] .navigation a,[data-theme="light"] .sidebar button,[data-theme="light"] .side-nav button,[data-theme="light"] .navigation button{color:var(--text)!important}
+[data-theme="light"] .sidebar a:hover,[data-theme="light"] .side-nav a:hover,[data-theme="light"] .navigation a:hover,[data-theme="light"] .sidebar button:hover,[data-theme="light"] .side-nav button:hover{background:var(--surface-3)!important;color:var(--text-main)!important}
+/* All native controls: no dark islands in light mode. */
+[data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea,[data-theme="light"] button{color-scheme:light}
+[data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background-color:var(--control-bg)!important;color:var(--control-text)!important;border-color:var(--line-strong)!important}
+[data-theme="light"] input::placeholder,[data-theme="light"] textarea::placeholder{color:var(--control-placeholder)!important;opacity:1}
+[data-theme="light"] select option{background:#fff;color:#202020}
+[data-theme="light"] input[type="checkbox"],[data-theme="light"] input[type="radio"]{accent-color:#a67c12;background:transparent!important}
+[data-theme="light"] input[type="file"]::file-selector-button{background:var(--surface-3)!important;color:#6d510b!important;border-color:var(--line-strong)!important}
+/* Explicitly undo legacy dark form rules. */
+[data-theme="light"] .form-grid input,[data-theme="light"] .form-grid select,[data-theme="light"] .form-grid textarea,[data-theme="light"] .household-form input,[data-theme="light"] .household-form select,[data-theme="light"] .household-form textarea{background:var(--control-bg)!important;color:var(--control-text)!important;border-color:var(--line-strong)!important}
+[data-theme="light"] .password-visibility-toggle{background:transparent!important;color:#5d5952!important}
+[data-theme="light"] .password-visibility-toggle:hover{background:var(--surface-3)!important;color:#242424!important}
+/* Tables, list rows, tabs, notices and interactive surfaces */
+[data-theme="light"] table,[data-theme="light"] thead,[data-theme="light"] tbody,[data-theme="light"] tr,[data-theme="light"] th,[data-theme="light"] td{border-color:var(--line)!important;color:var(--text)!important}
+[data-theme="light"] th{background:var(--surface-3)!important;color:var(--text-main)!important}
+[data-theme="light"] td{background:var(--surface)!important}
+[data-theme="light"] .report-lines>div,[data-theme="light"] .report-row{border-color:var(--line)!important}
+[data-theme="light"] .report-lines span,[data-theme="light"] .report-row span,[data-theme="light"] .report-row small{color:var(--text-dim)!important}
+[data-theme="light"] .notice{border-color:var(--line)!important;background:var(--surface-2)!important;color:var(--text-main)!important}
+[data-theme="light"] .notification-unread{background:rgba(166,124,18,.10)!important}
+[data-theme="light"] .modal,[data-theme="light"] .dialog,[data-theme="light"] [role="dialog"],[data-theme="light"] .drawer,[data-theme="light"] .sheet{background:var(--surface)!important;color:var(--text-main)!important;border-color:var(--line)!important;box-shadow:var(--shadow)}
+[data-theme="light"] .modal-backdrop,[data-theme="light"] .overlay{background:var(--overlay)!important}
+/* Buttons retain the product accent but never inherit an accidental dark fill. */
+[data-theme="light"] button:not(.primary-button):not(.danger-button){background:var(--surface)!important;color:var(--text-main)!important;border-color:var(--line)!important}
+[data-theme="light"] button:not(.primary-button):not(.danger-button):hover{background:var(--surface-3)!important}
+[data-theme="light"] .primary-button{color:#fff!important}
+/* Auth and empty/loading surfaces */
+[data-theme="light"] .auth-layout,[data-theme="light"] .auth-card,[data-theme="light"] .auth-intro,[data-theme="light"] .auth-form{color:var(--text-main)}
+[data-theme="light"] .auth-card{background:var(--surface)!important;border-color:var(--line)!important;box-shadow:var(--shadow)}
+/* Remove dark gradients/background images from generic theme containers only. */
+[data-theme="light"] .app-shell,[data-theme="light"] .workspace,[data-theme="light"] .data-view{background-image:none!important}
+/* Focus remains visible in both themes. */
+[data-theme="light"] input:focus,[data-theme="light"] select:focus,[data-theme="light"] textarea:focus{border-color:#a67c12!important;box-shadow:0 0 0 1px #a67c12!important;outline:0}
