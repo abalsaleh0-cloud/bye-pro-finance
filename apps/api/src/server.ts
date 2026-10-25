@@ -4,10 +4,11 @@ import { readBearerToken } from "./security/auth.js";
 import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
 import { createUserScopedClient } from "./database/user-client.js";
 import { readJsonBody, validateTransactionInput } from "./finance/transactions.js";
-import { validateBudgetInput } from "./finance/budgets.js";
+
 import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
 import { listAccounts } from "./accounts/index.js";
+import { createBudget, listBudgets } from "./budgets/index.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -65,10 +66,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
   if (url.pathname === "/api/v1/budgets" && request.method === "GET") {
     const auth = await authenticate(request, response);
     if (!auth) return;
-    const { data, error } = await auth.client.from("budgets")
-      .select("id,category_id,name,amount,currency_code,period,start_date,end_date,is_active,created_at,updated_at")
-      .order("start_date", { ascending: false })
-      .limit(100);
+    const { data, error } = await listBudgets(auth.client);
     if (error) { json(response, 502, { error: "BUDGETS_UNAVAILABLE" }); return; }
     json(response, 200, { data: data ?? [] });
     return;
@@ -84,14 +82,9 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       json(response, code === "BODY_TOO_LARGE" ? 413 : 400, { error: code });
       return;
     }
-    const validated = validateBudgetInput(body);
-    if (validated.ok === false) { json(response, 400, { error: validated.error }); return; }
-    const { data, error } = await auth.client.from("budgets")
-      .insert({ ...validated.value, user_id: auth.identity.id })
-      .select("id,category_id,name,amount,currency_code,period,start_date,end_date,is_active,created_at,updated_at")
-      .single();
-    if (error) { json(response, 400, { error: "BUDGET_CREATE_FAILED" }); return; }
-    json(response, 201, { data });
+    const result = await createBudget(auth.client, auth.identity.id, body);
+    if (result.error) { json(response, result.status, { error: result.error }); return; }
+    json(response, result.status, { data: result.data });
     return;
   }
 
