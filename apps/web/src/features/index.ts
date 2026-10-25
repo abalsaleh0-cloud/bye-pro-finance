@@ -1,8 +1,17 @@
-export { default as AccountsView } from '../components/AccountsView';
-export { default as TransactionsView } from '../components/TransactionsView';
-export { default as DashboardView } from '../components/DashboardView';
-export { CollectionView } from '../components/FinanceViews';
-export { default as ReportsView } from '../components/ReportsView';
-export { DocumentsView, NotificationsView } from '../components/AdvancedFinanceViews';
-export { AdminView, AssistantView, HouseholdView, ImportExportView, SmartScanView, TransfersView } from '../components/PlatformViews';
-export { default as ProfileSettingsView } from '../components/ProfileSettingsView';
+/**
+ * Stable application-facing exports composed from individual feature modules.
+ */
+export { AccountsView } from "./accounts";
+export { TransactionsView } from "./transactions";
+export { DashboardView } from "./dashboard";
+export { CollectionView } from "./budgets";
+export { ReportsView } from "./reports";
+export { DocumentsView } from "./documents";
+export { NotificationsView } from "./notifications";
+export { AssistantView } from "./assistant";
+export { HouseholdView } from "./household";
+export { ImportExportView } from "./import-export";
+export { ProfileSettingsView } from "./settings";
+export { SmartScanView } from "./smart-scan";
+export { TransfersView } from "./transfers";
+export { AdminView } from "../components/PlatformViews";
