@@ -36,7 +36,9 @@ describe("database security invariants", () => {
   });
 
   it("locks down anonymous financial table privileges", () => {
-    expect(securityMigration).toContain(
+    const normalizedMigration = securityMigration.replace(/\s+/g, " ").trim();
+
+    expect(normalizedMigration).toContain(
       "revoke all privileges on table public.profiles, public.accounts, public.categories, public.transactions, public.transfers, public.budgets, public.debts, public.bills, public.savings_goals, public.assets, public.documents, public.notifications, public.audit_logs from anon;",
     );
   });
