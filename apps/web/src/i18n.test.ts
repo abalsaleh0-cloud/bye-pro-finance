@@ -27,9 +27,11 @@ describe("locale and theme preference contract", () => {
     expect(source).toContain("localStorage.setItem(THEME_KEY, theme)");
     expect(() => { setStoredLocale("en"); setStoredTheme("light"); }).not.toThrow();
   });
-  it("applies RTL/LTR direction and theme safely", () => {
-    expect(source).toContain('root.dir = locale === "ar" ? "rtl" : "ltr"');
-    expect(source).toContain("root.dataset.theme = theme");
+  it("keeps the Arabic layout direction for every language", () => {
+    expect(source).toContain('root.dir = "rtl"');
+    expect(source).toContain('root.dataset.locale = "ar"');
+    expect(source).toContain('document.body.dataset.locale = "ar"');
+    expect(source).not.toContain('root.dir = locale === "ar" ? "rtl" : "ltr"');
     expect(() => { applyLocale("ar", "dark"); applyLocale("en", "light"); }).not.toThrow();
   });
   it("provides language and theme controls", () => {
@@ -44,7 +46,7 @@ describe("locale and theme preference contract", () => {
     const englishMarkers = ["Your accounts", "Transactions", "Financial overview", "Financial analysis", "Financial planning", "Transfers", "Financial archive"];
     for (const marker of englishMarkers) expect(screens.some((screen) => screen.includes(marker))).toBe(true);
   });
-  it("defines light theme and English direction styles", () => {
+  it("keeps the existing stylesheet contract without English direction overrides", () => {
     expect(styles).toContain(':root[data-theme="light"],body[data-theme="light"]');
     expect(styles).toContain('html[data-locale="en"] .sidebar');
     expect(styles).toContain('html[data-locale="en"] .nav-item');
