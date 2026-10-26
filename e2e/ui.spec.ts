@@ -76,7 +76,7 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
   );
   expect(mismatches, `${screenLabel}: fields should share the 44px control height`).toEqual([]);
 
-  const shortButtons = await page.locator('button:visible, [role="button"]:visible, input[type="button"]:visible, input[type="submit"]:visible, input[type="reset"]:visible').evaluateAll(elements => elements
+  const shortButtons = await page.locator('button:visible, [role="button"]:visible, label.file-picker:visible, input[type="button"]:visible, input[type="submit"]:visible, input[type="reset"]:visible').evaluateAll(elements => elements
     .map(element => {
       const el = element as HTMLElement;
       const style = getComputedStyle(el);
