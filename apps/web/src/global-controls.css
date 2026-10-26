@@ -4,8 +4,8 @@
  * No page is allowed to invent its own field size or surface.
  */
 :root{
-  --control-height:43px;
-  --control-radius:9px;
+  --control-height:44px;
+  --control-radius:10px;
   --control-padding:10px 12px;
   --control-border:1px solid var(--line,#2a2530);
   --control-bg:var(--surface-2,#151119);
