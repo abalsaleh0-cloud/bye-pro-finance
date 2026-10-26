@@ -9,6 +9,7 @@ on:
 jobs:
   ui-e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -26,7 +27,7 @@ jobs:
       - name: Install Playwright and accessibility runner
         run: pnpm add -Dw @playwright/test@1.55.1 @axe-core/playwright@4.11.0
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
       - name: Build web with isolated E2E configuration
         env:
           VITE_SUPABASE_URL: https://e2e-ui.invalid
