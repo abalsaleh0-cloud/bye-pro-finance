@@ -181,3 +181,13 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
   background:transparent!important;
   box-shadow:none!important;
 }
+
+/* Password visibility is an action control, not a decorative 36px icon. */
+:where(body) .password-input-group > .password-visibility-toggle{
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  right:4px!important;
+  box-sizing:border-box!important;
+}
