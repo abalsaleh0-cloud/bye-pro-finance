@@ -1,0 +1,16 @@
+/* BYE PRO FINANCE — authentication screen correction pass */
+.auth-layout { width:calc(100vw - 40px)!important; max-width:none!important; min-height:calc(100vh - 118px); margin-inline:calc(50% - 50vw)!important; padding-inline:clamp(20px,6vw,88px)!important; grid-template-columns:minmax(0,1fr) minmax(360px,520px)!important; gap:clamp(36px,7vw,110px)!important; }
+.auth-intro { width:100%; max-width:700px!important; }
+.auth-card { width:100%; max-width:520px!important; margin-inline:auto; }
+.password-input-group { position:relative!important; display:block!important; width:100%!important; gap:0!important; }
+.password-input-group > input { width:100%!important; min-height:48px!important; padding-inline-end:52px!important; }
+.password-visibility-toggle { position:absolute!important; inset-inline-end:7px!important; top:50%!important; transform:translateY(-50%)!important; z-index:2; display:inline-grid!important; place-items:center; width:38px!important; min-width:38px!important; height:38px!important; min-height:38px!important; padding:0!important; border:0!important; border-radius:9px!important; background:transparent!important; color:var(--muted)!important; font-size:17px!important; line-height:1!important; }
+.password-visibility-toggle:hover,.password-visibility-toggle:focus-visible { background:color-mix(in srgb,var(--gold) 12%,transparent)!important; color:var(--gold)!important; }
+.auth-links button { display:inline-flex!important; align-items:center; justify-content:center; min-height:42px!important; min-width:132px; padding:10px 15px!important; border:1px solid color-mix(in srgb,var(--gold) 42%,var(--line))!important; border-radius:9px!important; background:var(--panel)!important; color:var(--gold)!important; font-size:12px!important; font-weight:700; line-height:1.4; text-align:center; }
+.auth-links button:hover { border-color:var(--gold)!important; background:color-mix(in srgb,var(--gold) 8%,var(--panel))!important; }
+body[data-theme="light"] .password-visibility-toggle { color:#626875!important; }
+body[data-theme="light"] .password-visibility-toggle:hover,body[data-theme="light"] .password-visibility-toggle:focus-visible { color:#765715!important; background:#f5f0e4!important; }
+body[data-theme="light"] .auth-links button { background:#fff!important; color:#715313!important; border-color:#d5c69e!important; }
+body[data-theme="light"] .auth-links button:hover { background:#f5f0e4!important; border-color:#b99a51!important; }
+@media(max-width:900px){ .auth-layout{width:calc(100vw - 28px)!important; margin-inline:calc(50% - 50vw)!important; grid-template-columns:minmax(0,1fr)!important; min-height:auto; padding-inline:18px!important; padding-block:34px!important; gap:28px!important;} .auth-intro{text-align:center;margin-inline:auto;} .auth-card{max-width:620px!important;} }
+@media(max-width:640px){ .auth-layout{width:calc(100vw - 20px)!important; padding-inline:10px!important; padding-block:24px!important;} .auth-card{max-width:100%!important;} .auth-links{justify-content:stretch;} .auth-links button{flex:1 1 100%;width:100%;min-width:0;} }
