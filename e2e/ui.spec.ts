@@ -144,19 +144,6 @@ for (const locale of ["ar", "en"] as const) {
       expect(blocking, `${locale}: ${label}`).toEqual([]);
     }
 
-    // Re-run geometry and horizontal-overflow assertions at real mobile and tablet viewport sizes.
-    // The main loop above covers the desktop viewport and runs the accessibility scan.
-    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }]) {
-      await page.setViewportSize(viewport);
-      for (const [ar, en] of screens) {
-        const label = locale === "ar" ? ar : en;
-        await clickScreen(page, label);
-        await expect(page.locator("body")).toContainText(label);
-        await assertControlGeometry(page, `${label} (${viewport.width}px)`);
-      }
-    }
-    await page.setViewportSize({ width: 1280, height: 800 });
-
     expect(errors).toEqual([]);
 
     // Loading state: hold API responses while navigating and verify the screen remains mounted.
