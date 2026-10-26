@@ -32,6 +32,9 @@ async function visibleText(page: Page, label: string) {
   const count = await matches.count();
   for (let index = count - 1; index >= 0; index -= 1) {
     const candidate = matches.nth(index);
+    // Mobile navigation lives in a horizontal scroll container. Bring clipped
+    // navigation labels into view before deciding that a control is unavailable.
+    await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
     if (await candidate.isVisible().catch(() => false)) return candidate;
   }
   throw new Error(`Visible control not found: ${label}`);
