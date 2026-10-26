@@ -44,6 +44,14 @@ Acceptance tests:
 5. Review secret storage and replica count; configure distributed concurrency control if multiple replicas are possible.
 6. Only after checks pass, request release approval, apply the reviewed migration, deploy the worker, and observe aggregate counts/errors. Web deployment remains a separate final-stage decision.
 
-## Current blocker
+## Current implementation status (2026-10-26)
 
-Document processing is not yet a defined job: there is no queue or state model. The worker therefore explicitly does not claim to process documents. The notification batch is implemented in repository code but must pass isolated migration/security tests before production use.
+- The durable document queue migration is implemented on the feature branch; it has **not** been applied to production.
+- The worker currently validates document-row metadata (owner, filename, MIME type, size up to 20 MiB, and storage path) and records `processing.status = "metadata_validated"`. It does not download file contents and does not perform OCR, financial extraction, or content classification.
+- The worker supports only `extract_metadata`; any other job type is marked failed with `UNSUPPORTED_JOB_TYPE` instead of being falsely reported as processed.
+- Queue failures use an eight-attempt cap and bounded backoff. Expired leases also become terminally failed after the cap.
+- Before release, test the SQL migrations in a disposable Supabase project, add integration coverage for grants/RLS/locking/retry exhaustion, and confirm worker deployment configuration and secrets. Production migrations and Vercel deployment remain gated.
+
+## Remaining release blockers
+
+The queue and worker implementation now exist on the feature branch, but production activation is intentionally blocked until the migrations pass isolated database/security tests, the worker runtime and secrets are configured, and the full release checks are green. The notification batch likewise requires isolated migration/security verification before production use.
