@@ -3,17 +3,11 @@ import { supabase } from "../lib/supabase";
 import { setStoredLocale, setStoredTheme, applyLocale, type Locale, type Theme } from "../i18n";
 import "./ProfileSettingsView.css";
 
-type Profile = { id: string; public_id: number | null; full_name: string; username: string | null; avatar_url: string | null };
+type Profile = { id: string; public_id: number; full_name: string; username: string | null; avatar_url: string | null };
 type UserSettings = { theme: Theme; locale: Locale; timezone: string; currency_code: string; date_format: string; number_format: string; email_notifications: boolean; transaction_alerts: boolean; bill_reminders: boolean; budget_alerts: boolean };
 const defaults: UserSettings = { theme: "dark", locale: "ar", timezone: "Africa/Tripoli", currency_code: "LYD", date_format: "YYYY-MM-DD", number_format: "1,234.56", email_notifications: true, transaction_alerts: true, bill_reminders: true, budget_alerts: true };
 const currencies = ["LYD", "USD", "EUR", "GBP", "SAR", "AED", "EGP"];
 const timezones = ["Africa/Tripoli", "Asia/Damascus", "Asia/Amman", "Europe/Istanbul", "Europe/London", "UTC"];
-
-function fallbackPublicId(uuid: string) {
-  let hash = 0;
-  for (const char of uuid) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return 100000 + (hash % 900000);
-}
 
 export default function ProfileSettingsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
@@ -40,8 +34,8 @@ export default function ProfileSettingsView() {
       supabase.from("user_settings").select("theme,locale,timezone,currency_code,date_format,number_format,email_notifications,transaction_alerts,bill_reminders,budget_alerts").eq("user_id", auth.user.id).maybeSingle()
     ]);
     if (pe || se) { setError(pe?.message || se?.message || tr("تعذر تحميل الإعدادات.", "Could not load settings.")); setBusy(false); return; }
-    const row = p as unknown as Profile | null;
-    setProfile(row ?? { id: auth.user.id, public_id: null, full_name: String(auth.user.user_metadata?.full_name ?? ""), username: String(auth.user.user_metadata?.username ?? "") || null, avatar_url: null });
+    if (!p || p.public_id == null) { setError(tr("تعذر تحميل معرّف المستخدم العام من قاعدة البيانات.", "Could not load the public user ID from the database.")); setBusy(false); return; }
+    setProfile(p as Profile);
     const next = { ...defaults, ...(s ?? {}) } as UserSettings;
     setSettings(next);
     setStoredTheme(next.theme); setStoredLocale(next.locale); applyLocale(next.locale, next.theme);
@@ -114,7 +108,7 @@ export default function ProfileSettingsView() {
   }
 
   if (busy) return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…", "Loading your profile…")}</p></section>;
-  const publicId = String(profile?.public_id ?? fallbackPublicId(profile?.id ?? "")).padStart(6, "0");
+  const publicId = String(profile?.public_id ?? "").padStart(6, "0");
   const patch = (value: Partial<UserSettings>) => setSettings(current => ({ ...current, ...value }));
   const application = [
     [tr("اسم التطبيق", "Application"), "BYE PRO FINANCE"],
