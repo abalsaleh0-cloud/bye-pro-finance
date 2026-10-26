@@ -242,7 +242,7 @@ export async function processDocumentQueue(
   }
 
   let completed = 0;
-  for (const job of jobs) {
+  await Promise.all(jobs.map(async (job) => {
     try {
       if (await processJob(baseUrl, serviceKey, workerId, job, fetcher)) {
         completed += 1;
@@ -262,7 +262,7 @@ export async function processDocumentQueue(
       }
       console.error("[worker] document processing failed", { jobId: job.id, error: message });
     }
-  }
+  }));
 
   return completed;
 }
