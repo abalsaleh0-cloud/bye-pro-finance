@@ -106,7 +106,7 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
 
 for (const locale of ["ar", "en"] as const) {
   test(`${locale}: 18 screens on mobile tablet desktop, states and accessibility`, async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(300_000);
     await page.addInitScript((value) => localStorage.setItem("bye-pro-finance.locale", value), locale);
     await mockAuth(page);
     await page.route("**/rest/v1/**", async route => {
@@ -134,6 +134,19 @@ for (const locale of ["ar", "en"] as const) {
       const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
       expect(blocking, `${locale}: ${label}`).toEqual([]);
     }
+
+    // Re-run geometry and horizontal-overflow assertions at real mobile and tablet viewport sizes.
+    // The main loop above covers the desktop viewport and runs the accessibility scan.
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }]) {
+      await page.setViewportSize(viewport);
+      for (const [ar, en] of screens) {
+        const label = locale === "ar" ? ar : en;
+        await clickScreen(page, label);
+        await expect(page.locator("body")).toContainText(label);
+        await assertControlGeometry(page, `${label} (${viewport.width}px)`);
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
 
     expect(errors).toEqual([]);
 
