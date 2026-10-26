@@ -76,6 +76,12 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
   );
   expect(mismatches, `${screenLabel}: fields should share the 44px control height`).toEqual([]);
 
+  const shortButtons = await page.locator('button:visible, [role="button"]:visible, input[type="button"]:visible, input[type="submit"]:visible, input[type="reset"]:visible').evaluateAll(elements => elements
+    .map(element => Math.round((element as HTMLElement).getBoundingClientRect().height))
+    .filter(height => height < 43)
+  );
+  expect(shortButtons, `${screenLabel}: visible action buttons should have at least a 44px touch target`).toEqual([]);
+
   const shortTextareas = await page.locator("textarea").evaluateAll(elements => elements
     .filter(element => {
       const el = element as HTMLElement;
