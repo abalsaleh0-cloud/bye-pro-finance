@@ -1,0 +1,16 @@
+# Build the worker from the pinned pnpm workspace.
+FROM node:24-alpine AS build
+WORKDIR /app
+RUN corepack enable
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @bye-pro-finance/worker build
+
+# Minimal runtime image: only compiled worker files and its ESM package metadata.
+FROM node:24-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build --chown=node:node /app/apps/worker/package.json ./package.json
+COPY --from=build --chown=node:node /app/apps/worker/dist ./dist
+USER node
+CMD ["node", "dist/worker.js"]
