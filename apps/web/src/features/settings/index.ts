@@ -1,1 +1,1 @@
-export { default as ProfileSettingsView } from "../../components/ProfileSettingsView";
+export { default as ProfileSettingsView } from "./SettingsRouter";
