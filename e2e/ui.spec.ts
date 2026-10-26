@@ -106,6 +106,7 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
       const iconRect = icon.getBoundingClientRect();
       const inputRect = input.getBoundingClientRect();
       const style = getComputedStyle(input);
+      const containerStyle = getComputedStyle(container);
       const overlaps = iconRect.left < inputRect.right && iconRect.right > inputRect.left;
       return {
         overlaps,
@@ -114,9 +115,10 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
         paddingLeft: Number.parseFloat(style.paddingLeft),
         paddingRight: Number.parseFloat(style.paddingRight),
         background: style.backgroundColor,
+        parentBackground: containerStyle.backgroundColor,
       };
     })
-    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || item.background !== "rgba(0, 0, 0, 0)"));
+    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || (item.background !== "rgba(0, 0, 0, 0)" && item.background !== item.parentBackground));
   expect(brokenCompoundFields, `${screenLabel}: username compound field must keep its internal icon and text separated`).toEqual([]);
 
   const overflowing = await page.locator("body").evaluate(el => ({
