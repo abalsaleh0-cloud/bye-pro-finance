@@ -79,14 +79,6 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
 
 /* Global geometry contract: equivalent controls share one size across all modules.
    Icon-only and explicitly compact utility controls keep their intentional targets. */
-:root{
-  --control-height:44px;
-  --control-h:44px;
-  --control-radius:10px;
-  --control-padding:10px 12px;
-  --control-pad:10px 12px;
-  --control-border:1px solid var(--field-border,#363740);
-}
 :where(body) :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   select,
