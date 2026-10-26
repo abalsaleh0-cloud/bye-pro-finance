@@ -41,6 +41,14 @@ as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
 $$;
 
+create function auth.role()
+returns text
+language sql
+stable
+as $
+  select auth.jwt() ->> 'role';
+$;
+
 create function auth.uid()
 returns uuid
 language sql
