@@ -172,9 +172,10 @@ begin
 
   v_delay := least(3600, greatest(30, (2 ^ least(v_attempt, 7))::integer * 30));
 
+  -- The claim RPC increments attempt_count before processing. Stop retrying after 8 attempts.
   update public.document_processing_jobs
-  set status=case when p_retry then 'pending' else 'failed' end,
-      next_attempt_at=case when p_retry then now()+make_interval(secs=>v_delay) else next_attempt_at end,
+  set status=case when p_retry and v_attempt < 8 then 'pending' else 'failed' end,
+      next_attempt_at=case when p_retry and v_attempt < 8 then now()+make_interval(secs=>v_delay) else next_attempt_at end,
       lease_until=null,
       worker_id=null,
       error_code=left(coalesce(p_error_code,'PROCESSING_FAILED'),100),
@@ -214,12 +215,12 @@ begin
     limit p_limit
   )
   update public.document_processing_jobs j
-  set status='pending',
-      next_attempt_at=now(),
+  set status=case when j.attempt_count >= 8 then 'failed' else 'pending' end,
+      next_attempt_at=case when j.attempt_count >= 8 then j.next_attempt_at else now() end,
       lease_until=null,
       worker_id=null,
-      error_code='LEASE_EXPIRED',
-      error_message='Worker lease expired before completion',
+      error_code=case when j.attempt_count >= 8 then 'MAX_ATTEMPTS_EXCEEDED' else 'LEASE_EXPIRED' end,
+      error_message=case when j.attempt_count >= 8 then 'Maximum processing attempts reached after lease expiry' else 'Worker lease expired before completion' end,
       updated_at=now()
   from expired e
   where j.id=e.id;
