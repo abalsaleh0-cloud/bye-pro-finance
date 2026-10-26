@@ -132,6 +132,17 @@ async function processJob(
   job: QueueJob,
   fetcher: FetchLike,
 ): Promise<boolean> {
+  if (job.job_type !== "extract_metadata") {
+    await rpc<boolean>(baseUrl, serviceKey, "fail_document_processing_job", {
+      p_job_id: job.id,
+      p_worker_id: workerId,
+      p_error_code: "UNSUPPORTED_JOB_TYPE",
+      p_error_message: "This worker only supports extract_metadata jobs",
+      p_retry: false,
+    }, fetcher);
+    return false;
+  }
+
   const document = await getDocument(baseUrl, serviceKey, job.document_id, fetcher);
 
   if (!document) {
