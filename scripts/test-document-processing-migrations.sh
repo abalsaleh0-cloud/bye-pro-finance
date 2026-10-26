@@ -45,9 +45,9 @@ create function auth.role()
 returns text
 language sql
 stable
-as $
+as $$
   select auth.jwt() ->> 'role';
-$;
+$$;
 
 create function auth.uid()
 returns uuid
