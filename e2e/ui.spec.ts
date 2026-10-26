@@ -130,6 +130,15 @@ for (const locale of ["ar", "en"] as const) {
       await expect(page.locator("body")).not.toContainText("NaN");
       await assertControlGeometry(page, label);
 
+      // Verify the same field/button geometry in both themes without changing layout direction.
+      for (const theme of ["light", "dark"] as const) {
+        await page.evaluate((value) => {
+          document.documentElement.dataset.theme = value;
+          document.body.dataset.theme = value;
+        }, theme);
+        await assertControlGeometry(page, `${label} (${theme})`);
+      }
+
       const results = await new AxeBuilder({ page }).analyze();
       const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
       expect(blocking, `${locale}: ${label}`).toEqual([]);
