@@ -580,11 +580,41 @@ body[data-theme="light"] .profile-identity-card { background:#fff; }
 .profile-chip .avatar img { width:100%; height:100%; display:block; object-fit:cover; border-radius:inherit; }
 
 
-/* Auth form clarity: keep the password visibility control separate from the input. */
-.password-input-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.55rem; width: 100%; }
-.password-input-group > input { width: 100%; box-sizing: border-box; }
-.password-visibility-toggle { position: static; display: inline-flex; align-items: center; justify-content: center; width: auto; min-height: 2.25rem; padding: 0.45rem 0.8rem; border: 1px solid var(--border, #353640); border-radius: 0.6rem; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 0.875rem; opacity: 1; }
-.password-visibility-toggle:hover { background: var(--surface-hover, rgba(127,127,127,0.1)); }
+/* Password visibility: keep the control inside the field, away from typed characters. */
+.password-input-group { position: relative; display: block; width: 100%; min-width: 0; }
+.password-input-group > .password-input { display: block; width: 100%; min-height: 48px; box-sizing: border-box; padding-inline-end: 48px; }
+.password-input-group > .password-visibility-toggle {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted, #a5a7b0);
+  cursor: pointer;
+  line-height: 1;
+  opacity: 1;
+}
+.password-input-group > .password-visibility-toggle:hover { border-color: var(--line, #2b2d34); background: color-mix(in srgb, var(--gold, #d6b56d) 10%, transparent); color: var(--gold, #d6b56d); }
+.password-input-group > .password-visibility-toggle:focus-visible { outline: 2px solid var(--gold, #d6b56d); outline-offset: 1px; }
+.password-input-group > .password-visibility-toggle .ui-icon { display: block; flex: 0 0 auto; }
+body[data-theme="light"] .auth-form input.password-input {
+  color: #20232a;
+  -webkit-text-fill-color: #20232a;
+  background: #fff;
+  border-color: #c8cad2;
+  caret-color: #20232a;
+}
+body[data-theme="light"] .password-input-group > .password-visibility-toggle { color: #50545e; }
+body[data-theme="light"] .password-input-group > .password-visibility-toggle:hover { color: #8a681c; border-color: #d7d0bd; background: #f7f3e8; }
 .field-hint { display: block; margin-top: -0.45rem; margin-bottom: 0.35rem; color: var(--text-muted, #8b8c98); font-size: 0.78rem; line-height: 1.5; }
 
 
