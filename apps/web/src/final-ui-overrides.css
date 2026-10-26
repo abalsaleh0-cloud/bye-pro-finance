@@ -166,3 +166,16 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
 :where(body) :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){
   line-height:1.35;
 }
+
+/* Compound-field exceptions: keep internal controls from inheriting standalone field padding.
+   Password input is LTR and reserves the inline-end area for its visibility toggle. */
+:where(body) .password-input-group > .password-input{
+  padding-inline-end:48px!important;
+}
+:where(body) .username-field > input{
+  padding:8px 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
