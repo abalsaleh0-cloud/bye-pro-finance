@@ -37,9 +37,9 @@ type AuthMode = "signin" | "signup" | "reset";
 function PasswordInput({ id, value, onChange, autoComplete, localeText }: { id: string; value: string; onChange: (value: string) => void; autoComplete: "current-password" | "new-password"; localeText: (ar: string, en: string) => string }) {
   const [visible, setVisible] = useState(false);
   return <div className="password-input-group">
-    <input id={id} type={visible ? "text" : "password"} autoComplete={autoComplete} required minLength={8} value={value} onChange={e => onChange(e.target.value)} dir="ltr" />
-    <button className="password-visibility-toggle" type="button" onClick={() => setVisible(current => !current)} aria-pressed={visible} aria-label={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")}>
-      <span aria-hidden="true">{visible ? "🙈" : "👁️"}</span>
+    <input id={id} className="password-input" type={visible ? "text" : "password"} autoComplete={autoComplete} required minLength={8} value={value} onChange={e => onChange(e.target.value)} dir="ltr" />
+    <button className="password-visibility-toggle" type="button" onClick={() => setVisible(current => !current)} aria-pressed={visible} aria-label={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")} title={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")}>
+      <Icon name={visible ? "eye-off" : "eye"} size={18} />
     </button>
   </div>;
 }
