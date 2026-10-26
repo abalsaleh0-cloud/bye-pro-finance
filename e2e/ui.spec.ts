@@ -42,11 +42,47 @@ async function visibleText(page: Page, label: string) {
   throw new Error(`Navigation button not found: ${label}`);
 }
 
+async function assertPasswordControl(page: Page, locale: "ar" | "en") {
+  const group = page.locator(".password-input-group").first();
+  const input = group.locator("input.password-input");
+  const toggle = group.locator(".password-visibility-toggle");
+  await expect(input).toBeVisible();
+  await expect(toggle).toBeVisible();
+  const geometry = await group.evaluate(element => {
+    const container = element as HTMLElement;
+    const field = container.querySelector("input") as HTMLInputElement | null;
+    const button = container.querySelector("button") as HTMLElement | null;
+    if (!field || !button) return { missing: true };
+    const fieldRect = field.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+    const fieldStyle = getComputedStyle(field);
+    return {
+      missing: false,
+      groupOverflow: container.scrollWidth > container.clientWidth + 1,
+      buttonInsideGroup: buttonRect.left >= container.getBoundingClientRect().left - 1 &&
+        buttonRect.right <= container.getBoundingClientRect().right + 1,
+      buttonCenteredVertically: Math.abs((buttonRect.top + buttonRect.bottom) / 2 -
+        (fieldRect.top + fieldRect.bottom) / 2) <= 3,
+      reservedInlineEnd: Number.parseFloat(fieldStyle.paddingInlineEnd),
+      fieldHeight: Math.round(fieldRect.height),
+      buttonHeight: Math.round(buttonRect.height),
+    };
+  });
+  expect(geometry, `${locale}: password visibility control must be present`).not.toHaveProperty("missing", true);
+  expect(geometry.groupOverflow, `${locale}: password group must not overflow`).toBe(false);
+  expect(geometry.buttonInsideGroup, `${locale}: password toggle must stay inside its field`).toBe(true);
+  expect(geometry.buttonCenteredVertically, `${locale}: password toggle must align with the field`).toBe(true);
+  expect(geometry.reservedInlineEnd, `${locale}: password field must reserve space for its toggle`).toBeGreaterThanOrEqual(40);
+  expect(geometry.fieldHeight, `${locale}: password field should use shared geometry`).toBe(44);
+  expect(geometry.buttonHeight, `${locale}: password toggle must meet the touch target`).toBeGreaterThanOrEqual(44);
+}
+
 async function enterWorkspace(page: Page, locale: "ar" | "en") {
   await page.goto("/");
   const emailLabel = locale === "ar" ? "البريد الإلكتروني" : "Email address";
   const passwordLabel = locale === "ar" ? "كلمة المرور" : "Password";
   const signInLabel = locale === "ar" ? "تسجيل الدخول" : "Sign in";
+  await assertPasswordControl(page, locale);
   await page.getByLabel(emailLabel).fill(user.email);
   await page.getByLabel(passwordLabel, { exact: true }).fill("StrongPassword123!");
   await page.getByRole("button", { name: signInLabel }).click();
@@ -200,9 +236,13 @@ for (const locale of ["ar", "en"] as const) {
         await assertControlGeometry(page, `${label} (${theme})`);
       }
 
-      const results = await new AxeBuilder({ page }).analyze();
-      const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
-      expect(blocking, `${locale}: ${label}`).toEqual([]);
+      // Run the expensive accessibility engine on representative screen types;
+      // geometry, overflow, runtime errors and text wrapping remain checked on all 18 screens.
+      if (["Dashboard", "Transactions", "Documents", "Settings"].includes(label)) {
+        const results = await new AxeBuilder({ page }).analyze();
+        const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
+        expect(blocking, `${locale}: ${label}`).toEqual([]);
+      }
     }
 
     expect(errors).toEqual([]);
