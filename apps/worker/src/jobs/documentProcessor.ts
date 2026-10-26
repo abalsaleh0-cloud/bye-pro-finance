@@ -193,7 +193,7 @@ async function processJob(
   await updateMetadata(baseUrl, serviceKey, document.id, {
     ...existingMetadata,
     processing: {
-      status: "metadata_extracted",
+      status: "metadata_validated",
       job_type: job.job_type,
       attempt: job.attempt_count,
       processed_at: new Date().toISOString(),
