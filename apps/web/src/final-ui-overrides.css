@@ -75,3 +75,88 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
   .profile-chip .avatar{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;}
   .profile-chip-copy strong{font-size:12px!important;max-width:140px!important;}
 }
+
+
+/* Global geometry contract: equivalent controls share one size across all modules.
+   Icon-only and explicitly compact utility controls keep their intentional targets. */
+:root{
+  --control-height:44px;
+  --control-h:44px;
+  --control-radius:10px;
+  --control-padding:10px 12px;
+  --control-pad:10px 12px;
+  --control-border:1px solid var(--field-border,#363740);
+}
+:where(body) :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  input[type="file]
+){
+  box-sizing:border-box!important;
+  width:100%;
+  min-width:0;
+  height:var(--control-height)!important;
+  min-height:var(--control-height)!important;
+  padding:var(--control-padding)!important;
+  border-radius:var(--control-radius)!important;
+  line-height:1.35;
+}
+:where(body) :where(textarea){
+  box-sizing:border-box!important;
+  width:100%;
+  min-width:0;
+  height:auto!important;
+  min-height:120px!important;
+  padding:var(--control-padding)!important;
+  border-radius:var(--control-radius)!important;
+  line-height:1.5;
+  resize:vertical;
+}
+:where(body) :where(
+  .primary-button,
+  .secondary-button,
+  .compact-button,
+  .form-submit,
+  .finance-modal-actions button,
+  .text-button
+){
+  box-sizing:border-box;
+  min-height:44px!important;
+  line-height:1.35;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(
+  .primary-button,
+  .secondary-button,
+  .compact-button,
+  .form-submit,
+  .finance-modal-actions button,
+  .text-button
+){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+:where(body) :where(button,a,[role="button"],label){
+  min-width:0;
+  max-width:100%;
+}
+:where(body) :where(button,a,[role="button"]) :where(span,strong,small){
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(input,select,textarea,button){
+  font-family:inherit;
+}
+:where(body) :where(input,select,textarea,button):focus-visible{
+  outline:2px solid var(--field-focus,#d6b56d);
+  outline-offset:2px;
+}
+@media(max-width:480px){
+  :where(body) :where(.primary-button,.secondary-button,.compact-button,.form-submit,.text-button){
+    max-width:100%;
+    padding-inline:12px;
+  }
+}
