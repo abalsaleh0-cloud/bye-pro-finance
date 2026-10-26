@@ -14,7 +14,7 @@ docker run --detach --name "$container" \
 
 ready=false
 for _ in $(seq 1 45); do
-  if docker exec "$container" pg_isready -U postgres -d finance_test >/dev/null 2>&1; then
+  if docker exec "$container" psql -U postgres -d finance_test -tAc 'select 1' >/dev/null 2>&1; then
     ready=true
     break
   fi
