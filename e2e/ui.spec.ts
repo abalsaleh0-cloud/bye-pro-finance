@@ -97,6 +97,28 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
   );
   expect(shortTextareas, `${screenLabel}: visible textareas should remain multiline-sized`).toEqual([]);
 
+  const brokenCompoundFields = await page.locator(".username-field:visible").evaluateAll(elements => elements
+    .map(element => {
+      const container = element as HTMLElement;
+      const icon = container.querySelector("span");
+      const input = container.querySelector("input");
+      if (!icon || !input) return { reason: "missing icon/input" };
+      const iconRect = icon.getBoundingClientRect();
+      const inputRect = input.getBoundingClientRect();
+      const style = getComputedStyle(input);
+      const overlaps = iconRect.left < inputRect.right && iconRect.right > inputRect.left;
+      return {
+        overlaps,
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        paddingLeft: Number.parseFloat(style.paddingLeft),
+        paddingRight: Number.parseFloat(style.paddingRight),
+        background: style.backgroundColor,
+      };
+    })
+    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || item.background !== "rgba(0, 0, 0, 0)"));
+  expect(brokenCompoundFields, `${screenLabel}: username compound field must keep its internal icon and text separated`).toEqual([]);
+
   const overflowing = await page.locator("body").evaluate(el => ({
     scrollWidth: el.scrollWidth,
     clientWidth: el.clientWidth,
