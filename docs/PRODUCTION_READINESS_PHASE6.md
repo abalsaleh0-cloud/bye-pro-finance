@@ -7,7 +7,7 @@ This checklist records evidence, not intentions. A checkbox is marked complete o
 ## Current status
 
 - [x] Dependency versions are pinned in package manifests.
-- [ ] A committed `pnpm-lock.yaml` exists and installs with `pnpm install --frozen-lockfile`. A GitHub Actions workflow was added to generate the missing lockfile; wait for its run and verify the resulting commit before marking this complete.
+- [x] `pnpm-lock.yaml` is committed, and `pnpm install --frozen-lockfile` passed on main. CI build, typecheck, and unit tests passed on commit `3c7250aa5fe2b6227148676caec0241e1bdf2294`; Authentication E2E also passed on that commit.
 - [ ] Leaked-password protection is enabled in Supabase Auth. The live Supabase security advisor reports it disabled. Supabase documentation currently limits this feature to Pro and above; the project must not be upgraded without explicit approval. On the current plan this requirement is blocked, not complete.
 - [ ] Real cross-user isolation tests have passed with two distinct Supabase test accounts and their own access tokens. Existing static tests are not evidence of a real two-user test.
 - [ ] A database + Storage backup has been restored into a separate non-production project and validated.
@@ -47,7 +47,18 @@ The Free plan does not include Supabase's managed daily database backups. Schedu
 
 1. Announce a maintenance window if the app is actively writing financial records.
 2. Install a current Supabase CLI and use the project's **Connect** dialog to obtain a database connection string. Store it in a local environment variable or secret manager; never put it in shell history, logs, GitHub files, or chat.
-3. Export roles and schema/data using the official Supabase CLI `db dump` procedure. Keep role, schema, and data dumps separate as recommended by Supabase.
+3. Export roles, schema, and data separately with the official Supabase CLI (Docker is required by the CLI):
+
+   ```sh
+   umask 077
+   mkdir -p "$BACKUP_DIR"
+   supabase db dump --db-url "$SUPABASE_DB_URL" -f "$BACKUP_DIR/roles.sql" --role-only
+   supabase db dump --db-url "$SUPABASE_DB_URL" -f "$BACKUP_DIR/schema.sql"
+   supabase db dump --db-url "$SUPABASE_DB_URL" -f "$BACKUP_DIR/data.sql" --use-copy --data-only
+   sha256sum "$BACKUP_DIR"/*.sql > "$BACKUP_DIR/SHA256SUMS"
+   ```
+
+   Set `SUPABASE_DB_URL` and `BACKUP_DIR` locally before running these commands; do not place the connection string or resulting dumps in Git.
 4. Export the Storage objects from each bucket separately, preserving object paths and metadata needed by the app. Do not make the private finance-documents bucket public.
 5. Encrypt the resulting backup, store it outside the project/repository, record the timestamp and checksum, and verify the files are non-empty.
 6. Retain multiple dated backups in a separate location; do not rely on the source project as the only copy.
