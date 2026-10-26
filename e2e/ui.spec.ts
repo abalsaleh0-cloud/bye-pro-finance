@@ -118,7 +118,7 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
         parentBackground: containerStyle.backgroundColor,
       };
     })
-    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || (item.background !== "rgba(0, 0, 0, 0)" && item.background !== item.parentBackground));
+    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || (item.background !== "rgba(0, 0, 0, 0)" && item.background !== item.parentBackground)));
   expect(brokenCompoundFields, `${screenLabel}: username compound field must keep its internal icon and text separated`).toEqual([]);
 
   const overflowing = await page.locator("body").evaluate(el => ({
