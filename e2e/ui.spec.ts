@@ -28,12 +28,22 @@ async function mockAuth(page: Page) {
 }
 
 async function visibleText(page: Page, label: string) {
+  // Prefer the actual navigation button. On mobile the nav is a grid, not a
+  // horizontal scroller; duplicate headings/labels elsewhere must not shadow it.
+  const navButton = page.locator(".main-nav .nav-item").filter({ hasText: label });
+  if (await navButton.count()) {
+    const exact = navButton.filter({ has: page.getByText(label, { exact: true }) }).first();
+    if (await exact.count()) {
+      await exact.scrollIntoViewIfNeeded();
+      await expect(exact).toBeVisible();
+      return exact;
+    }
+  }
+
   const matches = page.getByText(label, { exact: true });
   const count = await matches.count();
   for (let index = count - 1; index >= 0; index -= 1) {
     const candidate = matches.nth(index);
-    // Mobile navigation lives in a horizontal scroll container. Bring clipped
-    // navigation labels into view before deciding that a control is unavailable.
     await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
     if (await candidate.isVisible().catch(() => false)) return candidate;
   }
