@@ -90,7 +90,7 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
 :where(body) :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   select,
-  input[type="file]
+  input[type="file"]
 ){
   box-sizing:border-box!important;
   width:100%;
