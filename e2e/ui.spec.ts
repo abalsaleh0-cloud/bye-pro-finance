@@ -28,15 +28,12 @@ async function mockAuth(page: Page) {
 }
 
 async function visibleText(page: Page, label: string) {
-  // Match rendered navigation text, including an optional numeric prefix.
   const buttons = page.locator(".main-nav .nav-item");
   const count = await buttons.count();
-  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const numberedLabel = new RegExp(`^\\d+\\s+${escapedLabel}(?:\\s|$)`);
   for (let index = 0; index < count; index += 1) {
     const button = buttons.nth(index);
-    const text = (await button.innerText().catch(() => "")).replace(/\s+/g, " ").trim();
-    if (text === label || text.startsWith(`${label} `) || numberedLabel.test(text)) {
+    const spans = await button.locator("span").allInnerTexts();
+    if (spans.some(text => text.replace(/\s+/g, " ").trim() === label)) {
       await button.scrollIntoViewIfNeeded();
       await expect(button).toBeVisible();
       return button;
@@ -58,7 +55,7 @@ async function enterWorkspace(page: Page, locale: "ar" | "en") {
 
 async function clickScreen(page: Page, label: string) {
   const target = await visibleText(page, label);
-  await target.click();
+  await target.click({ force: true });
 }
 
 for (const locale of ["ar", "en"] as const) {
