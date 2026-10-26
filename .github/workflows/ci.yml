@@ -25,6 +25,8 @@ jobs:
         run: pnpm build
       - name: Build worker container image
         run: docker build -f Dockerfile.worker -t bye-pro-finance-worker:test .
+      - name: Test document queue migrations against disposable PostgreSQL
+        run: bash scripts/test-document-processing-migrations.sh
       - name: Typecheck
         run: pnpm typecheck
       - name: Unit tests
