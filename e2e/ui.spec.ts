@@ -28,26 +28,20 @@ async function mockAuth(page: Page) {
 }
 
 async function visibleText(page: Page, label: string) {
-  // Prefer the actual navigation button. On mobile the nav is a grid, not a
-  // horizontal scroller; duplicate headings/labels elsewhere must not shadow it.
-  const navButton = page.locator(".main-nav .nav-item").filter({ hasText: label });
-  if (await navButton.count()) {
-    const exact = navButton.filter({ has: page.getByText(label, { exact: true }) }).first();
-    if (await exact.count()) {
-      await exact.scrollIntoViewIfNeeded();
-      await expect(exact).toBeVisible();
-      return exact;
+  // Match the rendered text on the actual navigation buttons. This avoids
+  // page-root nested locators and hidden duplicate labels in the content area.
+  const buttons = page.locator(".main-nav .nav-item");
+  const count = await buttons.count();
+  for (let index = 0; index < count; index += 1) {
+    const button = buttons.nth(index);
+    const text = (await button.innerText().catch(() => "")).replace(/\\s+/g, " ").trim();
+    if (text === label || text.startsWith(`${label} `)) {
+      await button.scrollIntoViewIfNeeded();
+      await expect(button).toBeVisible();
+      return button;
     }
   }
-
-  const matches = page.getByText(label, { exact: true });
-  const count = await matches.count();
-  for (let index = count - 1; index >= 0; index -= 1) {
-    const candidate = matches.nth(index);
-    await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
-    if (await candidate.isVisible().catch(() => false)) return candidate;
-  }
-  throw new Error(`Visible control not found: ${label}`);
+  throw new Error(`Navigation button not found: ${label}`);
 }
 
 async function enterWorkspace(page: Page, locale: "ar" | "en") {
