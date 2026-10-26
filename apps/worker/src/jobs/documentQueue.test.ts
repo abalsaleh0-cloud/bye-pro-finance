@@ -23,6 +23,7 @@ describe("document processing queue migration", () => {
     expect(migration).toContain("for update skip locked");
     expect(migration).toContain("status='processing'");
     expect(migration).toContain("SERVICE_ROLE_REQUIRED");
+    expect(migration).toContain("auth.jwt() ->> 'role'");
     expect(migration).toContain("grant execute on function public.claim_document_processing_jobs(text, integer, integer) to service_role");
   });
 

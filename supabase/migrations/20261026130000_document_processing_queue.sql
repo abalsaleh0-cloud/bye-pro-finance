@@ -67,7 +67,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
   if nullif(trim(p_worker_id), '') is null then
@@ -121,7 +121,7 @@ as $$
 declare
   v_updated integer;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
 
@@ -157,7 +157,7 @@ declare
   v_updated integer;
   v_delay integer;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
 
@@ -198,7 +198,7 @@ as $$
 declare
   v_updated integer;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
   if p_limit < 1 or p_limit > 1000 then

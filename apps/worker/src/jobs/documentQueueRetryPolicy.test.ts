@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 
 const migrationPath = resolve(
   import.meta.dirname,
-  "../../../../supabase/migrations/20261026131500_document_processing_retry_cap.sql",
+  "../../../../supabase/migrations/20261026133000_document_processing_retry_cap.sql",
 );
 
 const migration = readFileSync(migrationPath, "utf8");
@@ -16,8 +16,15 @@ describe("document processing retry policy", () => {
     expect(migration).toContain("else 'failed'");
   });
 
+  it("caps retries after expired worker leases too", () => {
+    expect(migration).toContain("j.attempt_count >= v_max_attempts");
+    expect(migration).toContain("MAX_ATTEMPTS_EXCEEDED");
+    expect(migration).toContain("requeue_expired_document_processing_jobs");
+  });
+
   it("keeps the service-role boundary and bounded backoff", () => {
     expect(migration).toContain("SERVICE_ROLE_REQUIRED");
+    expect(migration).toContain("auth.jwt() ->> 'role'");
     expect(migration).toContain("least(3600");
     expect(migration).toContain("left(coalesce(p_error_code");
     expect(migration).toContain("left(coalesce(p_error_message");
