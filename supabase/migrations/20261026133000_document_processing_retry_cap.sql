@@ -20,7 +20,7 @@ declare
   v_retry boolean;
   v_max_attempts constant integer := 8;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
 
@@ -66,7 +66,7 @@ declare
   v_updated integer;
   v_max_attempts constant integer := 8;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'SERVICE_ROLE_REQUIRED' using errcode='42501';
   end if;
   if p_limit < 1 or p_limit > 1000 then
