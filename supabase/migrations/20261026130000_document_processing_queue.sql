@@ -18,7 +18,6 @@ create table if not exists public.document_processing_jobs (
   updated_at timestamptz not null default now(),
   completed_at timestamptz,
   constraint document_processing_jobs_unique_type unique (document_id, job_type),
-  constraint document_processing_jobs_owner_match check (user_id is not null)
 );
 
 create index if not exists document_processing_jobs_claim_idx
