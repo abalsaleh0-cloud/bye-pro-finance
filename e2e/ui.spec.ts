@@ -104,6 +104,42 @@ async function assertControlGeometry(page: Page, screenLabel: string) {
   expect(overflowing.scrollWidth, `${screenLabel}: page must not overflow horizontally`).toBeLessThanOrEqual(overflowing.clientWidth + 1);
 }
 
+async function assertLongTextWrapping(page: Page, locale: "ar" | "en") {
+  const result = await page.evaluate((language) => {
+    const fixture = document.createElement("div");
+    fixture.style.cssText = "position:fixed;left:8px;bottom:8px;width:min(220px,calc(100vw - 16px));z-index:99999;display:grid;gap:8px;pointer-events:none;";
+    const button = document.createElement("button");
+    button.className = "text-button";
+    button.style.width = "100%";
+    button.textContent = language === "ar"
+      ? "حفظ التغييرات المالية المهمة دون قص النص أو إخفاء أي كلمة طويلة في الواجهة"
+      : "Save important financial changes without clipping or hiding any long action label";
+    const notice = document.createElement("p");
+    notice.className = "notice error";
+    notice.style.margin = "0";
+    notice.textContent = language === "ar"
+      ? "تعذر حفظ التغييرات بسبب رسالة خطأ طويلة يجب أن تلتف داخل مساحة التنبيه دون تجاوز حدود الشاشة."
+      : "The changes could not be saved because of a long error message that must wrap inside the notice without overflowing the screen.";
+    fixture.append(button, notice);
+    document.body.append(fixture);
+    const buttonStyle = getComputedStyle(button);
+    const measured = {
+      buttonHeight: button.getBoundingClientRect().height,
+      buttonClips: button.scrollWidth > button.clientWidth + 1 || button.scrollHeight > button.clientHeight + 1,
+      noticeClips: notice.scrollWidth > notice.clientWidth + 1 || notice.scrollHeight > notice.clientHeight + 1,
+      buttonWhiteSpace: buttonStyle.whiteSpace,
+      buttonOverflowWrap: buttonStyle.overflowWrap,
+    };
+    fixture.remove();
+    return measured;
+  }, locale);
+  expect(result.buttonHeight, `${locale}: long action label should grow naturally`).toBeGreaterThanOrEqual(44);
+  expect(result.buttonClips, `${locale}: long action label must not be clipped`).toBe(false);
+  expect(result.noticeClips, `${locale}: long error message must not be clipped`).toBe(false);
+  expect(result.buttonWhiteSpace).toBe("normal");
+  expect(result.buttonOverflowWrap).toBe("anywhere");
+}
+
 for (const locale of ["ar", "en"] as const) {
   test(`${locale}: 18 screens on mobile tablet desktop, states and accessibility`, async ({ page }) => {
     test.setTimeout(300_000);
@@ -117,6 +153,7 @@ for (const locale of ["ar", "en"] as const) {
       }
     });
     await enterWorkspace(page, locale);
+    await assertLongTextWrapping(page, locale);
 
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
