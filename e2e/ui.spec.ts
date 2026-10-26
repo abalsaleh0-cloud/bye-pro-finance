@@ -56,6 +56,9 @@ async function enterWorkspace(page: Page, locale: "ar" | "en") {
 async function clickScreen(page: Page, label: string) {
   const target = await visibleText(page, label);
   await target.click({ force: true });
+  const screen = screens.find(([ar, en]) => ar === label || en === label);
+  if (!screen) throw new Error(`Unknown screen label: ${label}`);
+  await expect(page.getByTestId("section-ready")).toHaveAttribute("data-module", screen[0]);
 }
 
 for (const locale of ["ar", "en"] as const) {
