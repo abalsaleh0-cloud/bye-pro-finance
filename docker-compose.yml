@@ -1,3 +1,31 @@
-# Architecture module
-
-This directory is part of the BYE PRO FINANCE target architecture and must contain production implementation for its responsibility. No feature is considered complete while this module is only a placeholder.
+services:
+  worker:
+    profiles: ["worker"]
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: bye-pro-finance-worker:local
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    mem_limit: 256m
+    cpus: 0.50
+    environment:
+      NODE_ENV: production
+      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL in the shell or an untracked .env file}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY in the shell or an untracked .env file}
+      WORKER_ID: ${WORKER_ID:-}
+      WORKER_INTERVAL_MS: ${WORKER_INTERVAL_MS:-60000}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
