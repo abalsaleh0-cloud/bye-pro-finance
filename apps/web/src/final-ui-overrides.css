@@ -170,6 +170,8 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
 /* Compound-field exceptions: keep internal controls from inheriting standalone field padding.
    Password input is LTR and reserves the inline-end area for its visibility toggle. */
 :where(body) .password-input-group > .password-input{
+  height:var(--control-height)!important;
+  min-height:var(--control-height)!important;
   padding-inline-end:48px!important;
 }
 :where(body) .workspace .profile-field .username-field > input{
