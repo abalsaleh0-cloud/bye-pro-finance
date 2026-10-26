@@ -1,22 +1,22 @@
 # BYE PRO FINANCE Worker
 
-The worker is a separate Node.js process. It currently provides a guarded scheduler and sequential job runner, but **its notification and document callbacks are placeholders**: they only log messages and do not process records.
+The worker is a separate Node.js process. It provides a guarded scheduler and sequential job runner. Notification processing now calls a dedicated service-only Supabase RPC; document processing remains intentionally disabled until a durable queue and processing operation are implemented.
 
-## Current behavior
+## Runtime configuration
 
-- `WORKER_INTERVAL_MS` is validated before the loop starts.
-- A new cycle is scheduled only after the previous cycle finishes, so one process does not overlap its own cycles.
-- `SIGINT` and `SIGTERM` stop future cycles.
-- Individual job failures are logged and do not prevent later jobs from running.
-- These protections do not provide distributed locking across multiple worker replicas.
+- `SUPABASE_URL`: HTTPS URL for the intended Supabase project.
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only key; never expose it to the browser, logs, or source control.
+- `WORKER_INTERVAL_MS`: optional interval, defaults to 60000 ms and is validated.
 
-## Safety contract before enabling real jobs
+The notification RPC migration is checked into `supabase/migrations` but must be reviewed and applied through the controlled release process before the worker is enabled against production. Until that migration is applied, the RPC call fails closed and the worker logs the failure; it does not fall back to the user-session RPC.
 
-1. Never use a browser/client key in the worker. Use a server-only secret supplied through the runtime environment, and fail closed if required configuration is missing.
-2. Do not run data-changing jobs against production until the migration has been reviewed and applied through the normal release process.
-3. Every mutating job must be idempotent, tenant-scoped, bounded per cycle, and observable through structured counts and errors.
-4. Do not treat a database row as proof that a storage object exists, or delete storage objects as an automatic cleanup without a separately reviewed retention policy.
-5. Keep notification generation and document processing independently configurable. Do not claim a document is processed until a durable job result is recorded.
-6. A successful GitHub workflow is not proof that a worker has been deployed or run against production.
+## Safety properties and limits
 
-See [Worker job readiness](../../docs/worker-jobs-readiness.md) for the schema review, recommended implementation sequence, and acceptance checks.
+- A cycle is not overlapped by the scheduler within one process.
+- Notification inserts are serialized per user in the database helper to support retries and concurrent UI/worker calls.
+- The batch endpoint is granted only to `service_role` and checks the request role.
+- The worker reports aggregate inserted counts only, not notification content or user identifiers.
+- Multiple worker replicas still require operational concurrency controls.
+- Documents are not scanned or modified by the worker. The existing web UI uploads, lists, opens, and deletes files in the private `finance-documents` bucket. A durable processing queue does not yet exist.
+
+See [Worker job readiness](../../docs/worker-jobs-readiness.md) for the schema review and document-queue acceptance criteria.

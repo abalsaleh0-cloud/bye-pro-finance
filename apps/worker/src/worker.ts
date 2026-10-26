@@ -1,20 +1,23 @@
 import { runJobs } from "./jobs/index.js";
+import { processNotificationsBatch } from "./jobs/notifications.js";
 import { startWorkerLoop, validateWorkerInterval } from "./scheduler.js";
 
 const intervalMs = validateWorkerInterval(Number(process.env.WORKER_INTERVAL_MS ?? 60000));
 
 async function processDueNotifications(): Promise<void> {
-  console.log(`[worker] notifications sweep ${new Date().toISOString()}`);
-}
-
-async function processDocumentJobs(): Promise<void> {
-  console.log(`[worker] document queue sweep ${new Date().toISOString()}`);
+  const inserted = await processNotificationsBatch();
+  console.info(JSON.stringify({
+    event: "notification_batch_completed",
+    inserted,
+    timestamp: new Date().toISOString(),
+  }));
 }
 
 async function runCycle(): Promise<void> {
-  await runJobs([processDueNotifications, processDocumentJobs]);
+  await runJobs([processDueNotifications]);
 }
 
+console.info("[worker] document processing is disabled until a durable document queue is configured");
 const worker = startWorkerLoop(runCycle, intervalMs);
 
 function shutdown(signal: string): void {
