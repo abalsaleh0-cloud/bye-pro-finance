@@ -172,7 +172,7 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
 :where(body) .password-input-group > .password-input{
   padding-inline-end:48px!important;
 }
-:where(body) .username-field > input{
+:where(body) .workspace .profile-field .username-field > input{
   padding:8px 0!important;
   border:0!important;
   border-radius:0!important;
