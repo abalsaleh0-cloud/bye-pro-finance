@@ -30,12 +30,13 @@ export default function ProfileSettingsView() {
     if (authError || !auth.user) { setError(tr("يرجى تسجيل الدخول مجددًا.", "Please sign in again.")); setBusy(false); return; }
     setEmail(auth.user.email ?? "");
     const [{ data: p, error: pe }, { data: s, error: se }] = await Promise.all([
-      supabase.from("profiles").select("id,public_id,full_name,username,avatar_url").eq("id", auth.user.id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle(),
       supabase.from("user_settings").select("theme,locale,timezone,currency_code,date_format,number_format,email_notifications,transaction_alerts,bill_reminders,budget_alerts").eq("user_id", auth.user.id).maybeSingle()
     ]);
     if (pe || se) { setError(pe?.message || se?.message || tr("تعذر تحميل الإعدادات.", "Could not load settings.")); setBusy(false); return; }
-    if (!p || p.public_id == null) { setError(tr("تعذر تحميل معرّف المستخدم العام من قاعدة البيانات.", "Could not load the public user ID from the database.")); setBusy(false); return; }
-    setProfile(p as Profile);
+    const loadedProfile = p as unknown as Profile | null;
+    if (!loadedProfile || loadedProfile.public_id == null) { setError(tr("تعذر تحميل معرّف المستخدم العام من قاعدة البيانات.", "Could not load the public user ID from the database.")); setBusy(false); return; }
+    setProfile(loadedProfile);
     const next = { ...defaults, ...(s ?? {}) } as UserSettings;
     setSettings(next);
     setStoredTheme(next.theme); setStoredLocale(next.locale); applyLocale(next.locale, next.theme);
