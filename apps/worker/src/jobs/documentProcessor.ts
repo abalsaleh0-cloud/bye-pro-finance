@@ -125,31 +125,13 @@ async function updateMetadata(
   }
 }
 
-async function failJob(
-  baseUrl: string,
-  serviceKey: string,
-  job: QueueJob,
-  code: string,
-  message: string,
-  retry: boolean,
-  fetcher: FetchLike,
-): Promise<void> {
-  await rpc<boolean>(baseUrl, serviceKey, "fail_document_processing_job", {
-    p_job_id: job.id,
-    p_worker_id: process.env.WORKER_ID?.trim() || "",
-    p_error_code: code.slice(0, 100),
-    p_error_message: message.slice(0, 1000),
-    p_retry: retry,
-  }, fetcher);
-}
-
 async function processJob(
   baseUrl: string,
   serviceKey: string,
   workerId: string,
   job: QueueJob,
   fetcher: FetchLike,
-): Promise<void> {
+): Promise<boolean> {
   const document = await getDocument(baseUrl, serviceKey, job.document_id, fetcher);
 
   if (!document) {
@@ -160,7 +142,7 @@ async function processJob(
       p_error_message: "The queued document row no longer exists",
       p_retry: false,
     }, fetcher);
-    return;
+    return false;
   }
 
   if (document.user_id !== job.user_id) {
@@ -171,7 +153,7 @@ async function processJob(
       p_error_message: "Queued job owner does not match document owner",
       p_retry: false,
     }, fetcher);
-    return;
+    return false;
   }
 
   if (!document.file_name || !document.mime_type || !document.storage_path) {
@@ -182,7 +164,7 @@ async function processJob(
       p_error_message: "Document is missing required file metadata",
       p_retry: false,
     }, fetcher);
-    return;
+    return false;
   }
 
   if (document.file_size == null || !Number.isSafeInteger(document.file_size) || document.file_size < 0 || document.file_size > MAX_DOCUMENT_BYTES) {
@@ -193,7 +175,7 @@ async function processJob(
       p_error_message: "Document size is outside the supported 20 MiB limit",
       p_retry: false,
     }, fetcher);
-    return;
+    return false;
   }
 
   const existingMetadata = document.metadata && typeof document.metadata === "object" ? document.metadata : {};
@@ -221,6 +203,7 @@ async function processJob(
   if (completed !== true) {
     throw new Error("Document queue completion was not acknowledged");
   }
+  return true;
 }
 
 export async function processDocumentQueue(
@@ -250,8 +233,9 @@ export async function processDocumentQueue(
   let completed = 0;
   for (const job of jobs) {
     try {
-      await processJob(baseUrl, serviceKey, workerId, job, fetcher);
-      completed += 1;
+      if (await processJob(baseUrl, serviceKey, workerId, job, fetcher)) {
+        completed += 1;
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Document processing failed";
       try {
