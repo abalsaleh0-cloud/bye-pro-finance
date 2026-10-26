@@ -7,7 +7,7 @@ Reviewed against repository commit `6c54f63b57150e1181ee1ee5e5deb1e0eb5ab89d` an
 - The scheduler validates the interval, avoids overlapping cycles within one process, and stops future cycles on shutdown. It is not a distributed lock.
 - `public.notifications` stores user-scoped in-app alerts. The existing `public.refresh_finance_notifications()` function requires `auth.uid()`; a service-role worker cannot safely call it as-is.
 - `public.documents` stores metadata; the private `finance-documents` bucket stores actual files. The current web UI already uploads, lists, opens via short-lived signed URLs, and deletes documents.
-- No durable document-processing queue or processing-state column exists in the inspected schema.
+- Repository migration `20261026130000_document_processing_queue.sql` now defines a durable document-processing queue, atomic claims, lease expiry recovery, and server-only RPCs. This migration has not been applied to the live Supabase project, so the live schema still has no queue.
 - The notification batch RPC migration is repository code only until reviewed and applied; no production database migration or Vercel deployment was performed.
 
 ## Job A — in-app notification generation
@@ -26,10 +26,10 @@ Before release:
 
 Do not treat every uploaded file as a queued job and do not scan or delete files automatically. First define the desired operation (for example OCR/extraction or metadata validation), supported MIME types, size/time limits, retention, and retry policy.
 
-A later migration should add a durable queue containing job ID, document ID, owner ID, job type, status, attempts, next-attempt time, lease/worker identity, bounded error fields, timestamps, and an idempotency key. Claims must be atomic (for example, a reviewed claim RPC using row locking and `SKIP LOCKED`), verify document ownership, and use bounded retries/backoff. Do not log extracted financial text or delete files during retry/failure handling.
+The repository migration now adds job ID, document ID, owner ID, job type, status, attempt count, next-attempt time, lease/worker identity, bounded error fields, timestamps, and a uniqueness constraint for document/job type. Claims use row locking and `SKIP LOCKED`; retry/backoff is bounded and the job becomes terminally failed after 8 claims, including expired leases. The migration still needs isolated SQL/security tests and review of the document-owner invariant before any production application. Do not log extracted financial text or delete files during retry/failure handling.
 
 Acceptance tests:
-- At most one active lease per job; expired leases can be safely reclaimed.
+- At most one active lease per job; expired leases are requeued below 8 attempts and become terminally failed at 8 attempts.
 - Duplicate enqueue does not duplicate processing.
 - Missing files, unsupported/oversized files, and transient failures have explicit states.
 - Users cannot enqueue or read another user's jobs.
@@ -39,11 +39,11 @@ Acceptance tests:
 
 1. Complete CI, UI E2E, and authentication E2E for the scheduler change.
 2. Apply the notification migration only to a disposable test project and run the role, idempotency, and tenant-isolation tests.
-3. Implement a document queue only after the processing operation and resource limits are approved.
+3. Finish queue migration review and isolated SQL/security tests; the queue schema is present in the branch but not deployed. Define the processing operation and resource limits before wiring a processor.
 4. Run worker build/unit/integration tests and a non-production soak test.
 5. Review secret storage and replica count; configure distributed concurrency control if multiple replicas are possible.
 6. Only after checks pass, request release approval, apply the reviewed migration, deploy the worker, and observe aggregate counts/errors. Web deployment remains a separate final-stage decision.
 
 ## Current blocker
 
-Document processing is not yet a defined job: there is no queue or state model. The worker therefore explicitly does not claim to process documents. The notification batch is implemented in repository code but must pass isolated migration/security tests before production use.
+Document processing is not yet an implemented job: queue schema/RPCs are present in the branch but not deployed, and the worker does not yet claim, process, or recover document jobs. The notification batch is implemented in repository code but must pass isolated migration/security tests before production use.
