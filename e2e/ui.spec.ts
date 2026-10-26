@@ -28,14 +28,15 @@ async function mockAuth(page: Page) {
 }
 
 async function visibleText(page: Page, label: string) {
-  // Match the rendered text on the actual navigation buttons. This avoids
-  // page-root nested locators and hidden duplicate labels in the content area.
+  // Match rendered navigation text, including an optional numeric prefix.
   const buttons = page.locator(".main-nav .nav-item");
   const count = await buttons.count();
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const numberedLabel = new RegExp(`^\\d+\\s+${escapedLabel}(?:\\s|$)`);
   for (let index = 0; index < count; index += 1) {
     const button = buttons.nth(index);
-    const text = (await button.innerText().catch(() => "")).replace(/\\s+/g, " ").trim();
-    if (text === label || text.startsWith(`${label} `)) {
+    const text = (await button.innerText().catch(() => "")).replace(/\s+/g, " ").trim();
+    if (text === label || text.startsWith(`${label} `) || numberedLabel.test(text)) {
       await button.scrollIntoViewIfNeeded();
       await expect(button).toBeVisible();
       return button;
