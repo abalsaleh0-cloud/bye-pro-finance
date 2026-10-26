@@ -1,28 +1,27 @@
 import "./advanced-finance.css";
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, lazy, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { applyLocale, getStoredLocale, getStoredTheme, setStoredLocale, setStoredTheme, type Locale, type Theme } from "./i18n";
 import { Icon, type IconName } from "../../../packages/ui/src";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import {
-  AccountsView,
-  AdminView,
-  AssistantView,
-  AssetsView,
-  BillsView,
-  BudgetsView,
-  DashboardView,
-  DebtsView,
-  DocumentsView,
-  HouseholdView,
-  ImportExportView,
-  NotificationsView,
-  ProfileSettingsView,
-  ReportsView,
-  SavingsView,
-  SmartScanView,
-  TransactionsView,
-  TransfersView,
-} from "./features";
+
+const AccountsView = lazy(() => import("./features/accounts").then(m => ({ default: m.AccountsView })));
+const AdminView = lazy(() => import("./features/admin").then(m => ({ default: m.AdminView })));
+const AssistantView = lazy(() => import("./features/assistant").then(m => ({ default: m.AssistantView })));
+const AssetsView = lazy(() => import("./features/assets").then(m => ({ default: m.AssetsView })));
+const BillsView = lazy(() => import("./features/bills").then(m => ({ default: m.BillsView })));
+const BudgetsView = lazy(() => import("./features/budgets").then(m => ({ default: m.BudgetsView })));
+const DashboardView = lazy(() => import("./features/dashboard").then(m => ({ default: m.DashboardView })));
+const DebtsView = lazy(() => import("./features/debts").then(m => ({ default: m.DebtsView })));
+const DocumentsView = lazy(() => import("./features/documents").then(m => ({ default: m.DocumentsView })));
+const HouseholdView = lazy(() => import("./features/household").then(m => ({ default: m.HouseholdView })));
+const ImportExportView = lazy(() => import("./features/import-export").then(m => ({ default: m.ImportExportView })));
+const NotificationsView = lazy(() => import("./features/notifications").then(m => ({ default: m.NotificationsView })));
+const ProfileSettingsView = lazy(() => import("./features/settings").then(m => ({ default: m.ProfileSettingsView })));
+const ReportsView = lazy(() => import("./features/reports").then(m => ({ default: m.ReportsView })));
+const SavingsView = lazy(() => import("./features/savings").then(m => ({ default: m.SavingsView })));
+const SmartScanView = lazy(() => import("./features/smart-scan").then(m => ({ default: m.SmartScanView })));
+const TransactionsView = lazy(() => import("./features/transactions").then(m => ({ default: m.TransactionsView })));
+const TransfersView = lazy(() => import("./features/transfers").then(m => ({ default: m.TransfersView })));
 
 type ActiveModule = "لوحة التحكم" | "الحسابات" | "المعاملات" | "التحويلات" | "الميزانيات" | "الديون" | "الفواتير" | "الادخار" | "الأصول" | "التقارير" | "المنزل" | "المستندات" | "المسح الذكي" | "المساعد المالي" | "الإشعارات" | "استيراد وتصدير" | "الإعدادات" | "الإدارة";
 const moduleTitles: Record<Locale, Record<ActiveModule, string>> = {
@@ -54,8 +53,35 @@ function AuthPanel({ locale, recovery = false, onRecoveryComplete }: { locale: L
 }
 
 function SectionContent({activeModule}:{activeModule:ActiveModule}) {
-  if(activeModule==="لوحة التحكم")return <DashboardView/>; if(activeModule==="الحسابات")return <AccountsView/>; if(activeModule==="المعاملات")return <TransactionsView/>; if(activeModule==="التحويلات")return <TransfersView/>; if(activeModule==="التقارير")return <ReportsView/>; if(activeModule==="المنزل")return <HouseholdView/>; if(activeModule==="المستندات")return <DocumentsView/>; if(activeModule==="المسح الذكي")return <SmartScanView/>; if(activeModule==="المساعد المالي")return <AssistantView/>; if(activeModule==="الإشعارات")return <NotificationsView/>; if(activeModule==="استيراد وتصدير")return <ImportExportView/>; if(activeModule==="الإعدادات")return <ProfileSettingsView/>; if(activeModule==="الإدارة")return <AdminView/>;
-  if(activeModule==="الميزانيات")return <BudgetsView module="budgets"/>; if(activeModule==="الديون")return <DebtsView module="debts"/>; if(activeModule==="الفواتير")return <BillsView module="bills"/>; if(activeModule==="الادخار")return <SavingsView module="savings_goals"/>; if(activeModule==="الأصول")return <AssetsView module="assets"/>; return null;
+  let content: ReactNode = null;
+  switch (activeModule) {
+    case "لوحة التحكم": content = <DashboardView />; break;
+    case "الحسابات": content = <AccountsView />; break;
+    case "المعاملات": content = <TransactionsView />; break;
+    case "التحويلات": content = <TransfersView />; break;
+    case "الميزانيات": content = <BudgetsView module="budgets" />; break;
+    case "الديون": content = <DebtsView module="debts" />; break;
+    case "الفواتير": content = <BillsView module="bills" />; break;
+    case "الادخار": content = <SavingsView module="savings_goals" />; break;
+    case "الأصول": content = <AssetsView module="assets" />; break;
+    case "التقارير": content = <ReportsView />; break;
+    case "المنزل": content = <HouseholdView />; break;
+    case "المستندات": content = <DocumentsView />; break;
+    case "المسح الذكي": content = <SmartScanView />; break;
+    case "المساعد المالي": content = <AssistantView />; break;
+    case "الإشعارات": content = <NotificationsView />; break;
+    case "استيراد وتصدير": content = <ImportExportView />; break;
+    case "الإعدادات": content = <ProfileSettingsView />; break;
+    case "الإدارة": content = <AdminView />; break;
+  }
+
+  const en = typeof document !== "undefined" && document.documentElement.lang === "en";
+  return (
+    <Suspense fallback={<section className="panel" role="status" aria-live="polite" data-testid="section-loading"><p>{en ? "Loading section…" : "جارٍ تحميل القسم…"}</p></section>}>
+      {content}
+      <span hidden data-testid="section-ready" data-module={activeModule} />
+    </Suspense>
+  );
 }
 
 export default function App(){
