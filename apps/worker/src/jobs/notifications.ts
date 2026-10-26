@@ -6,7 +6,10 @@ export type WorkerEnvironment = {
 export type FetchLike = (input: string | URL, init?: RequestInit) => Promise<Response>;
 
 export async function processNotificationsBatch(
-  env: WorkerEnvironment = process.env,
+  env: WorkerEnvironment = {
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  },
   fetcher: FetchLike = fetch,
 ): Promise<number> {
   const baseUrl = env.SUPABASE_URL?.trim().replace(/\/$/, "");
