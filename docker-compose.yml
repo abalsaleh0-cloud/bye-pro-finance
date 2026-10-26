@@ -20,8 +20,8 @@ services:
     cpus: 0.50
     environment:
       NODE_ENV: production
-      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL in the shell or an untracked .env file}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY in the shell or an untracked .env file}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
       WORKER_ID: ${WORKER_ID:-}
       WORKER_INTERVAL_MS: ${WORKER_INTERVAL_MS:-60000}
     logging:
