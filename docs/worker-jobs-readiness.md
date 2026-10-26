@@ -24,25 +24,31 @@ Before release:
 
 ## Job B — document processing
 
-Do not treat every uploaded file as a queued job and do not scan or delete files automatically. First define the desired operation (for example OCR/extraction or metadata validation), supported MIME types, size/time limits, retention, and retry policy.
+The feature branch now contains a durable queue and a conservative metadata-validation worker. It does not download files, run OCR, extract financial text, classify content, or fabricate results.
 
-A later migration should add a durable queue containing job ID, document ID, owner ID, job type, status, attempts, next-attempt time, lease/worker identity, bounded error fields, timestamps, and an idempotency key. Claims must be atomic (for example, a reviewed claim RPC using row locking and `SKIP LOCKED`), verify document ownership, and use bounded retries/backoff. Do not log extracted financial text or delete files during retry/failure handling.
+- A trigger enqueues one `extract_metadata` job per document/job type.
+- Claims are atomic and use `FOR UPDATE SKIP LOCKED`, worker IDs, and leases.
+- The worker checks document ownership, filename, MIME type, storage path, and the 20 MiB size limit.
+- Successful processing records `processing.status = "metadata_validated"` in the document metadata. This is validation of stored metadata only, not file-content extraction.
+- Unsupported job types fail explicitly. Failures use bounded messages, backoff, and an eight-attempt limit; lease-expiry recovery respects the same limit.
+- The queue table has RLS enabled and no direct table grants to `anon` or `authenticated`; the owner policy is defense in depth, not a client-readable queue API.
+- The queue and retry migrations remain unapplied to production.
 
-Acceptance tests:
-- At most one active lease per job; expired leases can be safely reclaimed.
-- Duplicate enqueue does not duplicate processing.
-- Missing files, unsupported/oversized files, and transient failures have explicit states.
-- Users cannot enqueue or read another user's jobs.
-- Storage and integration tests use isolated storage and synthetic files.
+Acceptance criteria before release:
+1. Run SQL integration tests against a disposable Supabase project for grants, role checks, tenant isolation, atomic claims, lease expiry, and retry exhaustion.
+2. Verify that metadata PATCH requests only affect the expected document row and do not overwrite unrelated metadata.
+3. Test missing/invalid/oversized documents, unsupported job types, transient RPC failures, and stale worker completion.
+4. Verify the actual worker runtime, secret storage, restart policy, and replica count.
+5. Add real OCR/extraction only as a separate feature with explicit supported formats, timeouts, privacy/retention rules, and synthetic-file tests.
 
 ## Release sequence
 
-1. Complete CI, UI E2E, and authentication E2E for the scheduler change.
-2. Apply the notification migration only to a disposable test project and run the role, idempotency, and tenant-isolation tests.
-3. Implement a document queue only after the processing operation and resource limits are approved.
-4. Run worker build/unit/integration tests and a non-production soak test.
-5. Review secret storage and replica count; configure distributed concurrency control if multiple replicas are possible.
-6. Only after checks pass, request release approval, apply the reviewed migration, deploy the worker, and observe aggregate counts/errors. Web deployment remains a separate final-stage decision.
+1. Require CI, UI E2E, and authentication E2E to pass on the exact reviewed commit.
+2. Review and test the notification migration in an isolated database, including the intended user-scoped function and service-only batch RPC.
+3. Test the document queue and retry migrations in an isolated Supabase project; inspect advisor findings after applying there.
+4. Confirm worker runtime deployment and server-only secrets without exposing the service key.
+5. Run a non-production soak test and verify aggregate logs, retries, lease recovery, and graceful shutdown.
+6. Apply approved production migrations and deploy the worker only after the preceding gates pass. Vercel web deployment is a separate final-stage decision.
 
 ## Current implementation status (2026-10-26)
 
