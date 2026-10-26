@@ -58,6 +58,42 @@ async function clickScreen(page: Page, label: string) {
   await target.click({ force: true });
 }
 
+async function assertControlGeometry(page: Page, screenLabel: string) {
+  const mismatches = await page.locator(
+    'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), select'
+  ).evaluateAll(elements => elements
+    .filter(element => {
+      const el = element as HTMLElement;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && el.getClientRects().length > 0;
+    })
+    .map(element => {
+      const el = element as HTMLElement;
+      const height = el.getBoundingClientRect().height;
+      return { tag: el.tagName.toLowerCase(), type: (el as HTMLInputElement).type || "", height: Math.round(height * 10) / 10 };
+    })
+    .filter(item => Math.abs(item.height - 44) > 1)
+  );
+  expect(mismatches, `${screenLabel}: fields should share the 44px control height`).toEqual([]);
+
+  const shortTextareas = await page.locator("textarea").evaluateAll(elements => elements
+    .filter(element => {
+      const el = element as HTMLElement;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && el.getClientRects().length > 0;
+    })
+    .map(element => Math.round((element as HTMLElement).getBoundingClientRect().height))
+    .filter(height => height < 119)
+  );
+  expect(shortTextareas, `${screenLabel}: visible textareas should remain multiline-sized`).toEqual([]);
+
+  const overflowing = await page.locator("body").evaluate(el => ({
+    scrollWidth: el.scrollWidth,
+    clientWidth: el.clientWidth,
+  }));
+  expect(overflowing.scrollWidth, `${screenLabel}: page must not overflow horizontally`).toBeLessThanOrEqual(overflowing.clientWidth + 1);
+}
+
 for (const locale of ["ar", "en"] as const) {
   test(`${locale}: 18 screens on mobile tablet desktop, states and accessibility`, async ({ page }) => {
     test.setTimeout(180_000);
@@ -82,6 +118,7 @@ for (const locale of ["ar", "en"] as const) {
       await expect(page.locator("body")).toContainText(label);
       await expect(page.locator("body")).not.toContainText("Cannot read properties");
       await expect(page.locator("body")).not.toContainText("NaN");
+      await assertControlGeometry(page, label);
 
       const results = await new AxeBuilder({ page }).analyze();
       const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
