@@ -28,10 +28,10 @@
 /* Light/dark and language controls: consistent touch target. */
 .appearance-controls .appearance-button,
 .workspace-appearance .appearance-button{
-  width:46px!important;
-  min-width:46px!important;
-  height:46px!important;
-  min-height:46px!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
   padding:8px!important;
   font-size:15px!important;
   line-height:1!important;
@@ -159,4 +159,18 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
     max-width:100%;
     padding-inline:12px;
   }
+}
+
+
+/* All actionable buttons share a minimum touch height; wrapping labels may grow naturally. */
+:where(body) :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){
+  box-sizing:border-box!important;
+  min-height:44px!important;
+  height:auto!important;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){
+  line-height:1.35;
 }
