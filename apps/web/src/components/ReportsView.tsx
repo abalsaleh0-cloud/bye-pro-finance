@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 type Row = Record<string, any> & { id: string };
-
 type CurrencyTotals = Record<string, number>;
+type ExpenseRow = { name: string; currency: string; amount: number };
 
 const money = (value: number, currency: string) => {
   try {
@@ -77,15 +77,18 @@ export default function ReportsView() {
     return { income, expense, balances, receivable, payable, saved, target, assetsValue };
   }, [transactions, accounts, debts, savings, assets]);
 
-  const topExpenses = useMemo(() => {
-    const map = new Map<string, CurrencyTotals>();
+  const topExpenses = useMemo<ExpenseRow[]>(() => {
+    const map = new Map<string, ExpenseRow>();
     transactions.filter(t => t.status !== "cancelled" && t.type === "expense").forEach(t => {
       const name = String(t.description || "مصروف غير مصنف");
-      const current = map.get(name) || {};
-      addByCurrency(current, t.currency_code, t.amount);
-      map.set(name, current);
+      const currency = String(t.currency_code || "LYD").toUpperCase();
+      const key = `${currency}::${name}`;
+      const current = map.get(key) || { name, currency, amount: 0 };
+      const amount = Number(t.amount || 0);
+      if (Number.isFinite(amount)) current.amount += amount;
+      map.set(key, current);
     });
-    return [...map.entries()].slice(0, 8);
+    return [...map.values()].sort((a, b) => b.amount - a.amount).slice(0, 8);
   }, [transactions]);
 
   if (loading) return <div className="empty-state">{tr("جارٍ تجهيز التقرير المالي…","Preparing financial report…")}</div>;
@@ -101,9 +104,9 @@ export default function ReportsView() {
     </div>
     <div className="dashboard-grid">
       <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("التدفق","Cash flow")}</p><h3>{tr("الدخل والمصروفات حسب العملة","Income and expenses by currency")}</h3></div></div><div className="report-lines"><div><span>{tr("إجمالي الدخل","Total income")}</span><CurrencyList values={summary.income}/></div><div><span>{tr("إجمالي المصروفات","Total expenses")}</span><CurrencyList values={summary.expense}/></div></div></article>
-      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("صافي الملكية","Net worth")}</p><h3>{tr("الأصول والادخار حسب العملة","Assets and savings by currency")}</h3></div></div><div className="report-lines"><div><span>{tr("قيمة الأصول","Asset value")}</span><CurrencyList values={summary.assetsValue}/></div><div><span>{tr("المدخر حاليًا","Current savings")}</span><CurrencyList values={summary.saved}/></div><div><span>{tr("أهداف الادخار","Savings goals")}</span><CurrencyList values={summary.target}/></div></div></article>
+      <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("الأصول والادخار","Assets and savings")}</p><h3>{tr("الأصول والادخار حسب العملة","Assets and savings by currency")}</h3></div></div><div className="report-lines"><div><span>{tr("قيمة الأصول","Asset value")}</span><CurrencyList values={summary.assetsValue}/></div><div><span>{tr("المدخر حاليًا","Current savings")}</span><CurrencyList values={summary.saved}/></div><div><span>{tr("أهداف الادخار","Savings goals")}</span><CurrencyList values={summary.target}/></div></div></article>
     </div>
-    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("المصروفات","Expenses")}</p><h3>{tr("أعلى البنود","Top categories")}</h3></div></div>{topExpenses.length ? <div className="report-list">{topExpenses.map(([name, values]) => <div className="report-row" key={name}><span>{name}</span><CurrencyList values={values}/></div>)}</div> : <div className="empty-state">{tr("لا توجد مصروفات مسجلة بعد.","No expenses recorded yet.")}</div>}</article>
+    <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("المصروفات","Expenses")}</p><h3>{tr("أعلى البنود حسب العملة","Top expense items by currency")}</h3></div></div>{topExpenses.length ? <div className="report-list">{topExpenses.map(item => <div className="report-row" key={`${item.currency}-${item.name}`}><span>{item.name}<small>{item.currency}</small></span><strong dir="ltr">{money(item.amount, item.currency)}</strong></div>)}</div> : <div className="empty-state">{tr("لا توجد مصروفات مسجلة بعد.","No expenses recorded yet.")}</div>}</article>
     <article className="panel-card"><div className="panel-head"><div><p className="eyebrow">{tr("آخر النشاط","Recent activity")}</p><h3>{tr("آخر المعاملات","Recent transactions")}</h3></div></div>{transactions.slice(0, 10).length ? <div className="report-list">{transactions.slice(0, 10).map(t => <div className="report-row" key={t.id}><span>{t.description || tr("معاملة","Transaction")}<small>{dateLabel(t.transaction_date)} · {(en ? ({income:"Income",expense:"Expense",transfer:"Transfer",adjustment:"Adjustment"} as Record<string,string>)[t.type] : typeLabel[t.type]) || t.type}</small></span><strong dir="ltr">{money(Number(t.amount || 0), String(t.currency_code || "LYD"))}</strong></div>)}</div> : <div className="empty-state">{tr("لا توجد معاملات بعد.","No transactions yet.")}</div>}</article>
   </section>;
 }
