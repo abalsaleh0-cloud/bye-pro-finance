@@ -13,14 +13,27 @@ export function createSupabaseUserLookup(
 ): UserLookup | null {
   if (!url || !publishableKey) return null;
 
-  const client = createClient(url, publishableKey, {
+  // Keep the SDK client for compatibility with the rest of the API package,
+  // but validate the bearer token through Supabase's user endpoint.
+  createClient(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 
   return async (accessToken) => {
-    const { data, error } = await client.auth.getUser(accessToken);
-    if (error || !data.user) return null;
-    return { id: data.user.id, email: data.user.email ?? null };
+    try {
+      const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/user`, {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) return null;
+      const user = (await response.json()) as { id?: unknown; email?: unknown };
+      if (typeof user.id !== "string" || !user.id) return null;
+      return { id: user.id, email: typeof user.email === "string" ? user.email : null };
+    } catch {
+      return null;
+    }
   };
 }
 
