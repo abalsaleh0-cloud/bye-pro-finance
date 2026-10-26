@@ -13,7 +13,7 @@ export default function ProfileSettingsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
   const tr = (ar: string, english: string) => en ? english : ar;
   const friendlyError = (cause: unknown, context: "profile" | "settings" | "avatar" | "password") => {
-    const raw = cause instanceof Error ? cause.message : String(cause ?? "");
+    const raw = typeof cause === "object" && cause !== null && "message" in cause ? String((cause as { message?: unknown }).message ?? "") : cause instanceof Error ? cause.message : String(cause ?? "");
     const code = typeof cause === "object" && cause !== null && "code" in cause
       ? String((cause as { code?: unknown }).code ?? "") : "";
     if (/Full name can only be changed every 30 days/i.test(raw)) {
