@@ -2,8 +2,8 @@
 
 > **لوحة الجرد والحالة الرسمية للمشروع.** هذا الملف لا يضع علامة ✅ إلا على شيء تم التحقق منه فعليًا في GitHub أو Supabase أو Vercel. وجود كود فقط لا يعني نجاح الإنتاج.
 
-**آخر جرد فعلي:** 2026-10-25 21:30 (+02:00)  
-**آخر commit في main:** `db7cff076c57b2c6c7ee30020f8006e30b9ec2ae`  
+**آخر جرد فعلي:** 2026-10-26 12:38 (+02:00)  
+**آخر commit برمجي تمت مراجعته:** `8c48af32aa094fa8f5f72f8a5597b447b5ff6758`  
 **الفرع:** `main`
 
 ## 1. الحالة التنفيذية الحالية
@@ -19,9 +19,10 @@
 - [x] جدول `user_settings` موجود فعليًا في Supabase مع RLS خاص بكل `user_id`.
 - [x] لكل مستخدم معرف UUID ثابت مصدره `auth.users.id` ويظهر للقراءة فقط في الملف الشخصي.
 - [x] إصلاح مشكلة TypeScript الناتجة عن عدم وجود `user_settings` في لقطة أنواع Supabase تم تطبيقه في `apps/web/src/lib/supabase.ts`.
-- [ ] نجاح CI على commit `db7cff076c57b2c6c7ee30020f8006e30b9ec2ae` — التشغيل رقم 401 كان **Queued** وقت هذا الجرد.
-- [ ] نجاح Authentication E2E على نفس commit — التشغيل رقم 128 كان **Queued** وقت هذا الجرد.
-- [ ] نشر commit `db7cff...` إلى Production؛ لا يجوز اعتبار ذلك مكتملًا قبل ظهور Vercel بحالة READY.
+- [x] نجاح CI على آخر commit تمت مراجعته `8c48af32aa094fa8f5f72f8a5597b447b5ff6758` — التشغيل [#40288672449](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672449) ناجح.
+- [x] نجاح Authentication E2E على نفس commit — التشغيل [#40288672501](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672501) ناجح.
+- [x] نجاح UI E2E على نفس commit — التشغيل [#40288672314](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672314) ناجح.
+- [ ] نشر آخر commit إلى Production؛ نشر Vercel للـ commit `8c48af32...` ما زال `BLOCKED` بسبب إعدادات تعاون الفريق، والنطاق الأساسي يشير إلى إصدار أقدم `aa9b483e...`.
 
 ## 2. جرد قاعدة البيانات — تم التحقق فعليًا
 
@@ -184,13 +185,13 @@ Workflow CI الحالي ينفذ بالترتيب:
 - [x] تم اكتشاف فشل حقيقي على commit `6905b440...`: خطوة **Build all workspaces** فشلت، وبالتالي تم تخطي Typecheck وUnit tests.
 - [x] تم تحديد سبب مباشر في الكود: `user_settings` موجودة في قاعدة البيانات لكن لقطة `Database` في TypeScript لم تكن تعرف الجدول.
 - [x] تم إصلاح العميل typed Supabase في commit `db7cff...` بإضافة تعريف `user_settings` إلى نوع العميل.
-- [ ] إعادة CI بعد الإصلاح لم تُغلق بعد؛ تشغيل #401 كان Queued وقت آخر فحص.
+- [x] إعادة CI بعد الإصلاح اكتملت بنجاح على `8c48af32...` — [التشغيل #40288672449](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672449).
 
 Authentication E2E:
 
 - [x] Chromium والتجهيزات تثبت بنجاح.
-- [x] تم تشغيل Authentication E2E على commit السابق.
-- [ ] نجاح دورة المصادقة الكاملة على آخر commit لم يُثبت بعد.
+- [x] تم تشغيل Authentication E2E بنجاح على آخر commit تمت مراجعته `8c48af32...` — [التشغيل #40288672501](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672501).
+- [x] UI E2E نجح على نفس commit — [التشغيل #40288672314](https://github.com/412986ab-maker/bye-pro-finance/actions/runs/40288672314).
 
 ## 9. مراجعة السجلات الفعلية
 
@@ -224,9 +225,10 @@ Authentication E2E:
 
 ## 11. نقاط تحتاج إكمالًا قبل إعلان المشروع جاهزًا نهائيًا
 
-- [ ] CI أخضر على آخر commit.
-- [ ] Authentication E2E أخضر على آخر commit.
-- [ ] Vercel Production READY على آخر commit.
+- [x] CI أخضر على آخر commit تمت مراجعته `8c48af32...`.
+- [x] Authentication E2E أخضر على آخر commit تمت مراجعته `8c48af32...`.
+- [x] UI E2E أخضر على آخر commit تمت مراجعته `8c48af32...`.
+- [ ] Vercel Production READY على آخر commit — محجوب حاليًا بسبب إعدادات تعاون الفريق.
 - [ ] CRUD كامل لكل وحدة مالية ببيانات اختبار.
 - [ ] اختبار العزل بين حسابين منفصلين.
 - [ ] اختبار Storage بين حسابين منفصلين.
@@ -250,6 +252,8 @@ Authentication E2E:
 7. تسجيل فشل CI الحقيقي على commit `6905b...` وعدم إخفائه.
 8. تسجيل الإصلاح `db7cff...` وعدم اعتباره ناجحًا نهائيًا قبل انتهاء CI.
 9. توثيق المكونات المستقبلية غير المكتملة بدل اعتبارها ميزات منجزة.
+10. تحديث حالة CI وAuthentication E2E وUI E2E بعد التحقق من نجاح التشغيلات على `8c48af32...`.
+11. توثيق أن نشر Vercel الأخير محجوب وأن النطاق الأساسي لا يزال على إصدار أقدم.
 
 ## 13. قواعد الاعتماد النهائي
 
