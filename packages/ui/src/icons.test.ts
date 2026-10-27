@@ -56,7 +56,7 @@ describe("shared icon library contract", () => {
 
   it("uses the shared icon component for every primary navigation item", () => {
     expect(app).toContain('import { Icon } from "../../../packages/ui/src"');
-    expect(app).toContain("icon: \"");
+    expect(app).toContain('icon: "layout-dashboard"');
     expect(app).toContain('<Icon name={item.icon} size={18} />');
     expect(app).not.toMatch(/icon: "[◈▤⇄↔▥↗□◇◆⌂▧⌕✦◉⇵⚙▣]"/u);
   });
