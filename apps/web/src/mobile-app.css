@@ -1,0 +1,156 @@
+/* BYE PRO FINANCE — mobile app shell */
+@media (max-width: 760px) {
+  html, body, #root { min-width: 320px; width: 100%; max-width: 100%; overflow-x: hidden; }
+  body { background: var(--bg); }
+
+  .workspace {
+    display: block;
+    min-height: 100dvh;
+    width: 100%;
+  }
+
+  /* Native-style app header: identity first, then profile and appearance controls. */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    min-height: 0;
+    width: 100%;
+    padding: 12px 14px 10px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .sidebar .brand {
+    order: 1;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 2px 2px 11px;
+    border: 0;
+  }
+  .sidebar .brand .brand-mark { width: 40px; height: 40px; border-radius: 12px; }
+  .sidebar .brand strong { font-size: 13px; }
+  .sidebar .brand small { font-size: 9px; }
+
+  /* Profile + language/theme controls directly below the identity. */
+  .sidebar-bottom {
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 9px 0 10px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar-bottom > * { min-width: 0; }
+  .sidebar-bottom .logout-button { margin-inline-start: auto; }
+  .sidebar-bottom .appearance-controls,
+  .sidebar-bottom .workspace-appearance { flex: 0 0 auto; }
+
+  .nav-caption {
+    order: 3;
+    margin: 11px 2px 7px;
+    font-size: 10px;
+  }
+
+  /* App-style section launcher instead of a desktop sidebar. */
+  .main-nav {
+    order: 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    max-height: 190px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 1px 2px;
+    scrollbar-width: thin;
+  }
+  .nav-item {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--panel);
+    color: var(--text-main, #f1f0eb);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .nav-item.active {
+    border-color: color-mix(in srgb, var(--gold) 70%, var(--line));
+    background: color-mix(in srgb, var(--gold) 12%, var(--panel));
+  }
+  .nav-icon { font-size: 17px; }
+  .nav-item small { display: none; }
+
+  .workspace-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 14px 12px calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .workspace-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 2px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .workspace-topbar h1 { font-size: 22px; }
+  .workspace-topbar .eyebrow { font-size: 9px; margin-bottom: 4px; }
+  .user-chip { max-width: 100%; }
+  .workspace-appearance { justify-content: flex-start; }
+
+  .data-view, .dashboard-view { min-width: 0; padding-top: 16px; }
+  .data-view-heading { gap: 12px; }
+  .data-view-heading h2 { font-size: 21px; }
+  .data-view-heading .compact-button { width: 100%; }
+
+  .account-form,
+  .balance-summary,
+  .transaction-toolbar,
+  .report-kpis,
+  .stats-grid,
+  .dashboard-grid,
+  .dashboard-lower,
+  .metric-grid { grid-template-columns: minmax(0, 1fr) !important; }
+
+  .transaction-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+    padding: 13px;
+  }
+  .transaction-row .amount { grid-column: 2; grid-row: 1; }
+  .transaction-row .transaction-status { grid-column: 1; justify-self: start; }
+  .transaction-row .text-button { grid-column: 2; justify-self: end; }
+
+  .table-card { max-width: 100%; overflow-x: auto; }
+  .welcome-panel { flex-direction: column; align-items: stretch; }
+  .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .module-card { min-height: 120px; padding: 15px; }
+
+  input, select, textarea, button { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .sidebar { padding-inline: 10px; }
+  .main-nav { grid-template-columns: minmax(0, 1fr); max-height: 220px; }
+  .nav-item { min-height: 44px; }
+  .workspace-main { padding-inline: 10px; }
+  .module-grid { grid-template-columns: minmax(0, 1fr); }
+  .profile-chip { max-width: 100%; }
+}
