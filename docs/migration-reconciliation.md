@@ -1,7 +1,7 @@
 # Supabase migration reconciliation
 
-Snapshot checked against Supabase project `ngfaukvfsesoslfiwaue` on 2026-10-26.
-This is an inventory, **not** permission to replay SQL. The live migration ledger contains 22 entries; the repository contains 18 SQL files across `database/migrations/` and `supabase/migrations/`. A similar filename is only a candidate mapping: compare SQL bodies and effects before treating it as an exact source match.
+Snapshot checked against Supabase project `ngfaukvfsesoslfiwaue` during the production-hardening audit on 2026-10-27.
+This is an inventory, **not** permission to replay SQL. The live migration ledger now contains 24 entries; the repository contains the corresponding later migration sources plus additional forward-only queue work. A similar filename is only a candidate mapping: compare SQL bodies and effects before treating it as an exact source match.
 
 ## Live ledger and repository source candidates
 
@@ -29,12 +29,19 @@ This is an inventory, **not** permission to replay SQL. The live migration ledge
 | 20261025222429 | allow_admin_user_directory | **No clearly matching standalone source file** |
 | 20261025235013 | harden_audit_function_search_path | Candidate: `supabase/migrations/202610260002_harden_audit_function_search_path.sql` |
 | 20261026070859 | phase10_performance_hardening | Candidate: `database/migrations/phase10_performance_hardening.sql` |
+| 20261026112538 | worker_notification_batch | Exact source: `supabase/migrations/20261026112538_worker_notification_batch.sql`; live function/grant verification completed |
+| 20261027150320 | remove_legacy_duplicate_audit_triggers | Forward-only audit repair added during this audit; live schema verification completed |
 
 ## Additional repository SQL requiring reconciliation
 
 - `database/migrations/phase9_documents_ownership_trigger_fix.sql`: overlaps in purpose/name with the Supabase migration candidate above; compare contents before choosing one canonical copy.
 - `database/migrations/phase9_household_expenses_fk_fix.sql`: no separate live ledger entry by this name; determine whether its changes were included in the live household migration or are still unapplied.
-- The repository's timestamps/names differ from the live ledger for several later migrations. Do not infer that timestamp difference means unapplied or safe to replay.
+- `supabase/migrations/20261026130000_document_processing_queue.sql` and `supabase/migrations/20261026131500_document_processing_retry_cap.sql` are repository migrations for the durable document-processing worker queue, but they are **not present in the live migration ledger as of this audit**. Do not claim the document queue is production-applied until its migrations are deliberately reviewed and applied.
+- The repository's timestamps/names differ from the live ledger for several earlier migrations. Do not infer that timestamp difference means unapplied or safe to replay.
+
+## Verified live repair
+
+The live schema had two audit trigger paths on nine finance tables: the older `<table>_audit` trigger calling `public.audit_finance_change()` and the canonical `trg_audit_<table>` trigger calling `private.audit_row_change()`. That produced duplicate audit rows for a single mutation. A forward-only migration removed the legacy `<table>_audit` triggers and recreated the canonical audit trigger once per audited table. The repair was applied successfully and the old trigger names were verified absent.
 
 ## Safe remediation order
 
@@ -46,4 +53,4 @@ This is an inventory, **not** permission to replay SQL. The live migration ledge
 
 ## Verification limits
 
-This inventory was generated from the live migration ledger and repository file tree. It does not claim SQL-body equivalence for candidate matches, and it does not claim that any migration was applied during this audit.
+The live ledger, function definitions, grants, trigger inventory and the duplicate-trigger repair were checked directly against the Supabase project. This document still does not claim SQL-body equivalence for every historical candidate migration, and it does not claim that the repository's document-processing queue is production-applied.
