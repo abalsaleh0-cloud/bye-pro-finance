@@ -28,10 +28,10 @@
 /* Light/dark and language controls: consistent touch target. */
 .appearance-controls .appearance-button,
 .workspace-appearance .appearance-button{
-  width:46px!important;
-  min-width:46px!important;
-  height:46px!important;
-  min-height:46px!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
   padding:8px!important;
   font-size:15px!important;
   line-height:1!important;
@@ -74,4 +74,121 @@ html[data-theme="dark"] :where(input,select,textarea){color-scheme:dark!importan
   .profile-chip{min-height:44px!important;padding:5px 10px 5px 6px!important;gap:8px!important;}
   .profile-chip .avatar{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;}
   .profile-chip-copy strong{font-size:12px!important;max-width:140px!important;}
+}
+
+
+/* Global geometry contract: equivalent controls share one size across all modules.
+   Icon-only and explicitly compact utility controls keep their intentional targets. */
+:where(body) :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  input[type="file"]
+){
+  box-sizing:border-box!important;
+  width:100%;
+  min-width:0;
+  height:var(--control-height)!important;
+  min-height:var(--control-height)!important;
+  padding:var(--control-padding)!important;
+  border-radius:var(--control-radius)!important;
+  line-height:1.35;
+}
+:where(body) :where(textarea){
+  box-sizing:border-box!important;
+  width:100%;
+  min-width:0;
+  height:auto!important;
+  min-height:120px!important;
+  padding:var(--control-padding)!important;
+  border-radius:var(--control-radius)!important;
+  line-height:1.5;
+  resize:vertical;
+}
+:where(body) :where(
+  .primary-button,
+  .secondary-button,
+  .compact-button,
+  .form-submit,
+  .finance-modal-actions button,
+  .text-button
+){
+  box-sizing:border-box;
+  min-height:44px!important;
+  line-height:1.35;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(
+  .primary-button,
+  .secondary-button,
+  .compact-button,
+  .form-submit,
+  .finance-modal-actions button,
+  .text-button
+){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+:where(body) :where(button,a,[role="button"],label){
+  min-width:0;
+  max-width:100%;
+}
+:where(body) :where(button,a,[role="button"]) :where(span,strong,small){
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(input,select,textarea,button){
+  font-family:inherit;
+}
+:where(body) :where(input,select,textarea,button):focus-visible{
+  outline:2px solid var(--field-focus,#d6b56d);
+  outline-offset:2px;
+}
+@media(max-width:480px){
+  :where(body) :where(.primary-button,.secondary-button,.compact-button,.form-submit,.text-button){
+    max-width:100%;
+    padding-inline:12px;
+  }
+}
+
+
+/* All actionable buttons share a minimum touch height; wrapping labels may grow naturally. */
+:where(body) :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){
+  box-sizing:border-box!important;
+  min-height:44px!important;
+  height:auto!important;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:where(body) :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){
+  line-height:1.35;
+}
+
+/* Compound-field exceptions: keep internal controls from inheriting standalone field padding.
+   Password input is LTR and reserves the inline-end area for its visibility toggle. */
+:where(body) .password-input-group > .password-input{
+  height:var(--control-height)!important;
+  min-height:var(--control-height)!important;
+  padding-inline-end:52px!important;
+}
+html body .profile-field .username-field > input:not([type="range"]):not([type="checkbox"]):not([type="file"]){
+  padding:8px 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Password visibility is an action control, not a decorative 36px icon. */
+:where(body) .password-input-group > .password-visibility-toggle{
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  right:4px!important;
+  box-sizing:border-box!important;
 }

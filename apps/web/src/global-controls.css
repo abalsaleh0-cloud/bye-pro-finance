@@ -4,8 +4,8 @@
  * No page is allowed to invent its own field size or surface.
  */
 :root{
-  --control-height:43px;
-  --control-radius:9px;
+  --control-height:44px;
+  --control-radius:10px;
   --control-padding:10px 12px;
   --control-border:1px solid var(--line,#2a2530);
   --control-bg:var(--surface-2,#151119);
@@ -170,16 +170,12 @@
 /* Legacy component rules must not reintroduce different field geometry. */
 [data-theme="light"] .form-grid input,
 [data-theme="light"] .form-grid select,
-[data-theme="light"] .form-grid textarea,
 [data-theme="light"] .household-form input,
 [data-theme="light"] .household-form select,
-[data-theme="light"] .household-form textarea,
 [data-theme="light"] .account-form input,
 [data-theme="light"] .account-form select,
-[data-theme="light"] .account-form textarea,
 [data-theme="light"] .profile-settings-grid input,
-[data-theme="light"] .profile-settings-grid select,
-[data-theme="light"] .profile-settings-grid textarea{
+[data-theme="light"] .profile-settings-grid select{
   height:var(--control-height)!important;
   min-height:var(--control-height)!important;
   padding:var(--control-padding)!important;

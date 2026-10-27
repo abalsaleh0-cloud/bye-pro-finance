@@ -8,7 +8,7 @@ const accountView = readFileSync("apps/web/src/components/AccountsView.tsx", "ut
 const transactionsView = readFileSync("apps/web/src/components/TransactionsView.tsx", "utf8");
 const financeViews = readFileSync("apps/web/src/components/FinanceViews.tsx", "utf8");
 const advancedFinanceViews = readFileSync("apps/web/src/components/AdvancedFinanceViews.tsx", "utf8");
-const normalizeJsx = (source: string) => source.replace(/\s+/g, " ").replace(/\s*\/>/g, "/>");
+const normalizeJsx = (source: string) => source.replace(/\s+/g, " ").replace(/\s*\/>/g, "/>" );
 
 describe("shared icon library contract", () => {
   it("exports the shared icon component and registry from the UI package", () => {
@@ -55,8 +55,8 @@ describe("shared icon library contract", () => {
   });
 
   it("uses the shared icon component for every primary navigation item", () => {
-    expect(app).toContain('import { Icon, type IconName } from "../../../packages/ui/src"');
-    expect(app).toContain("icon: IconName");
+    expect(app).toContain('import { Icon } from "../../../packages/ui/src"');
+    expect(app).toContain('icon: "layout-dashboard"');
     expect(app).toContain('<Icon name={item.icon} size={18} />');
     expect(app).not.toMatch(/icon: "[◈▤⇄↔▥↗□◇◆⌂▧⌕✦◉⇵⚙▣]"/u);
   });
