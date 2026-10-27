@@ -1,0 +1,7 @@
+export const ar = {
+  common: { save: "حفظ", cancel: "إلغاء", close: "إغلاق", delete: "حذف", edit: "تعديل", add: "إضافة", search: "بحث", filter: "تصفية", loading: "جارٍ التحميل…", retry: "إعادة المحاولة", confirm: "تأكيد", required: "مطلوب", back: "رجوع", next: "التالي", previous: "السابق", noResults: "لا توجد نتائج" },
+  nav: { dashboard: "لوحة التحكم", accounts: "الحسابات", transactions: "المعاملات", transfers: "التحويلات", budgets: "الميزانيات", debts: "الديون", bills: "الفواتير", savings: "الادخار", assets: "الأصول", reports: "التقارير", household: "المنزل", documents: "المستندات", smartScan: "المسح الذكي", assistant: "المساعد المالي", notifications: "الإشعارات", importExport: "استيراد وتصدير", settings: "الإعدادات", administration: "الإدارة" },
+  forms: { name: "الاسم", email: "البريد الإلكتروني", currency: "العملة", amount: "المبلغ", date: "التاريخ", description: "الوصف", status: "الحالة" },
+  profile: { title: "الملف الشخصي", identity: "الهوية", avatar: "الصورة الشخصية", fullName: "الاسم الكامل", username: "اسم المستخدم", publicId: "المعرف العام", preferences: "التفضيلات", notifications: "الإشعارات", security: "الأمان" },
+  settings: { title: "الإعدادات", appearance: "المظهر", languageRegion: "اللغة والمنطقة", currency: "العملة", privacy: "الخصوصية", data: "البيانات", ai: "الذكاء الاصطناعي", accessibility: "إمكانية الوصول", pwa: "تطبيق الويب التقدمي", about: "حول التطبيق" }
+} as const;
