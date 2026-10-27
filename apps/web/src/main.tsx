@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import CommunicationCenter from "./components/CommunicationCenter";
 import "./styles.css";
 import "./unified-ui.css";
 import "./global-controls.css";
@@ -15,6 +16,7 @@ applyLocale(getStoredLocale());
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
+    <CommunicationCenter />
   </React.StrictMode>,
 );
 
