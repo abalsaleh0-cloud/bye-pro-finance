@@ -89,10 +89,28 @@ test.describe("authentication", () => {
     await page.goto("/");
 
     const password = page.getByLabel("كلمة المرور", { exact: true });
+    const showToggle = page.getByRole("button", { name: "إظهار كلمة المرور" });
     await password.fill("StrongPassword123!");
     await expect(password).toHaveAttribute("type", "password");
 
-    await page.getByRole("button", { name: "إظهار كلمة المرور" }).click();
+    const [inputBox, toggleBox, inputMetrics] = await Promise.all([
+      password.boundingBox(),
+      showToggle.boundingBox(),
+      password.evaluate(element => {
+        const style = getComputedStyle(element);
+        return { direction: style.direction, paddingInlineEnd: Number.parseFloat(style.paddingInlineEnd) };
+      }),
+    ]);
+    expect(inputBox).not.toBeNull();
+    expect(toggleBox).not.toBeNull();
+    expect(inputMetrics.direction).toBe("ltr");
+    expect(inputMetrics.paddingInlineEnd).toBeGreaterThanOrEqual((toggleBox?.width ?? 0) + 8);
+    expect(toggleBox!.x).toBeGreaterThanOrEqual(inputBox!.x + inputBox!.width - inputMetrics.paddingInlineEnd - 1);
+    expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(inputBox!.x + inputBox!.width + 1);
+    expect(toggleBox!.y).toBeGreaterThanOrEqual(inputBox!.y - 1);
+    expect(toggleBox!.y + toggleBox!.height).toBeLessThanOrEqual(inputBox!.y + inputBox!.height + 1);
+
+    await showToggle.click();
     await expect(password).toHaveAttribute("type", "text");
     await expect(page.getByRole("button", { name: "إخفاء كلمة المرور" })).toHaveAttribute("aria-pressed", "true");
 

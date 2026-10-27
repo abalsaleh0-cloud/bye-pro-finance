@@ -13,9 +13,6 @@
   --field-text:#f7f4ec;
   --field-border:#363740;
   --field-focus:#d6b56d;
-  --control-h:44px;
-  --control-radius:10px;
-  --control-pad:10px 12px;
 }
 
 html,body,#root{min-width:320px;min-height:100%;}
@@ -26,9 +23,9 @@ body{background:var(--app-bg);color:var(--app-text);}
   box-sizing:border-box!important;
   width:100%!important;
   min-width:0!important;
-  min-height:var(--control-h)!important;
-  height:var(--control-h)!important;
-  padding:var(--control-pad)!important;
+  min-height:var(--control-height)!important;
+  height:var(--control-height)!important;
+  padding:var(--control-padding)!important;
   border:1px solid var(--field-border)!important;
   border-radius:var(--control-radius)!important;
   background:var(--field-bg)!important;

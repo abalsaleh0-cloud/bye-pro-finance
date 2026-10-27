@@ -3,21 +3,38 @@ import { supabase } from "../lib/supabase";
 import { setStoredLocale, setStoredTheme, applyLocale, type Locale, type Theme } from "../i18n";
 import "./ProfileSettingsView.css";
 
-type Profile = { id: string; public_id: number | null; full_name: string; username: string | null; avatar_url: string | null };
+type Profile = { id: string; public_id: number; full_name: string; username: string | null; avatar_url: string | null; full_name_changed_at: string | null; username_changed_at: string | null };
 type UserSettings = { theme: Theme; locale: Locale; timezone: string; currency_code: string; date_format: string; number_format: string; email_notifications: boolean; transaction_alerts: boolean; bill_reminders: boolean; budget_alerts: boolean };
 const defaults: UserSettings = { theme: "dark", locale: "ar", timezone: "Africa/Tripoli", currency_code: "LYD", date_format: "YYYY-MM-DD", number_format: "1,234.56", email_notifications: true, transaction_alerts: true, bill_reminders: true, budget_alerts: true };
 const currencies = ["LYD", "USD", "EUR", "GBP", "SAR", "AED", "EGP"];
 const timezones = ["Africa/Tripoli", "Asia/Damascus", "Asia/Amman", "Europe/Istanbul", "Europe/London", "UTC"];
 
-function fallbackPublicId(uuid: string) {
-  let hash = 0;
-  for (const char of uuid) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return 100000 + (hash % 900000);
-}
-
 export default function ProfileSettingsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
   const tr = (ar: string, english: string) => en ? english : ar;
+  const friendlyError = (cause: unknown, context: "profile" | "settings" | "avatar" | "password") => {
+    const raw = typeof cause === "object" && cause !== null && "message" in cause ? String((cause as { message?: unknown }).message ?? "") : cause instanceof Error ? cause.message : String(cause ?? "");
+    const code = typeof cause === "object" && cause !== null && "code" in cause
+      ? String((cause as { code?: unknown }).code ?? "") : "";
+    if (/Full name can only be changed every 30 days/i.test(raw)) {
+      const next = profile?.full_name_changed_at ? new Date(new Date(profile.full_name_changed_at).getTime() + 30 * 86400000) : null;
+      const date = next && Number.isFinite(next.getTime()) ? next.toLocaleDateString(en ? "en-GB" : "ar-LY") : "";
+      return tr(`يمكن تغيير الاسم الكامل مرة كل 30 يومًا.${date ? ` يمكنك تغييره مجددًا بتاريخ ${date}.` : ""}`, `Full name can only be changed every 30 days.${date ? ` You can change it again on ${date}.` : ""}`);
+    }
+    if (/Username can only be changed every 60 days/i.test(raw)) {
+      const next = profile?.username_changed_at ? new Date(new Date(profile.username_changed_at).getTime() + 60 * 86400000) : null;
+      const date = next && Number.isFinite(next.getTime()) ? next.toLocaleDateString(en ? "en-GB" : "ar-LY") : "";
+      return tr(`يمكن تغيير اسم المستخدم مرة كل 60 يومًا.${date ? ` يمكنك تغييره مجددًا بتاريخ ${date}.` : ""}`, `Username can only be changed every 60 days.${date ? ` You can change it again on ${date}.` : ""}`);
+    }
+    if (code === "23505" || /duplicate key value|profiles_username_key/i.test(raw)) {
+      return tr("اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر.", "That username is already taken. Choose another one.");
+    }
+    if (context === "avatar") return tr("تعذر حفظ الصورة. تحقق من اتصالك وصلاحية رفع الصورة ثم حاول مجددًا.", "Could not save the photo. Check your connection and upload permissions, then try again.");
+    if (context === "settings") return tr("تعذر حفظ إعداداتك. تحقق من القيم وحاول مجددًا.", "Could not save your settings. Check the values and try again.");
+    if (context === "password") return tr("تعذر إرسال رابط تغيير كلمة المرور. حاول مجددًا لاحقًا.", "Could not send the password reset link. Please try again later.");
+    if (/row-level security|permission denied|not allowed/i.test(raw)) return tr("لم تسمح صلاحيات الحساب بإتمام العملية.", "Your account permissions did not allow this operation.");
+    return tr("تعذر حفظ الملف الشخصي. تحقق من البيانات وحاول مجددًا.", "Could not save the profile. Check the details and try again.");
+  };
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [settings, setSettings] = useState(defaults);
@@ -36,12 +53,13 @@ export default function ProfileSettingsView() {
     if (authError || !auth.user) { setError(tr("يرجى تسجيل الدخول مجددًا.", "Please sign in again.")); setBusy(false); return; }
     setEmail(auth.user.email ?? "");
     const [{ data: p, error: pe }, { data: s, error: se }] = await Promise.all([
-      supabase.from("profiles").select("id,public_id,full_name,username,avatar_url").eq("id", auth.user.id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle(),
       supabase.from("user_settings").select("theme,locale,timezone,currency_code,date_format,number_format,email_notifications,transaction_alerts,bill_reminders,budget_alerts").eq("user_id", auth.user.id).maybeSingle()
     ]);
     if (pe || se) { setError(pe?.message || se?.message || tr("تعذر تحميل الإعدادات.", "Could not load settings.")); setBusy(false); return; }
-    const row = p as unknown as Profile | null;
-    setProfile(row ?? { id: auth.user.id, public_id: null, full_name: String(auth.user.user_metadata?.full_name ?? ""), username: String(auth.user.user_metadata?.username ?? "") || null, avatar_url: null });
+    const loadedProfile = p as unknown as Profile | null;
+    if (!loadedProfile || loadedProfile.public_id == null) { setError(tr("تعذر تحميل معرّف المستخدم العام من قاعدة البيانات.", "Could not load the public user ID from the database.")); setBusy(false); return; }
+    setProfile(loadedProfile);
     const next = { ...defaults, ...(s ?? {}) } as UserSettings;
     setSettings(next);
     setStoredTheme(next.theme); setStoredLocale(next.locale); applyLocale(next.locale, next.theme);
@@ -81,7 +99,7 @@ export default function ProfileSettingsView() {
       setProfile({ ...profile, avatar_url: publicUrl }); setAvatarFile(null); resetAvatarEditor();
       setMessage(tr("تم اعتماد صورة البروفايل بالقص الدائري التلقائي.", "Profile photo saved with automatic circular crop."));
       window.dispatchEvent(new CustomEvent("bye-profile-updated"));
-    } catch (cause) { setError(cause instanceof Error ? cause.message : tr("تعذر حفظ الصورة.", "Could not save photo.")); }
+    } catch (cause) { setError(friendlyError(cause, "avatar")); }
     finally { setUploading(false); }
   }
 
@@ -92,29 +110,53 @@ export default function ProfileSettingsView() {
     if (name.length < 2 || name.length > 100) { setError(tr("الاسم الكامل يجب أن يكون بين حرفين و100 حرف.", "Full name must be 2–100 characters.")); return; }
     if (!/^[a-z0-9_]{3,24}$/.test(username)) { setError(tr("اسم المستخدم يجب أن يكون من 3–24 حرفًا إنجليزيًا أو رقمًا أو _.", "Username must be 3–24 letters, numbers, or underscores.")); return; }
     setSaving(true); setError(""); setMessage("");
-    const { error: saveError } = await supabase.from("profiles").update({ full_name: name, username, updated_at: new Date().toISOString() }).eq("id", profile.id);
-    if (saveError) setError(saveError.message);
-    else { setProfile({ ...profile, full_name: name, username }); setMessage(tr("تم حفظ الملف الشخصي.", "Profile saved.")); window.dispatchEvent(new CustomEvent("bye-profile-updated")); }
-    setSaving(false);
+    try {
+      const { data: savedProfile, error: saveError } = await supabase.from("profiles")
+        .update({ full_name: name, username, updated_at: new Date().toISOString() })
+        .eq("id", profile.id).select("*").single();
+      if (saveError) { setError(friendlyError(saveError, "profile")); return; }
+      if (!savedProfile) { setError(tr("لم يتم إرجاع بيانات الملف الشخصي بعد الحفظ.", "No profile data was returned after saving.")); return; }
+      setProfile(savedProfile as unknown as Profile);
+      setMessage(tr("تم حفظ الملف الشخصي.", "Profile saved."));
+      window.dispatchEvent(new CustomEvent("bye-profile-updated"));
+    } catch (cause) {
+      setError(friendlyError(cause, "profile"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function saveSettings() {
     if (!supabase || !profile) return;
     setSaving(true); setError(""); setMessage("");
-    const { error: saveError } = await supabase.from("user_settings").upsert({ user_id: profile.id, ...settings, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-    if (saveError) setError(saveError.message);
-    else { setStoredTheme(settings.theme); setStoredLocale(settings.locale); applyLocale(settings.locale, settings.theme); setMessage(tr("تم حفظ إعدادات المستخدم الخاصة بك.", "Your personal user settings were saved.")); }
-    setSaving(false);
+    try {
+      const { error: saveError } = await supabase.from("user_settings").upsert({ user_id: profile.id, ...settings, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+      if (saveError) { setError(friendlyError(saveError, "settings")); return; }
+      setStoredTheme(settings.theme); setStoredLocale(settings.locale); applyLocale(settings.locale, settings.theme);
+      setMessage(tr("تم حفظ إعدادات المستخدم الخاصة بك.", "Your personal user settings were saved."));
+    } catch (cause) {
+      setError(friendlyError(cause, "settings"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function resetPassword() {
     if (!supabase || !email) return;
-    setSaving(true); const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
-    if (resetError) setError(resetError.message); else setMessage(tr("تم إرسال رابط تغيير كلمة المرور.", "Password reset link sent.")); setSaving(false);
+    setSaving(true); setError(""); setMessage("");
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+      if (resetError) setError(friendlyError(resetError, "password"));
+      else setMessage(tr("تم إرسال رابط تغيير كلمة المرور.", "Password reset link sent."));
+    } catch (cause) {
+      setError(friendlyError(cause, "password"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (busy) return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…", "Loading your profile…")}</p></section>;
-  const publicId = String(profile?.public_id ?? fallbackPublicId(profile?.id ?? "")).padStart(6, "0");
+  const publicId = String(profile?.public_id ?? "").padStart(6, "0");
   const patch = (value: Partial<UserSettings>) => setSettings(current => ({ ...current, ...value }));
   const application = [
     [tr("اسم التطبيق", "Application"), "BYE PRO FINANCE"],

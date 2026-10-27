@@ -12,10 +12,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // OCR is intentionally isolated so the main application bundle does not
-          // ship the multi-megabyte Tesseract runtime on every initial load.
-          if (id.includes("node_modules/tesseract.js")) return "ocr";
-          if (id.includes("node_modules/@tesseract.js")) return "ocr";
+          // Keep large optional runtimes away from the initial application chunk.
+          if (id.includes("node_modules/tesseract.js") || id.includes("node_modules/@tesseract.js")) {
+            return "ocr";
+          }
+          if (id.includes("node_modules/@mlc-ai/web-llm")) return "local-ai";
+          if (id.includes("node_modules/@supabase")) return "supabase";
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) return "react";
         },
       },
     },

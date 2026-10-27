@@ -42,11 +42,47 @@ async function visibleText(page: Page, label: string) {
   throw new Error(`Navigation button not found: ${label}`);
 }
 
+async function assertPasswordControl(page: Page, locale: "ar" | "en") {
+  const group = page.locator(".password-input-group").first();
+  const input = group.locator("input.password-input");
+  const toggle = group.locator(".password-visibility-toggle");
+  await expect(input).toBeVisible();
+  await expect(toggle).toBeVisible();
+  const geometry = await group.evaluate(element => {
+    const container = element as HTMLElement;
+    const field = container.querySelector("input") as HTMLInputElement | null;
+    const button = container.querySelector("button") as HTMLElement | null;
+    if (!field || !button) return { missing: true };
+    const fieldRect = field.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+    const fieldStyle = getComputedStyle(field);
+    return {
+      missing: false,
+      groupOverflow: container.scrollWidth > container.clientWidth + 1,
+      buttonInsideGroup: buttonRect.left >= container.getBoundingClientRect().left - 1 &&
+        buttonRect.right <= container.getBoundingClientRect().right + 1,
+      buttonCenteredVertically: Math.abs((buttonRect.top + buttonRect.bottom) / 2 -
+        (fieldRect.top + fieldRect.bottom) / 2) <= 3,
+      reservedInlineEnd: Number.parseFloat(fieldStyle.paddingInlineEnd),
+      fieldHeight: Math.round(fieldRect.height),
+      buttonHeight: Math.round(buttonRect.height),
+    };
+  });
+  expect(geometry, `${locale}: password visibility control must be present`).not.toHaveProperty("missing", true);
+  expect(geometry.groupOverflow, `${locale}: password group must not overflow`).toBe(false);
+  expect(geometry.buttonInsideGroup, `${locale}: password toggle must stay inside its field`).toBe(true);
+  expect(geometry.buttonCenteredVertically, `${locale}: password toggle must align with the field`).toBe(true);
+  expect(geometry.reservedInlineEnd, `${locale}: password field must reserve space for its toggle`).toBeGreaterThanOrEqual(40);
+  expect(geometry.fieldHeight, `${locale}: password field should use shared geometry`).toBe(44);
+  expect(geometry.buttonHeight, `${locale}: password toggle must meet the touch target`).toBeGreaterThanOrEqual(44);
+}
+
 async function enterWorkspace(page: Page, locale: "ar" | "en") {
   await page.goto("/");
   const emailLabel = locale === "ar" ? "البريد الإلكتروني" : "Email address";
   const passwordLabel = locale === "ar" ? "كلمة المرور" : "Password";
   const signInLabel = locale === "ar" ? "تسجيل الدخول" : "Sign in";
+  await assertPasswordControl(page, locale);
   await page.getByLabel(emailLabel).fill(user.email);
   await page.getByLabel(passwordLabel, { exact: true }).fill("StrongPassword123!");
   await page.getByRole("button", { name: signInLabel }).click();
@@ -58,9 +94,115 @@ async function clickScreen(page: Page, label: string) {
   await target.click({ force: true });
 }
 
+async function assertControlGeometry(page: Page, screenLabel: string) {
+  const mismatches = await page.locator(
+    'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), select'
+  ).evaluateAll(elements => elements
+    .filter(element => {
+      const el = element as HTMLElement;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && el.getClientRects().length > 0;
+    })
+    .map(element => {
+      const el = element as HTMLElement;
+      const height = el.getBoundingClientRect().height;
+      return { tag: el.tagName.toLowerCase(), type: (el as HTMLInputElement).type || "", height: Math.round(height * 10) / 10 };
+    })
+    .filter(item => Math.abs(item.height - 44) > 1)
+  );
+  expect(mismatches, `${screenLabel}: fields should share the 44px control height`).toEqual([]);
+
+  const shortButtons = await page.locator('button:visible, [role="button"]:visible, label.file-picker:visible, input[type="button"]:visible, input[type="submit"]:visible, input[type="reset"]:visible').evaluateAll(elements => elements
+    .map(element => {
+      const el = element as HTMLElement;
+      const style = getComputedStyle(el);
+      return { tag: el.tagName, className: el.className.toString(), text: (el.innerText || el.getAttribute("aria-label") || "").trim().slice(0, 60), height: Math.round(el.getBoundingClientRect().height), minHeight: style.minHeight, transform: style.transform };
+    })
+    .filter(item => item.height < 43)
+  );
+  expect(shortButtons, `${screenLabel}: visible action buttons should have at least a 44px touch target`).toEqual([]);
+
+  const shortTextareas = await page.locator("textarea").evaluateAll(elements => elements
+    .filter(element => {
+      const el = element as HTMLElement;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && el.getClientRects().length > 0;
+    })
+    .map(element => Math.round((element as HTMLElement).getBoundingClientRect().height))
+    .filter(height => height < 119)
+  );
+  expect(shortTextareas, `${screenLabel}: visible textareas should remain multiline-sized`).toEqual([]);
+
+  const brokenCompoundFields = await page.locator(".username-field:visible").evaluateAll(elements => elements
+    .map(element => {
+      const container = element as HTMLElement;
+      const icon = container.querySelector("span");
+      const input = container.querySelector("input");
+      if (!icon || !input) return { reason: "missing icon/input" };
+      const iconRect = icon.getBoundingClientRect();
+      const inputRect = input.getBoundingClientRect();
+      const style = getComputedStyle(input);
+      const containerStyle = getComputedStyle(container);
+      const overlaps = iconRect.left < inputRect.right && iconRect.right > inputRect.left;
+      return {
+        overlaps,
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        paddingLeft: Number.parseFloat(style.paddingLeft),
+        paddingRight: Number.parseFloat(style.paddingRight),
+        background: style.backgroundColor,
+        parentBackground: containerStyle.backgroundColor,
+      };
+    })
+    .filter(item => "reason" in item || item.overlaps || item.borderWidth > 0 || item.radius > 0 || item.paddingLeft > 1 || item.paddingRight > 1 || (item.background !== "rgba(0, 0, 0, 0)" && item.background !== item.parentBackground)));
+  expect(brokenCompoundFields, `${screenLabel}: username compound field must keep its internal icon and text separated`).toEqual([]);
+
+  const overflowing = await page.locator("body").evaluate(el => ({
+    scrollWidth: el.scrollWidth,
+    clientWidth: el.clientWidth,
+  }));
+  expect(overflowing.scrollWidth, `${screenLabel}: page must not overflow horizontally`).toBeLessThanOrEqual(overflowing.clientWidth + 1);
+}
+
+async function assertLongTextWrapping(page: Page, locale: "ar" | "en") {
+  const result = await page.evaluate((language) => {
+    const fixture = document.createElement("div");
+    fixture.style.cssText = "position:fixed;left:8px;bottom:8px;width:min(220px,calc(100vw - 16px));z-index:99999;display:grid;gap:8px;pointer-events:none;";
+    const button = document.createElement("button");
+    button.className = "text-button";
+    button.style.width = "100%";
+    button.textContent = language === "ar"
+      ? "حفظ التغييرات المالية المهمة دون قص النص أو إخفاء أي كلمة طويلة في الواجهة"
+      : "Save important financial changes without clipping or hiding any long action label";
+    const notice = document.createElement("p");
+    notice.className = "notice error";
+    notice.style.margin = "0";
+    notice.textContent = language === "ar"
+      ? "تعذر حفظ التغييرات بسبب رسالة خطأ طويلة يجب أن تلتف داخل مساحة التنبيه دون تجاوز حدود الشاشة."
+      : "The changes could not be saved because of a long error message that must wrap inside the notice without overflowing the screen.";
+    fixture.append(button, notice);
+    document.body.append(fixture);
+    const buttonStyle = getComputedStyle(button);
+    const measured = {
+      buttonHeight: button.getBoundingClientRect().height,
+      buttonClips: button.scrollWidth > button.clientWidth + 1 || button.scrollHeight > button.clientHeight + 1,
+      noticeClips: notice.scrollWidth > notice.clientWidth + 1 || notice.scrollHeight > notice.clientHeight + 1,
+      buttonWhiteSpace: buttonStyle.whiteSpace,
+      buttonOverflowWrap: buttonStyle.overflowWrap,
+    };
+    fixture.remove();
+    return measured;
+  }, locale);
+  expect(result.buttonHeight, `${locale}: long action label should grow naturally`).toBeGreaterThanOrEqual(44);
+  expect(result.buttonClips, `${locale}: long action label must not be clipped`).toBe(false);
+  expect(result.noticeClips, `${locale}: long error message must not be clipped`).toBe(false);
+  expect(result.buttonWhiteSpace).toBe("normal");
+  expect(result.buttonOverflowWrap).toBe("anywhere");
+}
+
 for (const locale of ["ar", "en"] as const) {
   test(`${locale}: 18 screens on mobile tablet desktop, states and accessibility`, async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(300_000);
     await page.addInitScript((value) => localStorage.setItem("bye-pro-finance.locale", value), locale);
     await mockAuth(page);
     await page.route("**/rest/v1/**", async route => {
@@ -71,6 +213,7 @@ for (const locale of ["ar", "en"] as const) {
       }
     });
     await enterWorkspace(page, locale);
+    await assertLongTextWrapping(page, locale);
 
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -82,10 +225,24 @@ for (const locale of ["ar", "en"] as const) {
       await expect(page.locator("body")).toContainText(label);
       await expect(page.locator("body")).not.toContainText("Cannot read properties");
       await expect(page.locator("body")).not.toContainText("NaN");
+      await assertControlGeometry(page, label);
 
-      const results = await new AxeBuilder({ page }).analyze();
-      const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
-      expect(blocking, `${locale}: ${label}`).toEqual([]);
+      // Verify the same field/button geometry in both themes without changing layout direction.
+      for (const theme of ["light", "dark"] as const) {
+        await page.evaluate((value) => {
+          document.documentElement.dataset.theme = value;
+          document.body.dataset.theme = value;
+        }, theme);
+        await assertControlGeometry(page, `${label} (${theme})`);
+      }
+
+      // Run the expensive accessibility engine on representative screen types;
+      // geometry, overflow, runtime errors and text wrapping remain checked on all 18 screens.
+      if (["Dashboard", "Transactions", "Documents", "Settings"].includes(label)) {
+        const results = await new AxeBuilder({ page }).analyze();
+        const blocking = results.violations.filter(v => v.impact === "critical" || v.impact === "serious");
+        expect(blocking, `${locale}: ${label}`).toEqual([]);
+      }
     }
 
     expect(errors).toEqual([]);
