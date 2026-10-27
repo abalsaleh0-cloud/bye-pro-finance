@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { applyLocale, getStoredLocale, getStoredTheme, setStoredLocale, setStoredTheme } from "./i18n";
 
-const source = readFileSync("apps/web/src/i18n.ts", "utf8");
+const source = readFileSync("apps/web/src/i18n/index.ts", "utf8");
 const styles = readFileSync("apps/web/src/styles.css", "utf8");
 const app = readFileSync("apps/web/src/App.tsx", "utf8");
 const screens = [
