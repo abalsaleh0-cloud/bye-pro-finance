@@ -17,10 +17,9 @@ export default defineConfig({
           // unless the user explicitly invokes local AI from the assistant.
           if (id.includes("/node_modules/@mlc-ai/web-llm/")) return "local-ai-engine";
 
-          // OCR is intentionally isolated so the main application bundle does not
-          // ship the multi-megabyte Tesseract runtime on every initial load.
-          if (id.includes("/node_modules/tesseract.js/")) return "ocr";
-          if (id.includes("/node_modules/@tesseract.js/")) return "ocr";
+          // Leave Tesseract's async import to Rollup's native chunking. Forcing
+          // the package into a manual chunk can move shared preload helpers into
+          // that chunk and make the generated HTML preload OCR on initial load.
         },
       },
     },
