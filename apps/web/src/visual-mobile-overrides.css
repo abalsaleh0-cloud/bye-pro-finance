@@ -1,0 +1,42 @@
+/* BYE PRO FINANCE — visual mobile contract.
+ * This layer intentionally sits after every legacy stylesheet so mobile layout
+ * cannot be re-expanded by component-specific desktop rules.
+ */
+@media (max-width:1000px){
+  html,body,#root{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+  .workspace{display:block!important;min-height:100vh!important}
+  .sidebar{position:sticky!important;top:0!important;z-index:100!important;width:100%!important;min-height:0!important;height:auto!important;padding:10px 12px!important;border-inline-end:0!important;border-bottom:1px solid var(--app-line,#2b2d34)!important;background:rgba(19,20,23,.98)!important;backdrop-filter:blur(12px)}
+  .sidebar .brand{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:0 2px 9px!important;border-bottom:1px solid var(--app-line,#2b2d34)!important}
+  .sidebar .brand .brand-mark{width:34px!important;height:34px!important;border-radius:10px!important;font-size:17px!important}
+  .sidebar .brand strong{font-size:11px!important}.sidebar .brand small{font-size:8px!important}
+  .nav-caption{display:none!important}
+  .main-nav{display:flex!important;gap:6px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:8px 0 2px!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch}
+  .main-nav::-webkit-scrollbar{display:none}
+  .nav-item{flex:0 0 82px!important;width:82px!important;min-height:54px!important;height:54px!important;display:grid!important;grid-template-columns:1fr!important;grid-template-rows:22px auto!important;justify-items:center!important;align-content:center!important;gap:3px!important;padding:5px 4px!important;border-radius:10px!important;text-align:center!important;font-size:10px!important;line-height:1.2!important}
+  .nav-item .nav-icon{font-size:16px!important;line-height:1!important}
+  .nav-item small{display:none!important}
+  .sidebar-bottom{display:none!important}
+  .workspace-main{width:100%!important;max-width:none!important;margin:0!important;padding:18px 14px 28px!important}
+  .workspace-topbar{display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;gap:10px!important;padding-bottom:16px!important}
+  .workspace-topbar>div:first-child{min-width:0!important;flex:1 1 100%!important}
+  .workspace-topbar h1{font-size:clamp(23px,5vw,30px)!important;line-height:1.3!important}
+  .user-chip{max-width:100%!important;font-size:10px!important}
+  .welcome-panel{margin-top:16px!important;padding:20px!important;align-items:flex-start!important;flex-direction:column!important}
+  .module-grid,.metric-grid,.dashboard-lower,.report-kpis,.profile-grid,.settings-grid,.settings-toggles,.application-grid,.account-form{grid-template-columns:1fr!important}
+  .account-form{padding:14px!important}
+  .transaction-toolbar{grid-template-columns:1fr!important}
+  .data-view,.dashboard-view{padding-top:18px!important}
+  .data-view-heading,.section-heading{align-items:flex-start!important;flex-direction:column!important;gap:10px!important}
+  .data-view-heading h2,.section-heading h2{font-size:21px!important}
+  .table-card{max-width:100%!important}
+}
+@media (max-width:560px){
+  .sidebar{padding:8px 8px 7px!important}
+  .sidebar .brand{padding-inline:4px!important}
+  .main-nav{gap:5px!important}
+  .nav-item{flex-basis:74px!important;width:74px!important;font-size:9px!important}
+  .workspace-main{padding:14px 10px 24px!important}
+  .workspace-topbar{padding-bottom:13px!important}
+  .profile-settings-page{width:100%!important}
+  .settings-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
