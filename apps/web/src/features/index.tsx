@@ -1,12 +1,14 @@
-import { lazy, Suspense, type ComponentType } from "react";
+import { lazy, Suspense, type ComponentType, type ComponentProps } from "react";
+
+type FeatureComponent = ComponentType<{ module: string }>;
 
 /**
  * Feature views are loaded on demand so the authenticated shell does not
  * download every financial module before the user opens it.
  */
-function lazyFeature<T extends ComponentType<Record<string, never>>>(loader: () => Promise<{ default: T }>) {
+function lazyFeature(loader: () => Promise<{ default: FeatureComponent }>) {
   const Component = lazy(loader);
-  return function LazyFeature(props: Record<string, never>) {
+  return function LazyFeature(props: ComponentProps<FeatureComponent>) {
     return (
       <Suspense fallback={<div className="feature-loading" role="status" aria-live="polite">Loading…</div>}>
         <Component {...props} />
