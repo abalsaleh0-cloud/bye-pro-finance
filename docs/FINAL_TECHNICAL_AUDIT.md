@@ -114,37 +114,36 @@ Status: 🟡 IMPLEMENTED BUT NOT FULLY VERIFIED.
 
 The live migration ledger now contains 24 entries. The repository reconciliation document records exact source matches where found, missing historical source candidates, and repository migrations that are not live-applied. A verified duplicate-audit-trigger defect was repaired through a forward-only migration; the resulting live trigger inventory was checked directly. No historical migration was blindly replayed.
 
-The repository document-processing queue migrations remain repository-only and are explicitly not marked production-applied.
+The repository document-processing queue migrations are implemented as infrastructure in the audit branch, but remain repository-only and are explicitly not marked production-applied. The worker itself intentionally does not claim or process document jobs yet; OCR/extraction remains disabled pending a defined processor and production verification.
 
 ## 15. Testing results
 
-For the current audit head `bb0c33c624cfe590b2dcc7426c7290cda10ff14a`:
+For the current audit head `eaba48e179898a10bffed13b73cf5ae391613c8a`:
 
-- ✅ CI run #70 — success.
-- 🟡 Authentication E2E run #70 — in progress at the latest check.
-- ⬜ UI E2E run #70 — not yet confirmed complete at the latest check.
+- ✅ CI #71 — success: build, typecheck and unit tests passed.
+- ✅ Authentication E2E #71 — success.
+- ✅ UI E2E #71 — success, including responsive, locale, state and accessibility E2E.
 
-The earlier audit commit had successful CI/Auth/UI E2E. The current head must not inherit that status automatically; certification requires the current head's workflow results to complete successfully.
+These results are evidence for the audit branch head only. They do not certify the production deployment, live two-user isolation or real-device behavior.
 
 ## 16. Remaining risks
 
-1. Latest Production deployment is not yet certified READY.
-2. Current-head Authentication/UI E2E completion is still pending.
-3. Real-device responsive verification is incomplete.
-4. Full i18n hardcoded-string migration is incomplete.
-5. Two-user RLS/Storage isolation tests remain required.
-6. Production API negative-path tests remain required.
-7. Migration reconciliation still has historical source gaps, although the verified live trigger defect is repaired.
-8. Profile-avatar privacy mode remains an explicit product/security decision.
-9. AI/OCR bundle budgets require measured build evidence.
-10. Complete keyboard/focus/contrast/accessibility pass remains required.
-11. Repository document-processing queue migrations are not live-applied and must not be represented as production-ready until deliberately verified.
+1. The current production deployment is READY, but it serves `main` commit `2622080950813520180ab45ebfcafec58ca71525`, not the audit branch head.
+2. Real-device responsive verification is incomplete.
+3. Full i18n hardcoded-string migration is incomplete.
+4. Two-user RLS/Storage isolation tests remain required.
+5. Production API negative-path tests remain required.
+6. Migration reconciliation still has historical source gaps, although the verified live trigger defect is repaired.
+7. Profile-avatar privacy mode remains an explicit product/security decision.
+8. AI/OCR bundle budgets require measured build evidence.
+9. Complete keyboard/focus/contrast/accessibility pass remains required beyond automated E2E evidence.
+10. Repository document-processing queue migrations are not live-applied and the worker does not process them yet.
 
 ## 17. Production readiness
 
 **Current gate: 🟡 NOT YET CERTIFIED.**
 
-Automated CI is green on the current audit head. Authentication E2E is still running at the latest observation, and the remaining runtime, database, security and production gates remain open. The project directive prohibits calling the application complete until those gates are actually verified.
+The audit branch current head is green on CI, Authentication E2E and UI E2E. The production Vercel project also has a READY deployment, but that deployment is based on `main`, not the audit branch head. The remaining runtime, database isolation, API negative-path, real-device, performance, PWA and production-deployment gates remain open.
 
 ## 18. Exact Definition of Done
 
@@ -163,8 +162,8 @@ Automated CI is green on the current audit head. Authentication E2E is still run
 - [ ] RLS verified with two-user tests.
 - [ ] Storage isolation verified with two-user tests.
 - [x] Current-head audit-branch CI passes.
-- [ ] Current-head Authentication E2E passes.
-- [ ] Current-head UI E2E passes.
+- [x] Current-head Authentication E2E passes.
+- [x] Current-head UI E2E passes.
 - [ ] PWA verified.
 - [ ] Build passes in the final production gate.
 - [ ] Typecheck passes in the final production gate.
@@ -172,6 +171,6 @@ Automated CI is green on the current audit head. Authentication E2E is still run
 - [ ] Integration tests pass in the final production gate.
 - [ ] Accessibility tests pass in the final production gate.
 - [ ] Responsive matrix passes.
-- [ ] Production deployment is READY.
+- [ ] Production deployment is READY for the audited commit.
 - [ ] README reflects only evidence-backed status.
 - [ ] Production Gate passes.
