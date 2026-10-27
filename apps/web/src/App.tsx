@@ -1,27 +1,12 @@
 import "./advanced-finance.css";
 import { useEffect, useState, type FormEvent } from "react";
 import { applyLocale, getStoredLocale, getStoredTheme, setStoredLocale, setStoredTheme, type Locale, type Theme } from "./i18n";
-import { Icon, type IconName } from "../../../packages/ui/src";
+import { Icon } from "../../../packages/ui/src";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import {
-  AccountsView,
-  AdminView,
-  AssistantView,
-  AssetsView,
-  BillsView,
-  BudgetsView,
-  DashboardView,
-  DebtsView,
-  DocumentsView,
-  HouseholdView,
-  ImportExportView,
-  NotificationsView,
-  ProfileSettingsView,
-  ReportsView,
-  SavingsView,
-  SmartScanView,
-  TransactionsView,
-  TransfersView,
+  AccountsView, AdminView, AssistantView, AssetsView, BillsView, BudgetsView, DashboardView, DebtsView, DocumentsView,
+  HouseholdView, ImportExportView, NotificationsView, ProfileSettingsView, ReportsView, SavingsView, SmartScanView,
+  TransactionsView, TransfersView,
 } from "./features";
 
 type ActiveModule = "لوحة التحكم" | "الحسابات" | "المعاملات" | "التحويلات" | "الميزانيات" | "الديون" | "الفواتير" | "الادخار" | "الأصول" | "التقارير" | "المنزل" | "المستندات" | "المسح الذكي" | "المساعد المالي" | "الإشعارات" | "استيراد وتصدير" | "الإعدادات" | "الإدارة";
@@ -29,21 +14,15 @@ const moduleTitles: Record<Locale, Record<ActiveModule, string>> = {
   ar: { "لوحة التحكم":"لوحة التحكم", "الحسابات":"الحسابات", "المعاملات":"المعاملات", "التحويلات":"التحويلات", "الميزانيات":"الميزانيات", "الديون":"الديون", "الفواتير":"الفواتير", "الادخار":"الادخار", "الأصول":"الأصول", "التقارير":"التقارير", "المنزل":"المنزل", "المستندات":"المستندات", "المسح الذكي":"المسح الذكي", "المساعد المالي":"المساعد المالي", "الإشعارات":"الإشعارات", "استيراد وتصدير":"استيراد وتصدير", "الإعدادات":"الإعدادات", "الإدارة":"الإدارة" },
   en: { "لوحة التحكم":"Dashboard", "الحسابات":"Accounts", "المعاملات":"Transactions", "التحويلات":"Transfers", "الميزانيات":"Budgets", "الديون":"Debts", "الفواتير":"Bills", "الادخار":"Savings", "الأصول":"Assets", "التقارير":"Reports", "المنزل":"Household", "المستندات":"Documents", "المسح الذكي":"Smart Scan", "المساعد المالي":"Financial Assistant", "الإشعارات":"Notifications", "استيراد وتصدير":"Import / Export", "الإعدادات":"Settings", "الإدارة":"Administration" }
 };
-const modules: { title: ActiveModule; description: string; number: string; icon: IconName }[] = [
+const modules = [
   { title: "لوحة التحكم", description: "نظرة عامة على وضعك المالي", number: "00", icon: "layout-dashboard" }, { title: "الحسابات", description: "الحسابات والأرصدة", number: "01", icon: "wallet" }, { title: "المعاملات", description: "الدخل والمصروفات", number: "02", icon: "arrow-left-right" }, { title: "التحويلات", description: "نقل الأموال بين الحسابات", number: "03", icon: "repeat-2" }, { title: "الميزانيات", description: "خطط الإنفاق", number: "04", icon: "pie-chart" }, { title: "الديون", description: "المستحقات والالتزامات", number: "05", icon: "hand-coins" }, { title: "الفواتير", description: "المدفوعات والاستحقاقات", number: "06", icon: "calendar-days" }, { title: "الادخار", description: "الأهداف والتقدم", number: "07", icon: "trending-up" }, { title: "الأصول", description: "الأصول وصافي الثروة", number: "08", icon: "credit-card" }, { title: "التقارير", description: "التحليلات المالية", number: "09", icon: "activity" }, { title: "المنزل", description: "مصروفات الأسرة", number: "10", icon: "home" }, { title: "المستندات", description: "الأرشيف المالي", number: "11", icon: "folder" }, { title: "المسح الذكي", description: "OCR واستخراج البيانات", number: "12", icon: "search" }, { title: "المساعد المالي", description: "التحليل والمساعدة الذكية", number: "13", icon: "sparkles" }, { title: "الإشعارات", description: "التنبيهات المالية", number: "14", icon: "bell" }, { title: "استيراد وتصدير", description: "نقل بياناتك", number: "15", icon: "refresh-cw" }, { title: "الإعدادات", description: "تفضيلات الحساب", number: "16", icon: "settings" }, { title: "الإدارة", description: "مراقبة وإدارة النظام", number: "17", icon: "shield-check" },
-];
+] as const;
 
 type AuthMode = "signin" | "signup" | "reset";
 function PasswordInput({ id, value, onChange, autoComplete, localeText }: { id: string; value: string; onChange: (value: string) => void; autoComplete: "current-password" | "new-password"; localeText: (ar: string, en: string) => string }) {
   const [visible, setVisible] = useState(false);
-  return <div className="password-input-group">
-    <input id={id} className="password-input" type={visible ? "text" : "password"} autoComplete={autoComplete} required minLength={8} value={value} onChange={e => onChange(e.target.value)} dir="ltr" />
-    <button className="password-visibility-toggle" type="button" onClick={() => setVisible(current => !current)} aria-pressed={visible} aria-label={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")} title={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")}>
-      <Icon name={visible ? "eye-off" : "eye"} size={18} />
-    </button>
-  </div>;
+  return <div className="password-input-group"><input id={id} className="password-input" type={visible ? "text" : "password"} autoComplete={autoComplete} required minLength={8} value={value} onChange={e => onChange(e.target.value)} dir="ltr" /><button className="password-visibility-toggle" type="button" onClick={() => setVisible(current => !current)} aria-pressed={visible} aria-label={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")} title={visible ? localeText("إخفاء كلمة المرور", "Hide password") : localeText("إظهار كلمة المرور", "Show password")}><Icon name={visible ? "eye-off" : "eye"} size={18} /></button></div>;
 }
-
 function AuthPanel({ locale, recovery = false, onRecoveryComplete }: { locale: Locale; recovery?: boolean; onRecoveryComplete?: () => void }) {
   const localeText = (ar: string, en: string) => locale === "en" ? en : ar;
   const [mode,setMode]=useState<AuthMode>(recovery ? "reset" : "signin"),[fullName,setFullName]=useState(""),[username,setUsername]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[confirmPassword,setConfirmPassword]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -52,12 +31,10 @@ function AuthPanel({ locale, recovery = false, onRecoveryComplete }: { locale: L
   const title=recovery?localeText("تعيين كلمة مرور جديدة","Set a new password"):mode==="signin"?localeText("تسجيل الدخول","Sign in"):mode==="signup"?localeText("إنشاء حساب","Create account"):localeText("استعادة كلمة المرور","Reset password");
   return <section className="auth-layout"><div className="auth-intro"><p className="eyebrow">{localeText("خصوصيتك أساس التصميم","PRIVACY BY DESIGN")}</p><h1>{localeText("أموالك،","Your money,")} <span>{localeText("بصورة أوضح.","made clearer.")}</span></h1><p className="hero-copy">{localeText("نظام مالي شخصي لتنظيم الحسابات والمعاملات والميزانيات والأهداف ضمن مساحة محمية بحسابك.","A personal finance workspace to organize accounts, transactions, budgets, and goals in a space protected by your account.")}</p></div><div className="auth-card"><div className="auth-card-head"><span className="brand-mark">B</span><div><h2>{title}</h2><p>{localeText("مساحتك المالية الخاصة.","Your private finance space.")}</p></div></div>{recovery&&<div className="notice success">{localeText("رابط الاستعادة صالح. اختر كلمة مرور جديدة.","Your recovery link is valid. Choose a new password.")}</div>}{!isSupabaseConfigured&&<div className="notice warning">{localeText("اضبط VITE_SUPABASE_URL و VITE_SUPABASE_PUBLISHABLE_KEY.","Configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.")}</div>}<form onSubmit={handleSubmit} className="auth-form">{!recovery&&mode==="signup"&&<><label htmlFor="auth-username">{localeText("اسم المستخدم","Username")}</label><input id="auth-username" type="text" autoComplete="username" required minLength={3} maxLength={24} pattern="[A-Za-z0-9_]{3,24}" title={localeText("أدخل 3 أحرف على الأقل، وبحد أقصى 24، باستخدام الإنجليزية أو الأرقام أو _ فقط.","Use 3–24 characters: English letters, numbers, or underscores.")} value={username} onChange={e=>setUsername(e.target.value.replace(/^@/,""))} dir="ltr" /><small className="field-hint">{localeText("اسم المستخدم: 3–24 حرفًا، باستخدام الإنجليزية أو الأرقام أو _ فقط.","Username: 3–24 characters using English letters, numbers, or underscores.")}</small><label htmlFor="auth-full-name">{localeText("الاسم الكامل","Full name")}</label><input id="auth-full-name" type="text" autoComplete="name" required minLength={2} maxLength={100} value={fullName} onChange={e=>setFullName(e.target.value)} /></>}{!recovery&&<><label htmlFor="auth-email">{localeText("البريد الإلكتروني","Email address")}</label><input id="auth-email" type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} dir="ltr"/></>}{(recovery||mode!=="reset")&&<><label htmlFor="auth-password">{localeText("كلمة المرور","Password")}</label><PasswordInput id="auth-password" autoComplete={recovery||mode==="signup" ? "new-password" : "current-password"} value={password} onChange={setPassword} localeText={localeText}/></>}{!recovery&&mode==="signup"&&<><label htmlFor="auth-password-confirm">{localeText("تأكيد كلمة المرور","Confirm password")}</label><PasswordInput id="auth-password-confirm" autoComplete="new-password" value={confirmPassword} onChange={setConfirmPassword} localeText={localeText}/></>}{error&&<p className="notice error">{error}</p>}{notice&&<p className="notice success">{notice}</p>}<button className="primary-button" type="submit" disabled={busy||!isSupabaseConfigured}>{busy?localeText("جارٍ التنفيذ…","Working…"):title}</button></form>{!recovery&&<div className="auth-links">{mode==="signin"?<><button type="button" onClick={()=>setMode("reset")}>{localeText("نسيت كلمة المرور؟","Forgot password?")}</button><button type="button" onClick={()=>setMode("signup")}>{localeText("إنشاء حساب","Create account")}</button></>:<button type="button" onClick={()=>setMode("signin")}>{localeText("العودة للدخول","Back to sign in")}</button>}</div>}{recovery&&notice&&<div className="auth-links"><button type="button" onClick={onRecoveryComplete}>{localeText("العودة إلى تسجيل الدخول","Back to sign in")}</button></div>}</div></section>;
 }
-
 function SectionContent({activeModule}:{activeModule:ActiveModule}) {
   if(activeModule==="لوحة التحكم")return <DashboardView/>; if(activeModule==="الحسابات")return <AccountsView/>; if(activeModule==="المعاملات")return <TransactionsView/>; if(activeModule==="التحويلات")return <TransfersView/>; if(activeModule==="التقارير")return <ReportsView/>; if(activeModule==="المنزل")return <HouseholdView/>; if(activeModule==="المستندات")return <DocumentsView/>; if(activeModule==="المسح الذكي")return <SmartScanView/>; if(activeModule==="المساعد المالي")return <AssistantView/>; if(activeModule==="الإشعارات")return <NotificationsView/>; if(activeModule==="استيراد وتصدير")return <ImportExportView/>; if(activeModule==="الإعدادات")return <ProfileSettingsView/>; if(activeModule==="الإدارة")return <AdminView/>;
   if(activeModule==="الميزانيات")return <BudgetsView module="budgets"/>; if(activeModule==="الديون")return <DebtsView module="debts"/>; if(activeModule==="الفواتير")return <BillsView module="bills"/>; if(activeModule==="الادخار")return <SavingsView module="savings_goals"/>; if(activeModule==="الأصول")return <AssetsView module="assets"/>; return null;
 }
-
 export default function App(){
   const [locale, setLocale] = useState<Locale>(() => getStoredLocale()); const [theme, setTheme] = useState<Theme>(() => getStoredTheme()); const [sessionReady,setSessionReady]=useState(!isSupabaseConfigured),[signedIn,setSignedIn]=useState(false),[email,setEmail]=useState(""),[profileName,setProfileName]=useState(""),[username,setUsername]=useState(""),[profileAvatar,setProfileAvatar]=useState(""),[activeModule,setActiveModule]=useState<ActiveModule>("لوحة التحكم"),[recovery,setRecovery]=useState(false);
   const changeLocale = () => { const next: Locale = locale === "ar" ? "en" : "ar"; setStoredLocale(next); applyLocale(next, theme); setLocale(next); }; const changeTheme = () => { const next: Theme = theme === "dark" ? "light" : "dark"; setStoredTheme(next); applyLocale(locale, next); setTheme(next); };
