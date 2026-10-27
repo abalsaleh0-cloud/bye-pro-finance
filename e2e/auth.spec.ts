@@ -72,7 +72,7 @@ test.describe("authentication", () => {
     await page.getByLabel("كلمة المرور", { exact: true }).fill("StrongPassword123!");
     await page.getByLabel("تأكيد كلمة المرور", { exact: true }).fill("StrongPassword123!");
     await page.getByRole("button", { name: "إنشاء حساب" }).click();
-    await expect(page.getByText("تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.")).toBeVisible();
+    await expect(page.getByText(/تم إنشاء الحساب مبدئيًا/)).toBeVisible();\n    await expect(page.getByRole("button", { name: "إعادة إرسال رسالة التأكيد" })).toBeVisible();
   });
 
   test("password recovery sends a privacy-preserving confirmation", async ({ page }) => {
