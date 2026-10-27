@@ -10,7 +10,7 @@ type Message = { id: string; conversation_id: string; sender_id: string; body: s
 type Call = { id: string; conversation_id: string; caller_id: string; callee_id: string; status: string };
 const rtcConfig: RTCConfiguration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-export default function CommunicationCenter() {
+export default function CommunicationCenter({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
   const [open,setOpen]=useState(false),[tab,setTab]=useState<"chats"|"add">("chats"),[me,setMe]=useState<Profile|null>(null),[conversations,setConversations]=useState<Conversation[]>([]),[active,setActive]=useState<Conversation|null>(null),[messages,setMessages]=useState<Message[]>([]),[text,setText]=useState(""),[publicId,setPublicId]=useState(""),[found,setFound]=useState<Profile|null>(null),[error,setError]=useState(""),[busy,setBusy]=useState(false),[call,setCall]=useState<Call|null>(null),[callPeer,setCallPeer]=useState<Profile|null>(null),[callState,setCallState]=useState("idle"),[muted,setMuted]=useState(false);
   const pc=useRef<RTCPeerConnection|null>(null),stream=useRef<MediaStream|null>(null),audio=useRef<HTMLAudioElement|null>(null),signal=useRef<any>(null),callIdRef=useRef<string|null>(null),pendingIce=useRef<RTCIceCandidateInit[]>([]);
   const locale=typeof document!=="undefined"&&document.documentElement.lang==="en"?"en":"ar"; const t=(ar:string,en:string)=>locale==="en"?en:ar;
