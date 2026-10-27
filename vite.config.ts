@@ -11,6 +11,9 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
+        // Keep the optional AI engine isolated without pulling every transitive
+        // dependency into one oversized manual chunk. Dependencies are chunked by Rollup.
+        onlyExplicitManualChunks: true,
         manualChunks(id) {
           // The optional WebGPU/on-device inference engine is several megabytes.
           // Keep it in a named async chunk so the normal finance app never loads it
