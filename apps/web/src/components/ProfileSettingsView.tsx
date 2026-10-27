@@ -19,7 +19,7 @@ export default function ProfileSettingsView() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
   const tr = (ar: string, english: string) => en ? english : ar;
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");\n  const [emailConfirmed, setEmailConfirmed] = useState(false);\n  const [deleteDialog, setDeleteDialog] = useState(false);\n  const [deletePassword, setDeletePassword] = useState("");\n  const [deletePhrase, setDeletePhrase] = useState("");\n  const [deleting, setDeleting] = useState(false);
   const [settings, setSettings] = useState(defaults);
   const [busy, setBusy] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -34,7 +34,7 @@ export default function ProfileSettingsView() {
     if (!supabase) { setError(tr("الاتصال بقاعدة البيانات غير مُعد.", "Database connection is not configured.")); setBusy(false); return; }
     const { data: auth, error: authError } = await supabase.auth.getUser();
     if (authError || !auth.user) { setError(tr("يرجى تسجيل الدخول مجددًا.", "Please sign in again.")); setBusy(false); return; }
-    setEmail(auth.user.email ?? "");
+    setEmail(auth.user.email ?? "");\n    setEmailConfirmed(Boolean(auth.user.email_confirmed_at));
     const [{ data: p, error: pe }, { data: s, error: se }] = await Promise.all([
       supabase.from("profiles").select("id,public_id,full_name,username,avatar_url").eq("id", auth.user.id).maybeSingle(),
       supabase.from("user_settings").select("theme,locale,timezone,currency_code,date_format,number_format,email_notifications,transaction_alerts,bill_reminders,budget_alerts").eq("user_id", auth.user.id).maybeSingle()
@@ -107,7 +107,7 @@ export default function ProfileSettingsView() {
     setSaving(false);
   }
 
-  async function resetPassword() {
+  async function deleteAccount() {\n    if (!supabase || !profile) return;\n    if (deletePhrase.trim() !== "DELETE") { setError(tr("اكتب DELETE حرفيًا لتأكيد الحذف.", "Type DELETE exactly to confirm deletion.")); return; }\n    if (!deletePassword) { setError(tr("أدخل كلمة المرور الحالية للتحقق من هويتك.", "Enter your current password to verify your identity.")); return; }\n    setDeleting(true); setError(""); setMessage("");\n    try {\n      const { error: deleteError } = await supabase.functions.invoke("delete-account", { body: { password: deletePassword, confirmation: "DELETE" } });\n      if (deleteError) throw deleteError;\n      await supabase.auth.signOut({ scope: "local" });\n      window.location.assign("/");\n    } catch (cause) {\n      setError(cause instanceof Error ? cause.message : tr("تعذر حذف الحساب. لم يتم تأكيد نجاح الحذف.", "Could not delete the account. Deletion was not confirmed."));\n    } finally { setDeleting(false); }\n  }\n\n  async function resendEmailConfirmation() {\n    if (!supabase || !email) return;\n    setSaving(true); setError(""); setMessage("");\n    const { error: resendError } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${window.location.origin}/?auth=confirmed` } });\n    if (resendError) setError(resendError.message);\n    else setMessage(tr("تم إرسال رسالة تأكيد جديدة. افحص البريد الوارد ومجلد الرسائل غير المرغوب فيها.", "A new confirmation email was sent. Check your inbox and spam folder."));\n    setSaving(false);\n  }\n\n  async function resetPassword() {
     if (!supabase || !email) return;
     setSaving(true); const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
     if (resetError) setError(resetError.message); else setMessage(tr("تم إرسال رابط تغيير كلمة المرور.", "Password reset link sent.")); setSaving(false);
@@ -141,7 +141,7 @@ export default function ProfileSettingsView() {
       <div className="settings-card-head"><div><span className="eyebrow">01 · PROFILE</span><h3>{tr("الملف الشخصي", "Profile")}</h3><p>{tr("هذه البيانات تخص حسابك أنت فقط.", "These details belong only to your account.")}</p></div></div>
       <div className="profile-identity-row">
         <div className="profile-avatar-large">{avatarPreview || profile?.avatar_url ? <img src={avatarPreview || profile?.avatar_url || ""} alt={tr("الصورة الشخصية", "Profile photo")} /> : <span>{(profile?.full_name || profile?.username || email || "U").slice(0, 1).toUpperCase()}</span>}</div>
-        <div className="profile-identity-copy"><strong>{profile?.full_name || tr("أضف اسمك الكامل", "Add your full name")}</strong><span dir="ltr">@{profile?.username || "username"}</span><small>{email}</small></div>
+        <div className="profile-identity-copy"><strong>{profile?.full_name || tr("أضف اسمك الكامل", "Add your full name")}</strong><span dir="ltr">@{profile?.username || "username"}</span><small>{email}</small><span className={emailConfirmed ? "email-status verified" : "email-status unverified"} role="status">{emailConfirmed ? tr("✓ البريد الإلكتروني مؤكّد", "✓ Email verified") : tr("⚠ البريد الإلكتروني غير مؤكّد", "⚠ Email not verified")}</span>{!emailConfirmed && <button type="button" className="text-button email-resend-button" disabled={saving} onClick={() => void resendEmailConfirmation()}>{tr("إعادة إرسال رسالة التأكيد", "Resend confirmation email")}</button>}</div>
         <label className="secondary-button file-picker">{tr("اختيار صورة", "Choose photo")}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { setAvatarFile(event.target.files?.[0] ?? null); resetAvatarEditor(); setError(""); setMessage(""); }} /></label>
       </div>
       {avatarFile && <div className="avatar-editor">
@@ -173,7 +173,7 @@ export default function ProfileSettingsView() {
 
     <div className="settings-card">
       <div className="settings-card-head"><div><span className="eyebrow">03 · SECURITY</span><h3>{tr("أمان الحساب", "Account security")}</h3><p>{tr("إجراءات تخص حسابك فقط.", "Actions for your account only.")}</p></div></div>
-      <div className="security-row"><div><strong>{tr("كلمة المرور", "Password")}</strong><p>{tr("إرسال رابط آمن لتغيير كلمة المرور.", "Send a secure password-change link.")}</p></div><button className="secondary-button" type="button" disabled={saving} onClick={() => void resetPassword()}>{tr("تغيير كلمة المرور", "Change password")}</button></div>
+      <div className="security-row"><div><strong>{tr("كلمة المرور", "Password")}</strong><p>{tr("إرسال رابط آمن لتغيير كلمة المرور.", "Send a secure password-change link.")}</p></div><button className="secondary-button" type="button" disabled={saving} onClick={() => void resetPassword()}>{tr("تغيير كلمة المرور", "Change password")}</button></div>\n      <div className="delete-account-card"><div><strong>{tr("حذف الحساب نهائيًا", "Delete account permanently")}</strong><p>{tr("سيتم حذف حسابك وبياناتك المالية وصورك ومستنداتك المرتبطة به. لا يمكن التراجع عن هذه العملية.", "Your account, financial data, profile photo, and associated documents will be deleted. This action cannot be undone.")}</p></div><button type="button" className="danger-button" onClick={() => { setDeleteDialog(true); setDeletePassword(""); setDeletePhrase(""); setError(""); setMessage(""); }}>{tr("حذف حسابي", "Delete my account")}</button></div>\n      {deleteDialog && <div className="delete-dialog-backdrop" role="presentation"><section className="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-account-title"><h3 id="delete-account-title">{tr("تأكيد حذف الحساب", "Confirm account deletion")}</h3><p>{tr("هذا حذف نهائي وليس تسجيل خروج. أدخل كلمة مرورك واكتب DELETE للمتابعة.", "This is permanent deletion, not sign-out. Enter your password and type DELETE to continue.")}</p><label>{tr("كلمة المرور الحالية", "Current password")}<input type="password" autoComplete="current-password" value={deletePassword} onChange={event => setDeletePassword(event.target.value)} /></label><label>{tr("اكتب DELETE للتأكيد", "Type DELETE to confirm")}<input dir="ltr" autoComplete="off" value={deletePhrase} onChange={event => setDeletePhrase(event.target.value)} /></label><div className="delete-dialog-actions"><button type="button" className="secondary-button" disabled={deleting} onClick={() => setDeleteDialog(false)}>{tr("إلغاء", "Cancel")}</button><button type="button" className="danger-button" disabled={deleting || !deletePassword || deletePhrase.trim() !== "DELETE"} onClick={() => void deleteAccount()}>{deleting ? tr("جارٍ حذف الحساب…", "Deleting account…") : tr("تأكيد الحذف النهائي", "Permanently delete account")}</button></div></section></div>}
     </div>
 
     <div className="settings-card application-card">
