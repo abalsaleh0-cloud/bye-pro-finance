@@ -12,10 +12,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // The optional WebGPU/on-device inference engine is several megabytes.
+          // Keep it in a named async chunk so the normal finance app never loads it
+          // unless the user explicitly invokes local AI from the assistant.
+          if (id.includes("/node_modules/@mlc-ai/web-llm/")) return "local-ai-engine";
+
           // OCR is intentionally isolated so the main application bundle does not
           // ship the multi-megabyte Tesseract runtime on every initial load.
-          if (id.includes("node_modules/tesseract.js")) return "ocr";
-          if (id.includes("node_modules/@tesseract.js")) return "ocr";
+          if (id.includes("/node_modules/tesseract.js/")) return "ocr";
+          if (id.includes("/node_modules/@tesseract.js/")) return "ocr";
         },
       },
     },
