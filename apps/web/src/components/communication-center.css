@@ -45,7 +45,7 @@
 
 /* BYE PRO communication redesign: wide, balanced right-side workspace. */
 .communication-panel{top:12vh;bottom:12vh;left:auto;right:18px;width:min(470px,calc(100vw - 36px));height:auto;min-height:0;max-height:76dvh;border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.42)}
-.workspace.communication-open .workspace-main{margin-inline-start:0!important;margin-inline-end:490px;min-width:0}
+.workspace.communication-open .workspace-main{margin-inline-start:0!important;margin-right:490px;margin-inline-end:0;min-width:0}
 .communication-head{gap:10px;padding:14px 16px}
 .communication-head>div{min-width:0}
 .notification-enable{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 10px;border:1px solid var(--line-strong,#3a3341);border-radius:10px;background:var(--surface-3,#1c1721);color:var(--text-main,#ede8de);font-size:11px;white-space:nowrap;cursor:pointer}
@@ -83,7 +83,7 @@
 .call-mini-actions button.accept{background:var(--gold,#d4a62a);border-color:var(--gold,#d4a62a);color:#0b0a0c}
 .call-mini-actions button.reject{background:var(--crimson,#7a1f2b);border-color:var(--crimson,#7a1f2b);color:#fff}
 @media(max-width:760px){
- .workspace.communication-open .workspace-main{margin-inline-start:0!important;margin-inline-end:0}
+ .workspace.communication-open .workspace-main{margin-inline-start:0!important;margin-right:0;margin-inline-end:0}
  .communication-panel{top:auto;bottom:8px;left:8px;right:8px;width:auto;max-width:none;height:min(70dvh,620px);max-height:calc(100dvh - 24px);min-height:300px;border-radius:16px}
  .communication-head{padding:12px}
  .notification-enable{width:36px;min-width:36px;padding:0;font-size:0}
