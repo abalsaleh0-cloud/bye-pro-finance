@@ -35,5 +35,5 @@
 .communication-panel{position:fixed;top:92px;bottom:18px;left:16px;right:auto;transform:none;width:340px;max-width:calc(100vw - 32px);height:auto;min-height:0;z-index:9991;border-radius:16px}
 .communication-head{flex:none}
 .communication-panel .conversation-list,.communication-panel .add-user,.communication-panel .messages{min-height:0;overflow:auto}
-@media(max-width:760px){.workspace.communication-open .workspace-main{margin-inline-start:0}.communication-panel{top:auto;bottom:8px;left:8px;right:8px;width:auto;max-width:none;height:min(58dvh,520px);min-height:300px;border-radius:16px}.communication-trigger span:last-child{display:inline}.communication-trigger{padding-inline:9px;font-size:12px}.workspace-topbar{gap:8px}.workspace-appearance{gap:6px}}
+@media(max-width:760px){.workspace.communication-open .workspace-main{margin-inline-start:0}.communication-panel{top:auto;bottom:8px;left:8px;right:8px;width:auto;max-width:none;height:min(48dvh,420px);min-height:240px;border-radius:16px}.communication-trigger span:last-child{display:inline}.communication-trigger{padding-inline:9px;font-size:12px}.workspace-topbar{gap:8px}.workspace-appearance{gap:6px}}
 @media(max-width:420px){.communication-trigger span:last-child{display:none}.communication-trigger{min-width:38px;padding-inline:10px}.workspace-topbar{flex-wrap:wrap}.workspace-appearance{flex-wrap:wrap}}
