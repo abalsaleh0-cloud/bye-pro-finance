@@ -184,7 +184,7 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       return;
     }
     const result = await runAiAssistant(auth.client, validated.value);
-    if (!result.ok) {
+    if ("status" in result) {
       json(response, result.status, { error: result.error });
       return;
     }
