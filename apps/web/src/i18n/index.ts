@@ -40,10 +40,11 @@ export function t(key: MessageKey, locale: Locale = getStoredLocale()): string {
 export function applyLocale(locale: Locale, theme: Theme = getStoredTheme()): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  const direction = locale === "ar" ? "rtl" : "ltr";
   root.lang = locale;
-  root.dir = "rtl";
-  root.dataset.locale = "ar";
+  root.dir = direction;
+  root.dataset.locale = locale;
   root.dataset.theme = theme;
-  document.body.dataset.locale = "ar";
+  document.body.dataset.locale = locale;
   document.body.dataset.theme = theme;
 }
