@@ -15,7 +15,9 @@
 
 The repository is an established pnpm monorepo with React/Vite web, API, worker, Supabase/PostgreSQL, AI/OCR modules, PWA assets, GitHub Actions and a shared `packages/ui` package. The project has 18 primary navigation sections and existing database/RLS work documented in the repository baseline.
 
-The baseline records 19 public Supabase tables with RLS enabled, 22 live migrations, private financial-document storage, profile settings persisted per user, and previous successful CI/Auth/UI E2E runs. Remaining verification gaps include production deployment certification, real-device verification, two-user Storage isolation, production API negative-path tests, comprehensive accessibility, migration reconciliation and some Supabase Auth hardening.
+The live Supabase project was rechecked during this audit: PostgreSQL 17.11, 24 migration-ledger entries after the audit repair, RLS enabled on the financial tables, user-scoped Storage policies for private finance documents, and no PostgreSQL ERROR/FATAL/PANIC entries in the recent unified-log window queried. A real live-schema defect was found and repaired: nine finance tables had both legacy `<table>_audit` triggers and canonical `trg_audit_<table>` triggers, causing duplicate audit entries. The duplicate path was removed with a forward-only migration and the trigger inventory was reverified.
+
+Production certification remains blocked by the documented runtime/device, two-user isolation, API negative-path, performance, accessibility, PWA and deployment gates.
 
 ## 2. What was fixed in this audit branch
 
@@ -30,14 +32,16 @@ The baseline records 19 public Supabase tables with RLS enabled, 22 live migrati
 - Shared control CSS was consolidated around the new tokens and 44px minimum icon/touch controls.
 - Canonical bilingual i18n was modularized into `apps/web/src/i18n/` with `ar.ts`, `en.ts`, `keys.ts`, `formatter.ts` and `index.ts`; `apps/web/src/i18n.ts` remains a backward-compatible entry point.
 - The shared Modal now has Escape handling, focus containment, focus restoration and scroll locking, with configurable accessible close labels.
+- A forward-only Supabase migration removed the legacy duplicate finance audit triggers and restored exactly one canonical audit trigger per audited table.
+- `docs/migration-reconciliation.md` was updated from the previous 22-entry live snapshot to the current 24-entry ledger and records the live repair evidence.
 
 ## 3. What was added
 
-A production-audit document and canonical shared UI/i18n surfaces were added. No business table, API contract, Authentication flow, RLS policy, PWA mechanism, AI module, OCR module, worker or existing feature was intentionally removed by this audit branch.
+A production-audit document and canonical shared UI/i18n surfaces were added. A forward-only database repair migration was added for the verified duplicate-audit-trigger defect. No business table, API contract, Authentication flow, RLS policy, PWA mechanism, AI module, OCR module, worker or existing feature was intentionally removed by this audit branch.
 
 ## 4. What was removed
 
-Nothing intentionally removed.
+The live database repair removed only obsolete duplicate audit triggers. No business data, table, policy or API was removed.
 
 ## 5. What was consolidated
 
@@ -70,7 +74,7 @@ The canonical registry and formatters now live under `apps/web/src/i18n/`, while
 
 Status: 🟡 IMPLEMENTED BUT NOT FULLY VERIFIED.
 
-The baseline records avatar selection/cropping/zoom/save, full name, read-only email and UUID, responsive profile layout, and per-user settings. Storage ownership policies exist. Two-user Storage isolation has not yet received the required practical test.
+The baseline records avatar selection/cropping/zoom/save, full name, read-only email and UUID, responsive profile layout, and per-user settings. Storage ownership policies exist. The live `finance-documents` bucket is private with user-folder policies. The `profile-avatars` bucket is currently public, so avatar privacy remains an explicit product/security decision. Two-user Storage isolation has not yet received the required practical test.
 
 ## 9. Settings audit
 
@@ -94,7 +98,9 @@ The web package contains heavy `tesseract.js` and `@mlc-ai/web-llm` dependencies
 
 Status: 🟡 IMPLEMENTED BUT NOT FULLY VERIFIED.
 
-The baseline records RLS enabled on 19/19 public tables and user-scoped Storage policies. Required two-user tests for read/update/delete isolation and document/profile Storage isolation remain open. `profile-avatars` is currently Public and needs an explicit privacy decision before full certification.
+Live verification confirms RLS is enabled on the checked public financial tables and update policies include ownership-preserving `WITH CHECK` predicates. `finance-documents` is private with user-folder Storage policies. `profile-avatars` is public. Function grants were checked: the worker notification batch RPC is executable only by `service_role`; the user notification RPC is executable by `authenticated` and requires `auth.uid()`; the private notification helper has no ordinary-role execute grant. The duplicate audit-trigger defect was repaired and verified: all 12 canonical audited tables now have exactly one `trg_audit_*` trigger and the nine obsolete `<table>_audit` triggers are absent.
+
+Required two-user tests for actual read/update/delete isolation and document/profile Storage isolation remain open.
 
 ## 13. API audit
 
@@ -106,35 +112,39 @@ The canonical architecture retains server routes where server-side behavior adds
 
 Status: 🟡 IMPLEMENTED BUT NOT FULLY VERIFIED.
 
-The live project baseline records 22 migrations while the repository has 18 SQL migration files distributed between `supabase/migrations` and `database/migrations`. This mismatch must be reconciled against migration history before any new schema deployment. No blind migration execution is authorized.
+The live migration ledger now contains 24 entries. The repository reconciliation document records exact source matches where found, missing historical source candidates, and repository migrations that are not live-applied. A verified duplicate-audit-trigger defect was repaired through a forward-only migration; the resulting live trigger inventory was checked directly. No historical migration was blindly replayed.
+
+The repository document-processing queue migrations remain repository-only and are explicitly not marked production-applied.
 
 ## 15. Testing results
 
-For audit commit `0882868373f14bc85adf81bef8b4baf24fa548a4`, all three repository workflows completed successfully:
+For the current audit head `bb0c33c624cfe590b2dcc7426c7290cda10ff14a`:
 
-- ✅ CI run #64 — success.
-- ✅ Authentication E2E run #64 — success.
-- ✅ UI E2E run #64 — success.
+- ✅ CI run #70 — success.
+- 🟡 Authentication E2E run #70 — in progress at the latest check.
+- ⬜ UI E2E run #70 — not yet confirmed complete at the latest check.
 
-This verifies the audit branch at that commit against its automated CI/E2E gates. It does not certify real-device behavior, production deployment, two-user isolation or the remaining manual/security gates.
+The earlier audit commit had successful CI/Auth/UI E2E. The current head must not inherit that status automatically; certification requires the current head's workflow results to complete successfully.
 
 ## 16. Remaining risks
 
 1. Latest Production deployment is not yet certified READY.
-2. Real-device responsive verification is incomplete.
-3. Full i18n hardcoded-string migration is incomplete.
-4. Two-user RLS/Storage isolation tests remain required.
-5. Production API negative-path tests remain required.
-6. Migration reconciliation remains required.
-7. Profile-avatar privacy mode remains an explicit product/security decision.
-8. AI/OCR bundle budgets require measured build evidence.
-9. Complete keyboard/focus/contrast/accessibility pass remains required.
+2. Current-head Authentication/UI E2E completion is still pending.
+3. Real-device responsive verification is incomplete.
+4. Full i18n hardcoded-string migration is incomplete.
+5. Two-user RLS/Storage isolation tests remain required.
+6. Production API negative-path tests remain required.
+7. Migration reconciliation still has historical source gaps, although the verified live trigger defect is repaired.
+8. Profile-avatar privacy mode remains an explicit product/security decision.
+9. AI/OCR bundle budgets require measured build evidence.
+10. Complete keyboard/focus/contrast/accessibility pass remains required.
+11. Repository document-processing queue migrations are not live-applied and must not be represented as production-ready until deliberately verified.
 
 ## 17. Production readiness
 
 **Current gate: 🟡 NOT YET CERTIFIED.**
 
-Automated CI, Authentication E2E and UI E2E now pass on the audit branch, but the project directive prohibits calling the application complete while the remaining runtime, database, security and production gates remain open.
+Automated CI is green on the current audit head. Authentication E2E is still running at the latest observation, and the remaining runtime, database, security and production gates remain open. The project directive prohibits calling the application complete until those gates are actually verified.
 
 ## 18. Exact Definition of Done
 
@@ -152,9 +162,9 @@ Automated CI, Authentication E2E and UI E2E now pass on the audit branch, but th
 - [ ] Database migrations reconciled.
 - [ ] RLS verified with two-user tests.
 - [ ] Storage isolation verified with two-user tests.
-- [x] Audit-branch CI passes.
-- [x] Audit-branch Authentication E2E passes.
-- [x] Audit-branch UI E2E passes.
+- [x] Current-head audit-branch CI passes.
+- [ ] Current-head Authentication E2E passes.
+- [ ] Current-head UI E2E passes.
 - [ ] PWA verified.
 - [ ] Build passes in the final production gate.
 - [ ] Typecheck passes in the final production gate.
