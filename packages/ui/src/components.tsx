@@ -1,7 +1,4 @@
-import type {
-  ButtonHTMLAttributes, ComponentProps, HTMLAttributes, InputHTMLAttributes, LabelHTMLAttributes,
-  PropsWithChildren, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes
-} from "react";
+import { useEffect, useId, useRef, type ComponentProps, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type LabelHTMLAttributes, type PropsWithChildren, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 type Tone = "primary" | "secondary" | "quiet" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -29,12 +26,60 @@ export function Radio({ className = "", ...props }: InputHTMLAttributes<HTMLInpu
 export function Switch({ className = "", ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input {...props} type="checkbox" role="switch" className={["ui-switch", className].filter(Boolean).join(" ")} />; }
 export function Divider({ className = "", ...props }: HTMLAttributes<HTMLHRElement>) { return <hr {...props} className={["ui-divider", className].filter(Boolean).join(" ")} />; }
 export function EmptyState({ title, description, action, className = "" }: { title: string; description?: string; action?: ReactNode; className?: string }) { return <div className={["ui-empty-state", className].filter(Boolean).join(" ")} role="status"><h3>{title}</h3>{description ? <p>{description}</p> : null}{action}</div>; }
-export function LoadingState({ label = "Loading…" }: { label?: string }) { return <div className="ui-loading" role="status" aria-live="polite"><span className="ui-spinner" aria-hidden="true" />{label}</div>; }
+export function LoadingState({ label = "Loading…" }: { label?: string }) { return <div className="ui-loading" role="status" aria-live="polite" aria-label={label}><span className="ui-spinner" aria-hidden="true" />{label}</div>; }
 export function Skeleton({ className = "" }: { className?: string }) { return <span className={["ui-skeleton", className].filter(Boolean).join(" ")} aria-hidden="true" />; }
 export function Alert({ children, tone = "neutral", className = "" }: PropsWithChildren<{ tone?: "neutral" | "success" | "warning" | "danger"; className?: string }>) { return <div className={["ui-alert", `ui-alert--${tone}`, className].filter(Boolean).join(" ")} role={tone === "danger" ? "alert" : "status"}>{children}</div>; }
-export function Modal({ open, title, description, children, onClose, actions, danger = false }: { open: boolean; title: string; description?: string; children?: ReactNode; onClose: () => void; actions?: ReactNode; danger?: boolean }) { if (!open) return null; return <div className="ui-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className={["ui-modal", danger ? "ui-modal--danger" : ""].filter(Boolean).join(" ")} role="dialog" aria-modal="true" aria-labelledby="ui-modal-title" aria-describedby={description ? "ui-modal-description" : undefined}><div className="ui-modal__head"><div><h2 id="ui-modal-title">{title}</h2>{description ? <p id="ui-modal-description">{description}</p> : null}</div><IconButton label="Close" onClick={onClose}>×</IconButton></div>{children ? <div className="ui-modal__body">{children}</div> : null}<div className="ui-modal__actions">{actions}</div></section></div>; }
+export function Modal({ open, title, description, children, onClose, actions, danger = false, closeLabel = "Close" }: { open: boolean; title: string; description?: string; children?: ReactNode; onClose: () => void; actions?: ReactNode; danger?: boolean; closeLabel?: string }) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLElement>(null);
+  const restoreRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open || typeof document === "undefined") return;
+    restoreRef.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dialog = dialogRef.current;
+    dialog?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>("a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])"));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      restoreRef.current?.focus?.();
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return <div className="ui-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialogRef} tabIndex={-1} className={["ui-modal", danger ? "ui-modal--danger" : ""].filter(Boolean).join(" ")} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><div className="ui-modal__head"><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><IconButton label={closeLabel} onClick={onClose}>×</IconButton></div>{children ? <div className="ui-modal__body">{children}</div> : null}<div className="ui-modal__actions">{actions}</div></section></div>;
+}
 export function ConfirmDialog(props: ComponentProps<typeof Modal>) { return <Modal {...props} />; }
-export function Drawer({ open, title, children, onClose }: { open: boolean; title: string; children?: ReactNode; onClose: () => void }) { return open ? <aside className="ui-drawer" role="dialog" aria-modal="true" aria-label={title}><div className="ui-drawer__head"><h2>{title}</h2><IconButton label="Close" onClick={onClose}>×</IconButton></div>{children}</aside> : null; }
+export function Drawer({ open, title, children, onClose, closeLabel = "Close" }: { open: boolean; title: string; children?: ReactNode; onClose: () => void; closeLabel?: string }) { return open ? <aside className="ui-drawer" role="dialog" aria-modal="true" aria-label={title}><div className="ui-drawer__head"><h2>{title}</h2><IconButton label={closeLabel} onClick={onClose}>×</IconButton></div>{children}</aside> : null; }
 export function Sheet(props: ComponentProps<typeof Drawer>) { return <Drawer {...props} />; }
 export function Toast({ children, tone = "neutral" }: PropsWithChildren<{ tone?: "neutral" | "success" | "warning" | "danger" }>) { return <div className={["ui-toast", `ui-toast--${tone}`].join(" ")} role="status">{children}</div>; }
 export function Tabs({ children, className = "", ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) { return <div {...props} className={["ui-tabs", className].filter(Boolean).join(" ")}>{children}</div>; }
@@ -42,5 +87,5 @@ export function Dropdown({ children, className = "", ...props }: PropsWithChildr
 export function Tooltip({ label, children }: PropsWithChildren<{ label: string }>) { return <span className="ui-tooltip" data-tooltip={label}>{children}</span>; }
 export function Avatar({ src, alt = "", children }: { src?: string; alt?: string; children?: ReactNode }) { return <span className="ui-avatar">{src ? <img src={src} alt={alt} /> : children}</span>; }
 export function AvatarEditor({ children }: PropsWithChildren) { return <div className="ui-avatar-editor">{children}</div>; }
-export function Pagination({ children }: PropsWithChildren) { return <nav className="ui-pagination" aria-label="Pagination">{children}</nav>; }
+export function Pagination({ children, label = "Pagination" }: PropsWithChildren<{ label?: string }>) { return <nav className="ui-pagination" aria-label={label}>{children}</nav>; }
 export function DataTable({ children, className = "", ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) { return <div {...props} className={["ui-table-scroll", className].filter(Boolean).join(" ")}>{children}</div>; }
