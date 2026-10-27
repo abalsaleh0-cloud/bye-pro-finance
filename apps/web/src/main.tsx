@@ -7,7 +7,6 @@ import "./global-controls.css";
 import "./responsive-stage.css";
 import "./final-ui-contract.css";
 import "./final-ui-overrides.css";
-import "./visual-mobile-overrides.css";
 import { applyLocale, getStoredLocale } from "./i18n";
 
 applyLocale(getStoredLocale());
