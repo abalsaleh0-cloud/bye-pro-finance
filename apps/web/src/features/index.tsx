@@ -1,14 +1,16 @@
-import { lazy, Suspense, type ComponentType, type ComponentProps } from "react";
-
-type FeatureComponent = ComponentType<{ module: string }>;
+import { lazy, Suspense, type ComponentType } from "react";
 
 /**
  * Feature views are loaded on demand so the authenticated shell does not
  * download every financial module before the user opens it.
+ *
+ * The feature set intentionally contains both zero-prop views and views that
+ * receive a module key, so the loader keeps the component prop contract open
+ * while preserving the runtime component type returned by React.lazy.
  */
-function lazyFeature(loader: () => Promise<{ default: FeatureComponent }>) {
+function lazyFeature(loader: () => Promise<{ default: ComponentType<any> }>) {
   const Component = lazy(loader);
-  return function LazyFeature(props: ComponentProps<FeatureComponent>) {
+  return function LazyFeature(props: any) {
     return (
       <Suspense fallback={<div className="feature-loading" role="status" aria-live="polite">Loading…</div>}>
         <Component {...props} />
