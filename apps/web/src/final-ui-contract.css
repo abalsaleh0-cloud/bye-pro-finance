@@ -128,7 +128,7 @@ html[data-theme="light"] .application-note{background:#fff8e8!important;border-c
   .workspace{display:block!important;}
   .sidebar{min-height:auto!important;position:sticky;top:0;z-index:50;padding:12px!important;border-inline-end:0!important;border-bottom:1px solid var(--app-line)!important;}
   .sidebar .brand{padding-bottom:10px!important;border-bottom:0!important;}
-  .main-nav{grid-template-columns:repeat(3,minmax(0,1fr));}
+  
   .nav-caption,.sidebar-bottom{display:none!important;}
   .nav-item{min-height:42px!important;padding:8px!important;}
   .workspace-main{padding:20px 16px!important;}
