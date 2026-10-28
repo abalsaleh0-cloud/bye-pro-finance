@@ -29,6 +29,10 @@ export default function ProfileSettingsView() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [zoom, setZoom] = useState(1);
+  const [clearDialog, setClearDialog] = useState(false);
+  const [clearPassword, setClearPassword] = useState("");
+  const [clearPhrase, setClearPhrase] = useState("");
+  const [clearing, setClearing] = useState(false);
 
   const load = async () => {
     if (!supabase) { setError(tr("الاتصال بقاعدة البيانات غير مُعد.", "Database connection is not configured.")); setBusy(false); return; }
@@ -113,6 +117,27 @@ export default function ProfileSettingsView() {
     if (resetError) setError(resetError.message); else setMessage(tr("تم إرسال رابط تغيير كلمة المرور.", "Password reset link sent.")); setSaving(false);
   }
 
+  async function clearAllData() {
+    if (!supabase || !profile || clearPhrase !== "CLEAR_ALL_DATA" || !clearPassword) return;
+    setClearing(true); setError(""); setMessage("");
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke("clear-all-data", {
+        body: { password: clearPassword, confirmation: "CLEAR_ALL_DATA" }
+      });
+      if (invokeError) throw invokeError;
+      if (!data?.success) throw new Error(data?.error || tr("تعذر مسح البيانات.", "Could not clear data."));
+      setSettings(defaults);
+      setProfile(current => current ? { ...current, avatar_url: null } : current);
+      setAvatarFile(null); setAvatarPreview("");
+      setClearDialog(false); setClearPassword(""); setClearPhrase("");
+      setStoredTheme(defaults.theme); setStoredLocale(defaults.locale); applyLocale(defaults.locale, defaults.theme);
+      window.dispatchEvent(new CustomEvent("bye-profile-updated"));
+      setMessage(tr("تم مسح جميع بياناتك بنجاح. بقي حساب الدخول والهوية الأساسية فقط.", "All your data was cleared successfully. Your sign-in account and basic identity remain."));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : tr("تعذر مسح البيانات.", "Could not clear data."));
+    } finally { setClearing(false); }
+  }
+
   if (busy) return <section className="panel"><p>{tr("جارٍ تحميل ملفك الشخصي…", "Loading your profile…")}</p></section>;
   const publicId = String(profile?.public_id ?? fallbackPublicId(profile?.id ?? "")).padStart(6, "0");
   const patch = (value: Partial<UserSettings>) => setSettings(current => ({ ...current, ...value }));
@@ -176,10 +201,25 @@ export default function ProfileSettingsView() {
       <div className="security-row"><div><strong>{tr("كلمة المرور", "Password")}</strong><p>{tr("إرسال رابط آمن لتغيير كلمة المرور.", "Send a secure password-change link.")}</p></div><button className="secondary-button" type="button" disabled={saving} onClick={() => void resetPassword()}>{tr("تغيير كلمة المرور", "Change password")}</button></div>
     </div>
 
+    <div className="settings-card clear-data-card">
+      <div className="settings-card-head"><div><span className="eyebrow">04 · DATA</span><h3>{tr("مسح جميع البيانات", "Clear all data")}</h3><p>{tr("يمسح بياناتك المالية والمستندات والإشعارات والبيانات الشخصية القابلة للحذف، مع الإبقاء على حساب تسجيل الدخول والهوية الأساسية.", "Clears your financial data, documents, notifications, and deletable personal data while keeping your sign-in account and basic identity.")}</p></div></div>
+      <div className="clear-data-warning"><strong>{tr("هذا الإجراء نهائي ولا يمكن التراجع عنه.", "This action is permanent and cannot be undone.")}</strong><span>{tr("سيُطلب منك إدخال كلمة المرور وعبارة التأكيد قبل التنفيذ.", "Your password and an exact confirmation phrase are required before execution.")}</span></div>
+      <div className="settings-actions"><button className="danger-button" type="button" onClick={() => { setClearDialog(true); setClearPassword(""); setClearPhrase(""); setError(""); }}>{tr("مسح جميع البيانات", "Clear all data")}</button></div>
+    </div>
+
     <div className="settings-card application-card">
-      <div className="settings-card-head"><div><span className="eyebrow">04 · APPLICATION</span><h3>{tr("إعدادات التطبيق وخصائص المشروع", "Application settings & project properties")}</h3><p>{tr("هذا القسم يخص التطبيق نفسه: البنية، البيانات، الأمان، الخدمات والخصائص العامة. لا يتم حفظه ضمن إعدادات المستخدم.", "This section belongs to the application itself: architecture, data, security, services, and general capabilities. It is not stored as user settings.")}</p></div></div>
+      <div className="settings-card-head"><div><span className="eyebrow">05 · APPLICATION</span><h3>{tr("إعدادات التطبيق وخصائص المشروع", "Application settings & project properties")}</h3><p>{tr("هذا القسم يخص التطبيق نفسه: البنية، البيانات، الأمان، الخدمات والخصائص العامة. لا يتم حفظه ضمن إعدادات المستخدم.", "This section belongs to the application itself: architecture, data, security, services, and general capabilities. It is not stored as user settings.")}</p></div></div>
       <div className="application-grid">{application.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
       <div className="application-note">{tr("ملاحظة: معرف المستخدم الداخلي في Supabase يبقى UUID لأغراض الملكية والعزل الأمني، بينما الرقم الظاهر للمستخدم هو المعرف العام المختصر من 6 أرقام.", "Note: the internal Supabase user identifier remains a UUID for ownership and security, while the user-facing ID is the short 6-digit public identifier.")}</div>
     </div>
+
+    {clearDialog && <div className="clear-data-modal-backdrop" role="presentation" onMouseDown={event => { if (event.currentTarget === event.target && !clearing) setClearDialog(false); }}>
+      <div className="clear-data-modal" role="dialog" aria-modal="true" aria-labelledby="clear-all-data-title">
+        <div className="settings-card-head"><div><span className="eyebrow">CONFIRMATION REQUIRED</span><h3 id="clear-all-data-title">{tr("تأكيد مسح جميع البيانات", "Confirm clear all data")}</h3><p>{tr("سيتم حذف البيانات الخاصة بك من قاعدة البيانات والتخزين. لن يتم حذف حساب تسجيل الدخول نفسه.", "Your data will be removed from the database and storage. Your sign-in account itself will not be deleted.")}</p></div></div>
+        <label className="profile-field"><span>{tr("كلمة المرور الحالية", "Current password")}</span><input type="password" value={clearPassword} onChange={event => setClearPassword(event.target.value)} autoComplete="current-password" /></label>
+        <label className="profile-field clear-phrase-field"><span>{tr("اكتب العبارة التالية حرفيًا", "Type the following phrase exactly")}</span><strong className="clear-phrase-code">CLEAR_ALL_DATA</strong><input value={clearPhrase} onChange={event => setClearPhrase(event.target.value)} autoComplete="off" spellCheck={false} dir="ltr" /></label>
+        <div className="clear-data-modal-actions"><button type="button" className="secondary-button" disabled={clearing} onClick={() => setClearDialog(false)}>{tr("إلغاء", "Cancel")}</button><button type="button" className="danger-button" disabled={clearing || !clearPassword || clearPhrase !== "CLEAR_ALL_DATA"} onClick={() => void clearAllData()}>{clearing ? tr("جارٍ المسح…", "Clearing…") : tr("تأكيد المسح النهائي", "Confirm permanent clear")}</button></div>
+      </div>
+    </div>}
   </section>;
 }
