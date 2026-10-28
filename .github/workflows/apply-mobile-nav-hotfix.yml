@@ -1,0 +1,54 @@
+name: Apply mobile navigation hotfix
+
+on:
+  push:
+    paths:
+      - .github/workflows/apply-mobile-nav-hotfix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/production-hardening-2026-10
+          fetch-depth: 0
+      - name: Apply report hotfix
+        shell: python
+        run: |
+          from pathlib import Path
+
+          styles = Path('apps/web/src/styles.css')
+          s = styles.read_text()
+          for old in [
+              '.main-nav{grid-template-columns:repeat(2,minmax(0,1fr))}',
+              '.main-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }',
+              '.main-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }',
+          ]:
+              s = s.replace(old, '')
+          s = s.replace(
+              '.nav-item > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }',
+              '.nav-item > span:nth-child(2) { min-width: 0; overflow-wrap: normal; }'
+          )
+          styles.write_text(s)
+
+          contract = Path('apps/web/src/final-ui-contract.css')
+          s = contract.read_text().replace(
+              '.main-nav{grid-template-columns:repeat(3,minmax(0,1fr));}',
+              ''
+          )
+          contract.write_text(s)
+
+      - name: Remove temporary workflow and commit
+        shell: bash
+        run: |
+          rm -f .github/workflows/apply-mobile-nav-hotfix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/styles.css apps/web/src/final-ui-contract.css .github/workflows/apply-mobile-nav-hotfix.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: mobile navigation regression'
+          git push origin HEAD:audit/production-hardening-2026-10
