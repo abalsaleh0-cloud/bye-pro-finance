@@ -13,14 +13,25 @@ export function createSupabaseUserLookup(
 ): UserLookup | null {
   if (!url || !publishableKey) return null;
 
-  const client = createClient(url, publishableKey, {
+  // Keep the Supabase client for consistent project configuration, while using
+  // the Auth REST endpoint for token validation. This avoids SDK overload/type
+  // differences across @supabase/supabase-js versions.
+  createClient(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 
   return async (accessToken) => {
-    const { data, error } = await client.auth.getUser(accessToken);
-    if (error || !data.user) return null;
-    return { id: data.user.id, email: data.user.email ?? null };
+    const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/user`, {
+      method: "GET",
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!response.ok) return null;
+    const user = (await response.json()) as { id?: unknown; email?: unknown };
+    if (typeof user.id !== "string" || !user.id) return null;
+    return { id: user.id, email: typeof user.email === "string" ? user.email : null };
   };
 }
 
