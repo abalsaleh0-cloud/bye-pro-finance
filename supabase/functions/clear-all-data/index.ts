@@ -17,34 +17,14 @@ function corsHeaders(origin: string | null) {
 }
 
 const tableKeys = [
-  "debt_payments",
-  "documents",
-  "transactions",
-  "transfers",
-  "budgets",
-  "debts",
-  "bills",
-  "savings_goals",
-  "assets",
-  "accounts",
-  "categories",
-  "household_expenses",
-  "household_budgets",
-  "household_members",
-  "notifications",
-  "push_subscriptions",
-  "push_notification_deliveries",
-  "voice_calls",
-  "voice_call_signals",
-  "messages",
-  "friend_requests",
-  "conversation_participants",
-  "audit_logs",
+  "debt_payments", "documents", "transactions", "transfers", "budgets", "debts", "bills", "savings_goals", "assets", "accounts", "categories",
+  "household_expenses", "household_budgets", "household_members", "notifications", "push_subscriptions", "push_notification_deliveries", "voice_calls",
+  "voice_call_signals", "messages", "friend_requests", "conversation_participants", "audit_logs",
 ] as const;
 
 async function removeUserStorageFiles(admin: ReturnType<typeof createClient>, bucket: string, userId: string) {
   const paths: string[] = [];
-  const queue = [""];
+  const queue = [userId];
   while (queue.length) {
     const prefix = queue.shift()!;
     const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: 1000, offset: 0 });
@@ -53,7 +33,7 @@ async function removeUserStorageFiles(admin: ReturnType<typeof createClient>, bu
       throw error;
     }
     for (const item of data ?? []) {
-      const path = prefix ? `${prefix}/${item.name}` : item.name;
+      const path = `${prefix}/${item.name}`;
       if (item.id) paths.push(path);
       else queue.push(path);
     }
@@ -78,9 +58,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const password = typeof body.password === "string" ? body.password : "";
     const confirmation = typeof body.confirmation === "string" ? body.confirmation : "";
-    if (!password || confirmation !== "CLEAR_ALL_DATA") {
-      return new Response(JSON.stringify({ error: "CONFIRMATION_REQUIRED" }), { status: 400, headers });
-    }
+    if (!password || confirmation !== "CLEAR_ALL_DATA") return new Response(JSON.stringify({ error: "CONFIRMATION_REQUIRED" }), { status: 400, headers });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -98,9 +76,9 @@ Deno.serve(async (req) => {
 
     for (const table of tableKeys) {
       let query = admin.from(table).delete();
-      if (["voice_calls"].includes(table)) query = query.or(`caller_id.eq.${userId},callee_id.eq.${userId}`) as typeof query;
-      else if (["friend_requests"].includes(table)) query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`) as typeof query;
-      else if (["messages", "conversation_participants", "push_subscriptions", "push_notification_deliveries", "audit_logs", "debt_payments", "documents", "transactions", "transfers", "budgets", "debts", "bills", "savings_goals", "assets", "accounts", "categories", "household_expenses", "household_budgets", "household_members", "notifications", "voice_call_signals"].includes(table)) query = query.eq("user_id", userId) as typeof query;
+      if (table === "voice_calls") query = query.or(`caller_id.eq.${userId},callee_id.eq.${userId}`) as typeof query;
+      else if (table === "friend_requests") query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`) as typeof query;
+      else if (table === "messages" || table === "voice_call_signals") query = query.eq("sender_id", userId) as typeof query;
       else if (table === "push_notification_deliveries") query = query.eq("recipient_id", userId) as typeof query;
       else query = query.eq("user_id", userId) as typeof query;
       const { data, error } = await query.select("id");
@@ -117,9 +95,7 @@ Deno.serve(async (req) => {
     if (settingsError && !/relation .* does not exist/i.test(settingsError.message)) throw settingsError;
 
     const storageCounts: Record<string, number> = {};
-    for (const bucket of ["finance-documents", "profile-avatars"]) {
-      storageCounts[bucket] = await removeUserStorageFiles(admin, bucket, userId);
-    }
+    for (const bucket of ["finance-documents", "profile-avatars"]) storageCounts[bucket] = await removeUserStorageFiles(admin, bucket, userId);
 
     return new Response(JSON.stringify({ success: true, user_id: userId, counts, storage: storageCounts }), { status: 200, headers });
   } catch (error) {
