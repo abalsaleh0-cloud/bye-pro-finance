@@ -15,7 +15,8 @@ table{max-width:100%}
 :where(button,a,[role="button"]) :where(svg,img,.icon){flex:0 0 auto;width:var(--stage-icon);height:var(--stage-icon);max-width:var(--stage-icon);max-height:var(--stage-icon);object-fit:contain}
 :where(button,a,[role="button"]) :where(.icon-sm){width:16px;height:16px;max-width:16px;max-height:16px}
 :where(button,a,[role="button"]) :where(.icon-lg){width:24px;height:24px;max-width:24px;max-height:24px}
-:where(h1,h2,h3,h4,h5,h6,p,span,label,strong,small,a,td,th){overflow-wrap:anywhere}
+/* Keep ordinary UI text intact on narrow screens; only break when truly necessary. */
+:where(h1,h2,h3,h4,h5,h6,p,span,label,strong,small,a,td,th){overflow-wrap:break-word;word-break:normal}
 :where(input,select,textarea){min-width:0;max-width:100%}
 .category-manager{min-width:0;max-width:100%;margin-top:var(--stage-gap)}
 .category-manager header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
