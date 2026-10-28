@@ -6,7 +6,7 @@ import { createUserScopedClient } from "./database/user-client.js";
 import { readJsonBody } from "./finance/transactions.js";
 import { validateTransferInput } from "./finance/transfers.js";
 import { buildIdempotentTransferId, normalizeIdempotencyKey } from "./finance/idempotency.js";
-import { consumeAiRateLimit, runAiAssistant, validateAiRequest } from "./ai/index.js";
+import { consumeAiRateLimit, runAiAssistant, validateAiRequest, type AiFailure } from "./ai/index.js";
 
 const port = Number(process.env.PORT ?? 3001);
 const lookupUser = createSupabaseUserLookup();
@@ -184,8 +184,9 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
       return;
     }
     const result = await runAiAssistant(auth.client, validated.value);
-    if (!result.ok) {
-      json(response, result.status, { error: result.error });
+    if (result.ok === false) {
+      const failure: AiFailure = result;
+      json(response, failure.status, { error: failure.error });
       return;
     }
     json(response, 200, { data: result });
