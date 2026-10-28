@@ -75,6 +75,9 @@ for (const locale of ["ar", "en"] as const) {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     expect(await page.locator("html").getAttribute("lang")).toBe(locale);
+    expect(await page.locator("html").getAttribute("dir")).toBe(locale === "ar" ? "rtl" : "ltr");
+    expect(await page.locator("html").getAttribute("data-locale")).toBe(locale);
+    expect(await page.locator("body").getAttribute("data-locale")).toBe(locale);
 
     for (const [ar, en] of screens) {
       const label = locale === "ar" ? ar : en;

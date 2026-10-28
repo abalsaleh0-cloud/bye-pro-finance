@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { Icon } from "../../../../packages/ui/src";
+import { Icon, type IconName } from "../../../../packages/ui/src";
 import { supabase } from "../lib/supabase";
 
 type Category = { id: string; user_id: string | null; name: string; kind: "income" | "expense" | "adjustment" | "transfer"; icon: string | null; color: string | null; is_system: boolean };
+
+const categoryIcon = (row: Category): IconName => {
+  const requested = row.icon as IconName | null;
+  if (requested === "trending-up" || requested === "trending-down" || requested === "folder" || requested === "clipboard" || requested === "credit-card" || requested === "wallet" || requested === "calendar-days" || requested === "home" || requested === "tag" as IconName) {
+    return requested === ("tag" as IconName) ? "clipboard" : requested;
+  }
+  return row.kind === "income" ? "trending-up" : "clipboard";
+};
 
 export default function CategoryManager() {
   const en = typeof document !== "undefined" && document.documentElement.lang === "en";
@@ -58,7 +66,7 @@ export default function CategoryManager() {
   const expense = rows.filter(row => row.kind === "expense");
   const render = (items: Category[]) => items.map(row => (
     <article className="data-row" key={row.id}>
-      <span className="account-type-icon"><Icon name={row.icon as any || (row.kind === "income" ? "trending-up" : "tag")} size={18} /></span>
+      <span className="account-type-icon"><Icon name={categoryIcon(row)} size={18} /></span>
       <div><strong>{row.name}</strong><small>{row.is_system ? tr("تصنيف نظامي", "System category") : tr("تصنيفك", "Your category")}</small></div>
       {!row.is_system && <div className="category-actions"><button type="button" className="text-button" onClick={() => openEdit(row)}>{tr("تعديل", "Edit")}</button><button type="button" className="text-button danger-text" onClick={() => void remove(row)}>{tr("حذف", "Delete")}</button></div>}
     </article>

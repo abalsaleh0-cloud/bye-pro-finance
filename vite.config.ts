@@ -12,10 +12,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // OCR is intentionally isolated so the main application bundle does not
-          // ship the multi-megabyte Tesseract runtime on every initial load.
-          if (id.includes("node_modules/tesseract.js")) return "ocr";
-          if (id.includes("node_modules/@tesseract.js")) return "ocr";
+          // The optional WebGPU/on-device inference engine is several megabytes.
+          // Keep it in a named async chunk so the normal finance app never loads it
+          // unless the user explicitly invokes local AI from the assistant.
+          if (id.includes("/node_modules/@mlc-ai/web-llm/")) return "local-ai-engine";
+
+          // Leave Tesseract's async import to Rollup's native chunking. Forcing
+          // the package into a manual chunk can move shared preload helpers into
+          // that chunk and make the generated HTML preload OCR on initial load.
         },
       },
     },

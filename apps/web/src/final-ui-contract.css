@@ -21,7 +21,6 @@
 html,body,#root{min-width:320px;min-height:100%;}
 body{background:var(--app-bg);color:var(--app-text);}
 
-/* One field contract everywhere: same height, radius, padding and typography. */
 :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea,input[type="file"]){
   box-sizing:border-box!important;
   width:100%!important;
@@ -43,12 +42,10 @@ body{background:var(--app-bg);color:var(--app-text);}
 :where(input)::placeholder,:where(textarea)::placeholder{color:var(--app-muted)!important;opacity:1;}
 :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea,input[type="file"]):focus{outline:none!important;border-color:var(--field-focus)!important;box-shadow:0 0 0 1px var(--field-focus)!important;}
 
-/* Prevent the home identity chip from duplicating the username under the full name. */
 .profile-chip-copy{display:grid!important;min-width:0;gap:0!important;}
 .profile-chip-copy strong{display:block!important;color:var(--app-text)!important;font-size:12px;}
 .profile-chip-copy small{display:none!important;}
 
-/* Light theme: every major surface follows the same light palette. */
 html[data-theme="light"],body[data-theme="light"]{
   --app-bg:#f4f4f6;
   --app-panel:#ffffff;
@@ -113,12 +110,9 @@ html[data-theme="light"] .notice{background:#fff!important;color:#303238;}
 html[data-theme="light"] .notice.warning{background:#fff8e8!important;color:#765a16!important;}
 html[data-theme="light"] .notice.error{background:#fff0f1!important;color:#8d2833!important;}
 html[data-theme="light"] .notice.success{background:#edf8f1!important;color:#246744!important;}
-
-/* Profile/user settings/application sections stay visually distinct. */
 html[data-theme="light"] .settings-toggles label{background:#fff!important;border-color:var(--app-line)!important;color:#303238!important;}
 html[data-theme="light"] .application-note{background:#fff8e8!important;border-color:#e5d7b6!important;color:#666a74!important;}
 
-/* Responsive tiers: mobile, tablet and desktop, with fluid widths between them. */
 .app-shell{width:min(1120px,calc(100% - 40px));}
 .workspace-main{width:min(1280px,100%);}
 
@@ -134,7 +128,7 @@ html[data-theme="light"] .application-note{background:#fff8e8!important;border-c
   .workspace{display:block!important;}
   .sidebar{min-height:auto!important;position:sticky;top:0;z-index:50;padding:12px!important;border-inline-end:0!important;border-bottom:1px solid var(--app-line)!important;}
   .sidebar .brand{padding-bottom:10px!important;border-bottom:0!important;}
-  .main-nav{grid-template-columns:repeat(3,minmax(0,1fr));}
+  
   .nav-caption,.sidebar-bottom{display:none!important;}
   .nav-item{min-height:42px!important;padding:8px!important;}
   .workspace-main{padding:20px 16px!important;}
@@ -153,4 +147,52 @@ html[data-theme="light"] .application-note{background:#fff8e8!important;border-c
   .profile-chip{max-width:100%!important;}
   .welcome-panel{padding:20px!important;}
   .module-card{min-height:120px!important;}
+}
+
+/* Mobile workspace header: keep identity and appearance controls directly under the BYE PRO FINANCE brand. */
+@media (max-width:760px){
+  .sidebar{padding-top:12px!important;padding-bottom:0!important;}
+  .workspace-topbar{
+    position:absolute!important;
+    inset-inline:12px!important;
+    top:70px!important;
+    z-index:60!important;
+    display:block!important;
+    width:auto!important;
+    padding:0!important;
+    border:0!important;
+    pointer-events:none!important;
+  }
+  .workspace-topbar>div:first-child{display:none!important;}
+  .workspace-appearance{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    gap:8px!important;
+    width:100%!important;
+    pointer-events:auto!important;
+  }
+  .profile-chip{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+    max-width:none!important;
+    justify-content:flex-start!important;
+    margin:0!important;
+    min-height:44px!important;
+  }
+  .appearance-controls{display:flex!important;align-items:center!important;gap:6px!important;}
+  .workspace-appearance .appearance-button{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:8px!important;}
+  .workspace-main{padding-top:18px!important;}
+  .sidebar .brand{position:relative!important;z-index:61!important;}
+  .nav-caption{display:block!important;margin-top:112px!important;}
+  .main-nav{margin-top:8px!important;}
+}
+@media (max-width:480px){
+  .workspace-topbar{inset-inline:10px!important;top:68px!important;}
+  .nav-caption{margin-top:110px!important;}
+  .workspace-appearance{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important;}
+  .workspace-appearance .appearance-button{width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;font-size:14px!important;}
+  .profile-chip{min-height:42px!important;padding:5px 9px 5px 6px!important;}
+  .profile-chip .avatar{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;}
 }
