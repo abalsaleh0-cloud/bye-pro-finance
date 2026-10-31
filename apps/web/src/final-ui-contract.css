@@ -3,12 +3,12 @@
  * or different control geometry.
  */
 :root{
-  --app-bg:#101114;
-  --app-panel:#181a1f;
-  --app-panel-soft:#1e1f24;
-  --app-line:#2b2d34;
-  --app-text:#f1f0eb;
-  --app-muted:#a5a7b0;
+  --app-bg:var(--bg,#101114);
+  --app-panel:var(--panel,#181a1f);
+  --app-panel-soft:var(--panel-soft,#1e1f24);
+  --app-line:var(--line,#2b2d34);
+  --app-text:var(--ui-text,#f1f0eb);
+  --app-muted:var(--muted,#a5a7b0);
   --field-bg:#101115;
   --field-text:#f7f4ec;
   --field-border:#363740;
@@ -50,16 +50,16 @@ body{background:var(--app-bg);color:var(--app-text);}
 
 /* Light theme: every major surface follows the same light palette. */
 html[data-theme="light"],body[data-theme="light"]{
-  --app-bg:#f4f4f6;
+  --app-bg:var(--ui-bg,#f4f5f7);
   --app-panel:#ffffff;
-  --app-panel-soft:#f3f3f5;
-  --app-line:#d7d8dd;
-  --app-text:#17181c;
-  --app-muted:#666a74;
+  --app-panel-soft:var(--ui-surface-raised,#f0f1f4);
+  --app-line:var(--ui-border,#d9dce3);
+  --app-text:var(--ui-text,#20232a);
+  --app-muted:var(--ui-muted,#626875);
   --field-bg:#ffffff;
-  --field-text:#17181c;
-  --field-border:#c8c9cf;
-  --field-focus:#a67c12;
+  --field-text:var(--ui-text,#20232a);
+  --field-border:#cbd0d9;
+  --field-focus:var(--ui-accent,#8a671d);
 }
 html[data-theme="light"] body,body[data-theme="light"]{background:var(--app-bg)!important;color:var(--app-text)!important;}
 html[data-theme="light"] .workspace,
@@ -68,11 +68,11 @@ html[data-theme="light"] .data-view,
 html[data-theme="light"] .dashboard-view,
 html[data-theme="light"] .profile-settings-page{color:var(--app-text);}
 html[data-theme="light"] .sidebar{background:#fff!important;border-color:var(--app-line)!important;}
-html[data-theme="light"] .workspace-main{background:#f4f4f6!important;}
+html[data-theme="light"] .workspace-main{background:var(--app-bg)!important;}
 html[data-theme="light"] .topbar,
 html[data-theme="light"] .workspace-topbar{border-color:var(--app-line)!important;}
-html[data-theme="light"] .nav-item{color:#555963!important;}
-html[data-theme="light"] .nav-item:hover{background:#f1f1f3!important;color:#17181c!important;}
+html[data-theme="light"] .nav-item{color:var(--app-text)!important;}
+html[data-theme="light"] .nav-item:hover{background:var(--app-panel-soft)!important;color:var(--app-text)!important;}
 html[data-theme="light"] .nav-item.active{background:#f2ead7!important;color:#4a3a1c!important;border-color:#b89d60!important;}
 html[data-theme="light"] .module-card,
 html[data-theme="light"] .metric-card,
@@ -90,20 +90,20 @@ html[data-theme="light"] .avatar-editor,
 html[data-theme="light"] .security-row,
 html[data-theme="light"] .application-grid>div{background:#fff!important;color:#17181c;border-color:var(--app-line)!important;}
 html[data-theme="light"] .module-card:hover,html[data-theme="light"] .module-card.selected{background:#fffdf8!important;border-color:#b89d60!important;}
-html[data-theme="light"] .welcome-panel{background:linear-gradient(120deg,#fff,#f2eee6)!important;color:#17181c!important;border-color:#d8c8a3!important;}
+html[data-theme="light"] .welcome-panel{background:linear-gradient(120deg,#fff,#f2eee6)!important;color:var(--app-text)!important;border-color:#d8c8a3!important;}
 html[data-theme="light"] .welcome-panel p:last-child,
 html[data-theme="light"] .muted-copy,
 html[data-theme="light"] .module-card p,
 html[data-theme="light"] .profile-field small,
 html[data-theme="light"] .settings-card-head p,
 html[data-theme="light"] .security-row p,
-html[data-theme="light"] .application-grid span{color:#666a74!important;}
-html[data-theme="light"] .table-head{background:#f1f1f3!important;color:#666a74!important;border-color:var(--app-line)!important;}
-html[data-theme="light"] .table-row{color:#303238!important;border-color:#e4e4e7!important;}
-html[data-theme="light"] .empty-state{border-color:#c8c9cf!important;color:#666a74!important;}
-html[data-theme="light"] .footer{color:#666a74!important;border-color:var(--app-line)!important;}
-html[data-theme="light"] .profile-chip{background:#fff!important;border-color:var(--app-line)!important;color:#17181c!important;}
-html[data-theme="light"] .profile-chip-copy strong{color:#17181c!important;}
+html[data-theme="light"] .application-grid span{color:var(--app-muted)!important;}
+html[data-theme="light"] .table-head{background:var(--app-panel-soft)!important;color:var(--app-muted)!important;border-color:var(--app-line)!important;}
+html[data-theme="light"] .table-row{color:var(--app-text)!important;border-color:var(--app-line)!important;}
+html[data-theme="light"] .empty-state{border-color:#c8c9cf!important;color:var(--app-muted)!important;}
+html[data-theme="light"] .footer{color:var(--app-muted)!important;border-color:var(--app-line)!important;}
+html[data-theme="light"] .profile-chip{background:#fff!important;border-color:var(--app-line)!important;color:var(--app-text)!important;}
+html[data-theme="light"] .profile-chip-copy strong{color:var(--app-text)!important;}
 html[data-theme="light"] .avatar{background:#f2ead7!important;color:#6c5420!important;}
 html[data-theme="light"] .secondary-button,
 html[data-theme="light"] .text-button,
@@ -116,7 +116,7 @@ html[data-theme="light"] .notice.success{background:#edf8f1!important;color:#246
 
 /* Profile/user settings/application sections stay visually distinct. */
 html[data-theme="light"] .settings-toggles label{background:#fff!important;border-color:var(--app-line)!important;color:#303238!important;}
-html[data-theme="light"] .application-note{background:#fff8e8!important;border-color:#e5d7b6!important;color:#666a74!important;}
+html[data-theme="light"] .application-note{background:#fff8e8!important;border-color:#e5d7b6!important;color:var(--app-muted)!important;}
 
 /* Responsive tiers: mobile, tablet and desktop, with fluid widths between them. */
 .app-shell{width:min(1120px,calc(100% - 40px));}
