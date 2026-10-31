@@ -33,8 +33,9 @@ export function AdminView() {
   const load = async () => {
     setBusy(true); setError("");
     try {
-      const [auditPayload, rolePayload, userPayload] = await Promise.all([
-        api(`/api/v1/admin/audit?page=${page}&limit=50`), api("/api/v1/admin/roles"), api("/api/v1/admin/users")
+      const [auditPayload, rolePayload, userPayload, configPayload] = await Promise.all([
+        api(`/api/v1/admin/audit?page=${page}&limit=50`), api("/api/v1/admin/roles"), api("/api/v1/admin/users"),
+        api("/api/v1/admin/mobile-config")
       ]);
       setAudit(auditPayload.data ?? []); setTotal(auditPayload.total ?? 0); setRoles(rolePayload.data ?? []); setUsers(userPayload.data ?? []);
       setMobileConfig(configPayload.data ?? null);
