@@ -48,6 +48,28 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     return;
   }
 
+  // Public, non-sensitive runtime configuration for native clients. Keep this
+  // endpoint limited to UI/feature policy; never return secrets or user data.
+  if (request.method === "GET" && url.pathname === "/api/v1/mobile/config") {
+    response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    response.setHeader("ETag", '"bye-pro-mobile-config-v1"');
+    json(response, 200, {
+      schema_version: 1,
+      config_version: 1,
+      minimum_supported_version_code: 0,
+      maintenance_mode: false,
+      maintenance_message_ar: "",
+      maintenance_message_en: "",
+      features: {
+        remote_announcements: true,
+        remote_ui_text: true,
+        experimental_features: false
+      },
+      updated_at: "2026-10-31T00:00:00.000Z"
+    });
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/api/v1/session") {
     const token = readBearerToken(request.headers);
     if (!token) { json(response, 401, { error: "AUTH_REQUIRED" }); return; }
