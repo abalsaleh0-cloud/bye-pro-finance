@@ -43,6 +43,60 @@ export async function handleAdmin(request: IncomingMessage, response: ServerResp
   const auth = await authenticate(request, response);
   if (!auth) return true;
 
+  if (request.method === "GET" && url.pathname === "/api/v1/admin/mobile-config") {
+    const { data, error } = await auth.client
+      .from("mobile_runtime_config")
+      .select("schema_version,config_version,minimum_supported_version_code,maintenance_mode,maintenance_message_ar,maintenance_message_en,features,updated_at,updated_by")
+      .eq("id", 1)
+      .single();
+    if (error || !data) { json(response, 403, { error: "MOBILE_CONFIG_UNAVAILABLE" }); return true; }
+    json(response, 200, { data });
+    return true;
+  }
+
+  if (request.method === "PATCH" && url.pathname === "/api/v1/admin/mobile-config") {
+    let body: any;
+    try { body = await readBody(request); } catch (error) {
+      json(response, 400, { error: error instanceof Error ? error.message : "INVALID_JSON" });
+      return true;
+    }
+    const minimumVersion = Number(body.minimum_supported_version_code);
+    const maintenanceMode = body.maintenance_mode;
+    const messageAr = typeof body.maintenance_message_ar === "string" ? body.maintenance_message_ar : "";
+    const messageEn = typeof body.maintenance_message_en === "string" ? body.maintenance_message_en : "";
+    const features = body.features;
+    if (!Number.isInteger(minimumVersion) || minimumVersion < 0 ||
+        typeof maintenanceMode !== "boolean" || messageAr.length > 1000 || messageEn.length > 1000 ||
+        !features || typeof features !== "object" ||
+        typeof features.remote_announcements !== "boolean" ||
+        typeof features.remote_ui_text !== "boolean" ||
+        typeof features.experimental_features !== "boolean") {
+      json(response, 400, { error: "INVALID_MOBILE_CONFIG" });
+      return true;
+    }
+    const { data: current, error: readError } = await auth.client
+      .from("mobile_runtime_config").select("config_version").eq("id", 1).single();
+    if (readError || !current) { json(response, 503, { error: "MOBILE_CONFIG_UNAVAILABLE" }); return true; }
+    const { data, error } = await auth.client
+      .from("mobile_runtime_config")
+      .update({
+        config_version: Number(current.config_version) + 1,
+        minimum_supported_version_code: minimumVersion,
+        maintenance_mode: maintenanceMode,
+        maintenance_message_ar: messageAr,
+        maintenance_message_en: messageEn,
+        features,
+        updated_at: new Date().toISOString(),
+        updated_by: auth.identity.id,
+      })
+      .eq("id", 1)
+      .select("schema_version,config_version,minimum_supported_version_code,maintenance_mode,maintenance_message_ar,maintenance_message_en,features,updated_at,updated_by")
+      .single();
+    if (error || !data) { json(response, 403, { error: "MOBILE_CONFIG_UPDATE_FORBIDDEN" }); return true; }
+    json(response, 200, { data });
+    return true;
+  }
+
   if (request.method === "GET" && url.pathname === "/api/v1/admin/audit") {
     const limit = positiveInt(url.searchParams.get("limit"), 50, 100);
     const page = positiveInt(url.searchParams.get("page"), 1, 100000);
