@@ -62,6 +62,8 @@ html[data-theme="light"],body[data-theme="light"]{
   --field-focus:var(--ui-accent,#8a671d);
 }
 html[data-theme="light"] body,body[data-theme="light"]{background:var(--app-bg)!important;color:var(--app-text)!important;}
+html[data-theme="light"],body[data-theme="light"]{color-scheme:light;}
+html[data-theme="light"] :where(input,select,textarea,input[type="file"]),body[data-theme="light"] :where(input,select,textarea,input[type="file"]){color-scheme:light!important;}
 html[data-theme="light"] .workspace,
 html[data-theme="light"] .workspace-main,
 html[data-theme="light"] .data-view,
