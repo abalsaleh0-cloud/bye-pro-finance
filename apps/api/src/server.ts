@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createClient } from "@supabase/supabase-js";
 import { json } from "./security/response.js";
 import { readBearerToken } from "./security/auth.js";
 import { createSupabaseUserLookup, verifyAccessToken } from "./auth/session.js";
@@ -48,25 +49,30 @@ export async function handle(request: IncomingMessage, response: ServerResponse)
     return;
   }
 
-  // Public, non-sensitive runtime configuration for native clients. Keep this
-  // endpoint limited to UI/feature policy; never return secrets or user data.
+  // Public runtime policy is read from the single-row Supabase control table.
+  // This endpoint intentionally exposes no credentials, user data, or executable content.
   if (request.method === "GET" && url.pathname === "/api/v1/mobile/config") {
-    response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
-    response.setHeader("ETag", '"bye-pro-mobile-config-v1"');
-    json(response, 200, {
-      schema_version: 1,
-      config_version: 1,
-      minimum_supported_version_code: 0,
-      maintenance_mode: false,
-      maintenance_message_ar: "",
-      maintenance_message_en: "",
-      features: {
-        remote_announcements: true,
-        remote_ui_text: true,
-        experimental_features: false
-      },
-      updated_at: "2026-10-31T00:00:00.000Z"
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !publishableKey) {
+      json(response, 503, { error: "RUNTIME_CONFIG_NOT_CONFIGURED" });
+      return;
+    }
+    const publicClient = createClient(supabaseUrl, publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
+    const { data, error } = await publicClient
+      .from("mobile_runtime_config")
+      .select("schema_version,config_version,minimum_supported_version_code,maintenance_mode,maintenance_message_ar,maintenance_message_en,features,updated_at")
+      .eq("id", 1)
+      .single();
+    if (error || !data) {
+      json(response, 503, { error: "RUNTIME_CONFIG_UNAVAILABLE" });
+      return;
+    }
+    response.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+    response.setHeader("ETag", `"bye-pro-mobile-config-v${data.config_version}"`);
+    json(response, 200, data);
     return;
   }
 
